@@ -1,0 +1,20 @@
+# Database Configuration
+# Скопируйте этот файл в .env и настройте параметры
+
+# База данных PostgreSQL
+DATABASE_URL="postgresql://etf_user:etf_password@localhost:5432/etf_flow_db?schema=public"
+
+# Альтернативные варианты подключения:
+# Локальная разработка:
+# DATABASE_URL="postgresql://postgres:postgres@localhost:5432/etf_flow_db?schema=public"
+
+# С внешним хостингом:
+# DATABASE_URL="postgresql://username:password@host:port/database?schema=public"
+
+# Настройки приложения
+PORT=3000
+NODE_ENV=development
+
+# Дополнительные настройки (опционально)
+# LOG_LEVEL=info
+# CORS_ORIGIN=http://localhost:3000
