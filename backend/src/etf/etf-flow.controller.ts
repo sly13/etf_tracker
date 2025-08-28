@@ -1,9 +1,13 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { UniversalETFFlowService } from './universal-etf-flow.service';
+import { ETFSchedulerService } from './etf-scheduler.service';
 
 @Controller('etf-flow')
 export class ETFFlowController {
-  constructor(private readonly etfFlowService: UniversalETFFlowService) {}
+  constructor(
+    private readonly etfFlowService: UniversalETFFlowService,
+    private readonly etfSchedulerService: ETFSchedulerService,
+  ) {}
 
   @Get()
   async getETFFlowData() {
@@ -70,5 +74,15 @@ export class ETFFlowController {
     const data = await this.etfFlowService.parseETFFlowData('bitcoin');
     await this.etfFlowService.saveETFFlowData('bitcoin', data);
     return { success: true, count: data.length };
+  }
+
+  @Post('update-now')
+  async updateETFDataNow() {
+    await this.etfSchedulerService.manualUpdate();
+    return {
+      success: true,
+      message: 'ETF данные обновляются в фоновом режиме',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

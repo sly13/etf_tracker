@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ETFFlowController = void 0;
 const common_1 = require("@nestjs/common");
 const universal_etf_flow_service_1 = require("./universal-etf-flow.service");
+const etf_scheduler_service_1 = require("./etf-scheduler.service");
 let ETFFlowController = class ETFFlowController {
-    constructor(etfFlowService) {
+    constructor(etfFlowService, etfSchedulerService) {
         this.etfFlowService = etfFlowService;
+        this.etfSchedulerService = etfSchedulerService;
     }
     async getETFFlowData() {
         return await this.etfFlowService.getETFFlowData('ethereum');
@@ -60,6 +62,14 @@ let ETFFlowController = class ETFFlowController {
         await this.etfFlowService.saveETFFlowData('bitcoin', data);
         return { success: true, count: data.length };
     }
+    async updateETFDataNow() {
+        await this.etfSchedulerService.manualUpdate();
+        return {
+            success: true,
+            message: 'ETF данные обновляются в фоновом режиме',
+            timestamp: new Date().toISOString(),
+        };
+    }
 };
 exports.ETFFlowController = ETFFlowController;
 __decorate([
@@ -104,8 +114,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ETFFlowController.prototype, "parseBitcoinETFFlowData", null);
+__decorate([
+    (0, common_1.Post)('update-now'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ETFFlowController.prototype, "updateETFDataNow", null);
 exports.ETFFlowController = ETFFlowController = __decorate([
     (0, common_1.Controller)('etf-flow'),
-    __metadata("design:paramtypes", [universal_etf_flow_service_1.UniversalETFFlowService])
+    __metadata("design:paramtypes", [universal_etf_flow_service_1.UniversalETFFlowService,
+        etf_scheduler_service_1.ETFSchedulerService])
 ], ETFFlowController);
 //# sourceMappingURL=etf-flow.controller.js.map
