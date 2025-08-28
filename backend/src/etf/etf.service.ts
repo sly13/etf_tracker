@@ -1,66 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateEtfDto } from './dto/create-etf.dto';
-import { UpdateEtfDto } from './dto/update-etf.dto';
 
 @Injectable()
 export class EtfService {
   constructor(private prisma: PrismaService) {}
 
-  create(createEtfDto: CreateEtfDto) {
-    return this.prisma.eTF.create({
-      data: createEtfDto,
-    });
-  }
-
+  // Получить все ETF потоки (Ethereum)
   findAll() {
-    return this.prisma.eTF.findMany({
-      include: {
-        prices: {
-          orderBy: { date: 'desc' },
-          take: 1,
-        },
-        holdings: true,
-      },
+    return this.prisma.eTFFlow.findMany({
+      orderBy: { date: 'desc' },
     });
   }
 
+  // Получить ETF поток по ID
   findOne(id: string) {
-    return this.prisma.eTF.findUnique({
+    return this.prisma.eTFFlow.findUnique({
       where: { id },
-      include: {
-        prices: {
-          orderBy: { date: 'desc' },
-          take: 30,
-        },
-        holdings: true,
-      },
     });
   }
 
-  findBySymbol(symbol: string) {
-    return this.prisma.eTF.findUnique({
-      where: { symbol },
-      include: {
-        prices: {
-          orderBy: { date: 'desc' },
-          take: 30,
-        },
-        holdings: true,
-      },
+  // Получить ETF поток по дате
+  findByDate(date: Date) {
+    return this.prisma.eTFFlow.findUnique({
+      where: { date },
     });
   }
 
-  update(id: string, updateEtfDto: UpdateEtfDto) {
-    return this.prisma.eTF.update({
-      where: { id },
-      data: updateEtfDto,
+  // Получить все Bitcoin потоки
+  findAllBitcoin() {
+    return this.prisma.bTCFlow.findMany({
+      orderBy: { date: 'desc' },
     });
   }
 
-  remove(id: string) {
-    return this.prisma.eTF.delete({
+  // Получить Bitcoin поток по ID
+  findOneBitcoin(id: string) {
+    return this.prisma.bTCFlow.findUnique({
       where: { id },
+    });
+  }
+
+  // Получить Bitcoin поток по дате
+  findByDateBitcoin(date: Date) {
+    return this.prisma.bTCFlow.findUnique({
+      where: { date },
     });
   }
 }

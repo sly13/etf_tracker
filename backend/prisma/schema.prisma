@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,35 +8,35 @@ datasource db {
 }
 
 model ETFFlow {
-  id        String   @id @default(cuid())
-  date      DateTime @unique
-  blackrock Float?
-  fidelity  Float?
-  bitwise   Float?
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+  blackrock       Float?
+  fidelity        Float?
+  bitwise         Float?
   twentyOneShares Float?
-  vanEck    Float?
-  invesco   Float?
-  franklin  Float?
-  grayscale Float?
-  grayscaleEth Float?
-  total     Float?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  vanEck          Float?
+  invesco         Float?
+  franklin        Float?
+  grayscale       Float?
+  grayscaleEth    Float?
+  total           Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model BTCFlow {
-  id        String   @id @default(cuid())
-  date      DateTime @unique
-  blackrock Float?
-  fidelity  Float?
-  bitwise   Float?
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+  blackrock       Float?
+  fidelity        Float?
+  bitwise         Float?
   twentyOneShares Float?
-  vanEck    Float?
-  invesco   Float?
-  franklin  Float?
-  grayscale Float?
-  grayscaleBtc Float?
-  total     Float?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  vanEck          Float?
+  invesco         Float?
+  franklin        Float?
+  grayscale       Float?
+  grayscaleBtc    Float?
+  total           Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

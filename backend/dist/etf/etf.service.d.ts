@@ -1,145 +1,101 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateEtfDto } from './dto/create-etf.dto';
-import { UpdateEtfDto } from './dto/update-etf.dto';
 export declare class EtfService {
     private prisma;
     constructor(prisma: PrismaService);
-    create(createEtfDto: CreateEtfDto): import(".prisma/client").Prisma.Prisma__ETFClient<{
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        grayscaleEth: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<({
-        prices: {
-            id: string;
-            createdAt: Date;
-            date: Date;
-            etfId: string;
-            open: number;
-            high: number;
-            low: number;
-            close: number;
-            volume: number;
-        }[];
-        holdings: {
-            name: string;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            etfId: string;
-            ticker: string;
-            weight: number;
-            sector: string | null;
-        }[];
-    } & {
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+    }[]>;
+    findOne(id: string): import(".prisma/client").Prisma.Prisma__ETFFlowClient<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        grayscaleEth: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    })[]>;
-    findOne(id: string): import(".prisma/client").Prisma.Prisma__ETFClient<({
-        prices: {
-            id: string;
-            createdAt: Date;
-            date: Date;
-            etfId: string;
-            open: number;
-            high: number;
-            low: number;
-            close: number;
-            volume: number;
-        }[];
-        holdings: {
-            name: string;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            etfId: string;
-            ticker: string;
-            weight: number;
-            sector: string | null;
-        }[];
-    } & {
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    findByDate(date: Date): import(".prisma/client").Prisma.Prisma__ETFFlowClient<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        grayscaleEth: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    }) | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findBySymbol(symbol: string): import(".prisma/client").Prisma.Prisma__ETFClient<({
-        prices: {
-            id: string;
-            createdAt: Date;
-            date: Date;
-            etfId: string;
-            open: number;
-            high: number;
-            low: number;
-            close: number;
-            volume: number;
-        }[];
-        holdings: {
-            name: string;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            etfId: string;
-            ticker: string;
-            weight: number;
-            sector: string | null;
-        }[];
-    } & {
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    findAllBitcoin(): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    }) | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    update(id: string, updateEtfDto: UpdateEtfDto): import(".prisma/client").Prisma.Prisma__ETFClient<{
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+        grayscaleBtc: number | null;
+    }[]>;
+    findOneBitcoin(id: string): import(".prisma/client").Prisma.Prisma__BTCFlowClient<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: string): import(".prisma/client").Prisma.Prisma__ETFClient<{
-        symbol: string;
-        name: string;
-        description: string | null;
-        assetClass: string;
-        expenseRatio: number;
-        aum: number | null;
-        inceptionDate: Date | null;
+        grayscaleBtc: number | null;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    findByDateBitcoin(date: Date): import(".prisma/client").Prisma.Prisma__BTCFlowClient<{
         id: string;
+        date: Date;
+        blackrock: number | null;
+        fidelity: number | null;
+        bitwise: number | null;
+        twentyOneShares: number | null;
+        vanEck: number | null;
+        invesco: number | null;
+        franklin: number | null;
+        grayscale: number | null;
+        total: number | null;
         createdAt: Date;
         updatedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+        grayscaleBtc: number | null;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

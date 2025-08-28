@@ -16,55 +16,34 @@ let EtfService = class EtfService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(createEtfDto) {
-        return this.prisma.eTF.create({
-            data: createEtfDto,
-        });
-    }
     findAll() {
-        return this.prisma.eTF.findMany({
-            include: {
-                prices: {
-                    orderBy: { date: 'desc' },
-                    take: 1,
-                },
-                holdings: true,
-            },
+        return this.prisma.eTFFlow.findMany({
+            orderBy: { date: 'desc' },
         });
     }
     findOne(id) {
-        return this.prisma.eTF.findUnique({
+        return this.prisma.eTFFlow.findUnique({
             where: { id },
-            include: {
-                prices: {
-                    orderBy: { date: 'desc' },
-                    take: 30,
-                },
-                holdings: true,
-            },
         });
     }
-    findBySymbol(symbol) {
-        return this.prisma.eTF.findUnique({
-            where: { symbol },
-            include: {
-                prices: {
-                    orderBy: { date: 'desc' },
-                    take: 30,
-                },
-                holdings: true,
-            },
+    findByDate(date) {
+        return this.prisma.eTFFlow.findUnique({
+            where: { date },
         });
     }
-    update(id, updateEtfDto) {
-        return this.prisma.eTF.update({
-            where: { id },
-            data: updateEtfDto,
+    findAllBitcoin() {
+        return this.prisma.bTCFlow.findMany({
+            orderBy: { date: 'desc' },
         });
     }
-    remove(id) {
-        return this.prisma.eTF.delete({
+    findOneBitcoin(id) {
+        return this.prisma.bTCFlow.findUnique({
             where: { id },
+        });
+    }
+    findByDateBitcoin(date) {
+        return this.prisma.bTCFlow.findUnique({
+            where: { date },
         });
     }
 };
