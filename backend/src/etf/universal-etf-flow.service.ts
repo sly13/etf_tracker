@@ -42,7 +42,8 @@ export class UniversalETFFlowService {
         `Начинаю парсинг данных о потоках ${type.toUpperCase()} ETF с помощью Puppeteer`,
       );
 
-      browser = await puppeteer.launch({
+      // Настройки Puppeteer для сервера
+      const puppeteerOptions: any = {
         headless: true,
         args: [
           '--no-sandbox',
@@ -52,8 +53,23 @@ export class UniversalETFFlowService {
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--single-process',
         ],
-      });
+      };
+
+      // Используем системный Chrome если доступен
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        puppeteerOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+
+      // Добавляем дополнительные аргументы из переменных окружения
+      if (process.env.PUPPETEER_ARGS) {
+        puppeteerOptions.args.push(...process.env.PUPPETEER_ARGS.split(' '));
+      }
+
+      browser = await puppeteer.launch(puppeteerOptions);
 
       const page: puppeteer.Page = await browser.newPage();
 

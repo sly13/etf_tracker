@@ -9,10 +9,18 @@ module.exports = {
 			env: {
 				NODE_ENV: 'development',
 				PORT: 3066,
+				// Настройки Puppeteer для сервера
+				PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false',
+				PUPPETEER_EXECUTABLE_PATH: '/usr/bin/google-chrome-stable',
+				PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu',
 			},
 			env_production: {
 				NODE_ENV: 'production',
 				PORT: 3066,
+				// Настройки Puppeteer для production
+				PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false',
+				PUPPETEER_EXECUTABLE_PATH: '/usr/bin/google-chrome-stable',
+				PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu',
 			},
 			error_file: './logs/err.log',
 			out_file: './logs/out.log',

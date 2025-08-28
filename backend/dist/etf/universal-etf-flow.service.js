@@ -60,7 +60,7 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
         let browser;
         try {
             this.logger.log(`Начинаю парсинг данных о потоках ${type.toUpperCase()} ETF с помощью Puppeteer`);
-            browser = await puppeteer.launch({
+            const puppeteerOptions = {
                 headless: true,
                 args: [
                     '--no-sandbox',
@@ -70,8 +70,18 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                     '--no-first-run',
                     '--no-zygote',
                     '--disable-gpu',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor',
+                    '--single-process',
                 ],
-            });
+            };
+            if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+                puppeteerOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+            }
+            if (process.env.PUPPETEER_ARGS) {
+                puppeteerOptions.args.push(...process.env.PUPPETEER_ARGS.split(' '));
+            }
+            browser = await puppeteer.launch(puppeteerOptions);
             const page = await browser.newPage();
             await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36');
             await page.setViewport({ width: 1920, height: 1080 });
