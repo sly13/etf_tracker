@@ -4,6 +4,9 @@
 # База данных PostgreSQL
 DATABASE_URL="postgresql://etf_user:etf_password@localhost:5432/etf_flow_db?schema=public"
 
+# Shadow Database для миграций (используйте ту же базу данных)
+SHADOW_DATABASE_URL="postgresql://etf_user:etf_password@localhost:5432/etf_flow_db?schema=public"
+
 # Альтернативные варианты подключения:
 # Локальная разработка:
 # DATABASE_URL="postgresql://postgres:postgres@localhost:5432/etf_flow_db?schema=public"
