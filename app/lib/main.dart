@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ETFProvider(),
+      create: (context) => ETFProvider()..initializeData(),
       child: MaterialApp(
         title: 'ETF Tracker',
         theme: ThemeData(

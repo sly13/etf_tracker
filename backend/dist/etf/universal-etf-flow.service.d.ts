@@ -1,16 +1,20 @@
 import { PrismaService } from '../prisma/prisma.service';
 export interface ETFFlowData {
     date: string;
-    blackrock: number | null;
-    fidelity: number | null;
-    bitwise: number | null;
-    twentyOneShares: number | null;
-    vanEck: number | null;
-    invesco: number | null;
-    franklin: number | null;
-    grayscale: number | null;
-    grayscaleCrypto: number | null;
-    total: number | null;
+    blackrock: number;
+    fidelity: number;
+    bitwise: number;
+    twentyOneShares: number;
+    vanEck: number;
+    invesco: number;
+    franklin: number;
+    grayscale: number;
+    grayscaleCrypto: number;
+    total: number;
+}
+export interface BTCFlowData extends ETFFlowData {
+    valkyrie: number;
+    wisdomTree: number;
 }
 export interface ParsingResult {
     success: boolean;
@@ -23,9 +27,9 @@ export declare class UniversalETFFlowService {
     private readonly logger;
     private readonly urls;
     constructor(prisma: PrismaService);
-    parseETFFlowData(type: 'ethereum' | 'bitcoin'): Promise<ETFFlowData[]>;
-    saveETFFlowData(type: 'ethereum' | 'bitcoin', flowData: ETFFlowData[]): Promise<void>;
-    getETFFlowData(type: 'ethereum' | 'bitcoin'): Promise<ETFFlowData[]>;
+    parseETFFlowData(type: 'ethereum' | 'bitcoin'): Promise<ETFFlowData[] | BTCFlowData[]>;
+    saveETFFlowData(type: 'ethereum' | 'bitcoin', flowData: ETFFlowData[] | BTCFlowData[]): Promise<void>;
+    getETFFlowData(type: 'ethereum' | 'bitcoin'): Promise<ETFFlowData[] | BTCFlowData[]>;
     parseAllETFFlowData(): Promise<{
         ethereum: ParsingResult;
         bitcoin: ParsingResult;

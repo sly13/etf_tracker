@@ -97,6 +97,30 @@ class ETFProvider with ChangeNotifier {
     }
   }
 
+  // Инициализация данных при старте приложения
+  Future<void> initializeData() async {
+    try {
+      print('🚀 Инициализация ETF Tracker...');
+      _setLoading(true);
+      _clearError();
+
+      // Загружаем все основные данные параллельно
+      await Future.wait([
+        loadEthereumData(),
+        loadBitcoinData(),
+        loadSummaryData(),
+        loadFundHoldings(),
+      ]);
+
+      print('✅ Инициализация завершена успешно');
+    } catch (e) {
+      print('❌ Ошибка инициализации: $e');
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Загрузить все данные
   Future<void> loadAllData() async {
     await Future.wait([

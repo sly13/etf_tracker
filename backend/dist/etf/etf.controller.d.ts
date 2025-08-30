@@ -33,6 +33,8 @@ export declare class EtfController {
         createdAt: Date;
         updatedAt: Date;
         grayscaleBtc: number | null;
+        valkyrie: number | null;
+        wisdomTree: number | null;
     }[]>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__ETFFlowClient<{
         id: string;
@@ -65,5 +67,7 @@ export declare class EtfController {
         createdAt: Date;
         updatedAt: Date;
         grayscaleBtc: number | null;
+        valkyrie: number | null;
+        wisdomTree: number | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

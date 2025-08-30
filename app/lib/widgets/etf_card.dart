@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import '../models/etf.dart';
+import '../services/fund_logo_service.dart';
 import 'package:intl/intl.dart';
 
 class ETFCard extends StatelessWidget {
   final ETF etf;
   final VoidCallback onTap;
 
-  const ETFCard({
-    super.key,
-    required this.etf,
-    required this.onTap,
-  });
+  const ETFCard({super.key, required this.etf, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isPositive = etf.changePercent >= 0;
     final changeColor = isPositive ? Colors.green : Colors.red;
     final changeIcon = isPositive ? Icons.trending_up : Icons.trending_down;
+
+    // Определяем ключ фонда по названию
+    final fundKey = _getFundKeyFromName(etf.name);
 
     return Card(
       elevation: 4,
@@ -30,8 +30,22 @@ class ETFCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Логотип фонда
+                  if (fundKey != null)
+                    Container(
+                      width: 40,
+                      height: 40,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: FundLogoService.getLogoWidget(
+                        fundKey,
+                        width: 40,
+                        height: 40,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+
+                  // Информация о фонде
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,6 +70,8 @@ class ETFCard extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // Цена и изменение
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -70,11 +86,7 @@ class ETFCard extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            changeIcon,
-                            size: 16,
-                            color: changeColor,
-                          ),
+                          Icon(changeIcon, size: 16, color: changeColor),
                           const SizedBox(width: 4),
                           Text(
                             '${etf.changePercent.toStringAsFixed(2)}%',
@@ -134,29 +146,49 @@ class ETFCard extends StatelessWidget {
     );
   }
 
+  /// Определяет ключ фонда по названию
+  String? _getFundKeyFromName(String name) {
+    final lowerName = name.toLowerCase();
+
+    if (lowerName.contains('blackrock') || lowerName.contains('ibit')) {
+      return 'blackrock';
+    } else if (lowerName.contains('fidelity') || lowerName.contains('fbtc')) {
+      return 'fidelity';
+    } else if (lowerName.contains('bitwise') || lowerName.contains('bitb')) {
+      return 'bitwise';
+    } else if (lowerName.contains('21shares') ||
+        lowerName.contains('ark') ||
+        lowerName.contains('arkb')) {
+      return 'twentyOneShares';
+    } else if (lowerName.contains('vaneck') || lowerName.contains('hodl')) {
+      return 'vanEck';
+    } else if (lowerName.contains('invesco') || lowerName.contains('btco')) {
+      return 'invesco';
+    } else if (lowerName.contains('franklin') || lowerName.contains('ezbc')) {
+      return 'franklin';
+    } else if (lowerName.contains('grayscale') && lowerName.contains('btc')) {
+      return 'grayscale';
+    } else if (lowerName.contains('grayscale') && lowerName.contains('eth')) {
+      return 'grayscaleCrypto';
+    } else if (lowerName.contains('valkyrie') || lowerName.contains('brrr')) {
+      return 'valkyrie';
+    } else if (lowerName.contains('wisdomtree') || lowerName.contains('btcw')) {
+      return 'wisdomTree';
+    }
+
+    return null;
+  }
+
   Widget _buildInfoItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Colors.grey[600],
-        ),
+        Icon(icon, size: 20, color: Colors.grey[600]),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
       ],

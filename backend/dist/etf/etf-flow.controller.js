@@ -90,6 +90,8 @@ let ETFFlowController = class ETFFlowController {
             franklin: { eth: 0, btc: 0 },
             grayscale: { eth: 0, btc: 0 },
             grayscaleCrypto: { eth: 0, btc: 0 },
+            valkyrie: { eth: 0, btc: 0 },
+            wisdomTree: { eth: 0, btc: 0 },
         };
         ethereumData.forEach((item) => {
             fundHoldings.blackrock.eth += item.blackrock || 0;
@@ -112,6 +114,9 @@ let ETFFlowController = class ETFFlowController {
             fundHoldings.franklin.btc += item.franklin || 0;
             fundHoldings.grayscale.btc += item.grayscale || 0;
             fundHoldings.grayscaleCrypto.btc += item.grayscaleCrypto || 0;
+            const btcItem = item;
+            fundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
+            fundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
         });
         Object.keys(fundHoldings).forEach((fund) => {
             fundHoldings[fund].eth = Math.round(fundHoldings[fund].eth * 100) / 100;

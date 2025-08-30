@@ -65,6 +65,8 @@ export declare class EtfService {
         createdAt: Date;
         updatedAt: Date;
         grayscaleBtc: number | null;
+        valkyrie: number | null;
+        wisdomTree: number | null;
     }[]>;
     findOneBitcoin(id: string): import(".prisma/client").Prisma.Prisma__BTCFlowClient<{
         id: string;
@@ -81,6 +83,8 @@ export declare class EtfService {
         createdAt: Date;
         updatedAt: Date;
         grayscaleBtc: number | null;
+        valkyrie: number | null;
+        wisdomTree: number | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     findByDateBitcoin(date: Date): import(".prisma/client").Prisma.Prisma__BTCFlowClient<{
         id: string;
@@ -97,5 +101,7 @@ export declare class EtfService {
         createdAt: Date;
         updatedAt: Date;
         grayscaleBtc: number | null;
+        valkyrie: number | null;
+        wisdomTree: number | null;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

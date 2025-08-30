@@ -1,5 +1,5 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { UniversalETFFlowService } from './universal-etf-flow.service';
+import { UniversalETFFlowService, ETFFlowData, BTCFlowData } from './universal-etf-flow.service';
 import { ETFSchedulerService } from './etf-scheduler.service';
 
 @Controller('etf-flow')
@@ -12,8 +12,8 @@ export class ETFFlowController {
   @Get()
   async getETFFlowData() {
     // Возвращаем общие данные для всех ETF
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
+    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
 
     // Объединяем данные, убирая дубликаты по дате
     const allData = [...ethereumData, ...bitcoinData];
@@ -47,8 +47,8 @@ export class ETFFlowController {
 
   @Get('summary')
   async getETFFlowSummary() {
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
+    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
 
     // Берем только последние данные для каждого типа
     const latestEthereum = ethereumData[0];
@@ -105,8 +105,8 @@ export class ETFFlowController {
 
   @Get('holdings')
   async getFundHoldings() {
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
+    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
 
     // Создаем объект для хранения суммарного владения каждого фонда
     const fundHoldings: Record<string, { eth: number; btc: number }> = {
@@ -119,6 +119,8 @@ export class ETFFlowController {
       franklin: { eth: 0, btc: 0 },
       grayscale: { eth: 0, btc: 0 },
       grayscaleCrypto: { eth: 0, btc: 0 },
+      valkyrie: { eth: 0, btc: 0 },
+      wisdomTree: { eth: 0, btc: 0 },
     };
 
     // Суммируем все потоки Ethereum для каждого фонда
@@ -132,6 +134,7 @@ export class ETFFlowController {
       fundHoldings.franklin.eth += item.franklin || 0;
       fundHoldings.grayscale.eth += item.grayscale || 0;
       fundHoldings.grayscaleCrypto.eth += item.grayscaleCrypto || 0;
+      // Valkyrie и WisdomTree нет в Ethereum ETF
     });
 
     // Суммируем все потоки Bitcoin для каждого фонда
@@ -145,6 +148,10 @@ export class ETFFlowController {
       fundHoldings.franklin.btc += item.franklin || 0;
       fundHoldings.grayscale.btc += item.grayscale || 0;
       fundHoldings.grayscaleCrypto.btc += item.grayscaleCrypto || 0;
+      // Для Bitcoin данных нужно проверить наличие полей
+      const btcItem = item as any;
+      fundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
+      fundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
     });
 
     // Округляем значения до 2 знаков после запятой

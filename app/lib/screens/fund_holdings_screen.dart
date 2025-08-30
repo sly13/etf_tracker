@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
+import '../services/fund_logo_service.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -195,12 +196,33 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    fundName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      // Логотип фонда
+                      if (FundLogoService.hasLogo(entry.key))
+                        Container(
+                          width: 32,
+                          height: 32,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: FundLogoService.getLogoWidget(
+                            entry.key,
+                            width: 32,
+                            height: 32,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+
+                      // Название фонда
+                      Expanded(
+                        child: Text(
+                          fundName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -280,27 +302,6 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   }
 
   String _getFundDisplayName(String fundKey) {
-    switch (fundKey) {
-      case 'blackrock':
-        return 'BlackRock';
-      case 'fidelity':
-        return 'Fidelity';
-      case 'bitwise':
-        return 'Bitwise';
-      case 'twentyOneShares':
-        return '21Shares';
-      case 'vanEck':
-        return 'VanEck';
-      case 'invesco':
-        return 'Invesco';
-      case 'franklin':
-        return 'Franklin';
-      case 'grayscale':
-        return 'Grayscale';
-      case 'grayscaleCrypto':
-        return 'Grayscale Crypto';
-      default:
-        return fundKey;
-    }
+    return FundLogoService.getFundName(fundKey);
   }
 }

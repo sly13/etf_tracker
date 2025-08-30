@@ -1,12 +1,12 @@
-import { UniversalETFFlowService } from './universal-etf-flow.service';
+import { UniversalETFFlowService, ETFFlowData, BTCFlowData } from './universal-etf-flow.service';
 import { ETFSchedulerService } from './etf-scheduler.service';
 export declare class ETFFlowController {
     private readonly etfFlowService;
     private readonly etfSchedulerService;
     constructor(etfFlowService: UniversalETFFlowService, etfSchedulerService: ETFSchedulerService);
-    getETFFlowData(): Promise<import("./universal-etf-flow.service").ETFFlowData[]>;
-    getEthereumETFFlowData(): Promise<import("./universal-etf-flow.service").ETFFlowData[]>;
-    getBitcoinETFFlowData(): Promise<import("./universal-etf-flow.service").ETFFlowData[]>;
+    getETFFlowData(): Promise<ETFFlowData[]>;
+    getEthereumETFFlowData(): Promise<ETFFlowData[] | BTCFlowData[]>;
+    getBitcoinETFFlowData(): Promise<ETFFlowData[] | BTCFlowData[]>;
     getETFFlowSummary(): Promise<{
         ethereum: {
             total: number;

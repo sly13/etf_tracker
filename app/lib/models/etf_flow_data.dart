@@ -9,6 +9,8 @@ class ETFFlowData {
   final double? franklin;
   final double? grayscale;
   final double? grayscaleCrypto;
+  final double? valkyrie;
+  final double? wisdomTree;
   final double? total;
 
   ETFFlowData({
@@ -22,6 +24,8 @@ class ETFFlowData {
     this.franklin,
     this.grayscale,
     this.grayscaleCrypto,
+    this.valkyrie,
+    this.wisdomTree,
     this.total,
   });
 
@@ -37,6 +41,8 @@ class ETFFlowData {
       franklin: json['franklin']?.toDouble(),
       grayscale: json['grayscale']?.toDouble(),
       grayscaleCrypto: json['grayscaleCrypto']?.toDouble(),
+      valkyrie: json['valkyrie']?.toDouble(),
+      wisdomTree: json['wisdomTree']?.toDouble(),
       total: json['total']?.toDouble(),
     );
   }
@@ -53,6 +59,8 @@ class ETFFlowData {
       'franklin': franklin,
       'grayscale': grayscale,
       'grayscaleCrypto': grayscaleCrypto,
+      'valkyrie': valkyrie,
+      'wisdomTree': wisdomTree,
       'total': total,
     };
   }
@@ -73,11 +81,15 @@ class ETFFlowData {
       case 'invesco':
         return 'Invesco';
       case 'franklin':
-        return 'Franklin';
+        return 'Franklin Templeton';
       case 'grayscale':
         return 'Grayscale';
       case 'grayscaleCrypto':
         return 'Grayscale Crypto';
+      case 'valkyrie':
+        return 'Valkyrie';
+      case 'wisdomTree':
+        return 'WisdomTree';
       default:
         return key;
     }
@@ -95,6 +107,8 @@ class ETFFlowData {
       MapEntry('franklin', franklin),
       MapEntry('grayscale', grayscale),
       MapEntry('grayscaleCrypto', grayscaleCrypto),
+      MapEntry('valkyrie', valkyrie),
+      MapEntry('wisdomTree', wisdomTree),
     ];
   }
 }
