@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/etf_flow_data.dart';
+import '../models/etf.dart';
 import '../services/etf_service.dart';
 
 class ETFProvider with ChangeNotifier {
@@ -7,6 +8,7 @@ class ETFProvider with ChangeNotifier {
 
   List<ETFFlowData> _ethereumData = [];
   List<ETFFlowData> _bitcoinData = [];
+  List<ETFFlowData> _etfFlowData = [];
   Map<String, dynamic>? _summaryData;
   bool _isLoading = false;
   String? _error;
@@ -15,6 +17,7 @@ class ETFProvider with ChangeNotifier {
   // Getters
   List<ETFFlowData> get ethereumData => _ethereumData;
   List<ETFFlowData> get bitcoinData => _bitcoinData;
+  List<ETFFlowData> get etfFlowData => _etfFlowData;
   List<ETFFlowData> get currentData =>
       _currentTab == 'ethereum' ? _ethereumData : _bitcoinData;
   Map<String, dynamic>? get summaryData => _summaryData;
@@ -80,6 +83,57 @@ class ETFProvider with ChangeNotifier {
       loadBitcoinData(),
       loadSummaryData(),
     ]);
+  }
+
+  // Загрузить данные ETF потоков
+  Future<void> loadETFFlowData() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // _etfFlowData = await _etfService.getETFFlowData(); // This line was commented out in the original file
+      notifyListeners();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Загрузить список ETF
+  Future<void> loadETFs() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Временно используем пустой список, так как метод getETFs не реализован в сервисе
+      // _etfs = await _etfService.getETFs();
+      notifyListeners();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Поиск ETF по запросу
+  List<ETF> searchETFs(String query) {
+    if (query.isEmpty) return [];
+    // Временно возвращаем пустой список
+    return [];
+  }
+
+  // Фильтрация ETF по классу активов
+  List<ETF> filterETFsByAssetClass(String assetClass) {
+    if (assetClass.isEmpty) return [];
+    // Временно возвращаем пустой список
+    return [];
+  }
+
+  // Получить уникальные классы активов
+  List<String> getUniqueAssetClasses() {
+    // Временно возвращаем пустой список
+    return [];
   }
 
   // Private methods

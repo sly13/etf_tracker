@@ -25,3 +25,4 @@ export class CreateEtfDto {
   @IsDateString()
   inceptionDate?: string;
 }
+

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/etf_flow_data.dart';
 
 class ETFService {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://etf-flow.vadimsemenko.ru';
 
   // Получить данные Ethereum ETF потоков
   Future<List<ETFFlowData>> getEthereumData() async {
@@ -51,6 +51,24 @@ class ETFService {
       } else {
         throw Exception(
           'Ошибка загрузки суммарных данных: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Ошибка сети: $e');
+    }
+  }
+
+  // Получить общие данные ETF потоков
+  Future<List<ETFFlowData>> getETFFlowData() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/etf-flow'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((json) => ETFFlowData.fromJson(json)).toList();
+      } else {
+        throw Exception(
+          'Ошибка загрузки данных ETF потоков: ${response.statusCode}',
         );
       }
     } catch (e) {
