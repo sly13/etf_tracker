@@ -19,7 +19,13 @@ let ETFFlowController = class ETFFlowController {
         this.etfSchedulerService = etfSchedulerService;
     }
     async getETFFlowData() {
-        return await this.etfFlowService.getETFFlowData('ethereum');
+        const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
+        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+        const allData = [...ethereumData, ...bitcoinData];
+        const uniqueData = allData.filter((item, index, self) => index === self.findIndex((t) => t.date === item.date));
+        const sortedData = uniqueData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const filteredData = sortedData.filter((item) => item.total !== null && item.total !== 0);
+        return filteredData.length > 0 ? filteredData : sortedData.slice(0, 10);
     }
     async getEthereumETFFlowData() {
         return await this.etfFlowService.getETFFlowData('ethereum');
@@ -30,22 +36,94 @@ let ETFFlowController = class ETFFlowController {
     async getETFFlowSummary() {
         const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
         const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
-        const ethereumTotal = ethereumData.reduce((sum, item) => sum + (item.total || 0), 0);
-        const bitcoinTotal = bitcoinData.reduce((sum, item) => sum + (item.total || 0), 0);
+        const latestEthereum = ethereumData[0];
+        const latestBitcoin = bitcoinData[0];
+        let ethereumTotal = latestEthereum?.total || 0;
+        let bitcoinTotal = latestBitcoin?.total || 0;
+        if (ethereumTotal === 0 && ethereumData.length > 0) {
+            ethereumTotal = ethereumData
+                .slice(0, Math.min(7, ethereumData.length))
+                .reduce((sum, item) => sum + (item.total || 0), 0);
+        }
+        if (bitcoinTotal === 0 && bitcoinData.length > 0) {
+            bitcoinTotal = bitcoinData
+                .slice(0, Math.min(7, bitcoinData.length))
+                .reduce((sum, item) => sum + (item.total || 0), 0);
+        }
+        const overallTotal = ethereumTotal + bitcoinTotal;
         return {
             ethereum: {
                 total: ethereumTotal,
                 count: ethereumData.length,
-                average: ethereumData.length > 0 ? ethereumTotal / ethereumData.length : 0,
+                average: ethereumData.length > 0
+                    ? ethereumData.reduce((sum, item) => sum + (item.total || 0), 0) /
+                        ethereumData.length
+                    : 0,
+                latestDate: latestEthereum?.date || null,
             },
             bitcoin: {
                 total: bitcoinTotal,
                 count: bitcoinData.length,
-                average: bitcoinData.length > 0 ? bitcoinTotal / bitcoinData.length : 0,
+                average: bitcoinData.length > 0
+                    ? bitcoinData.reduce((sum, item) => sum + (item.total || 0), 0) /
+                        bitcoinData.length
+                    : 0,
+                latestDate: latestBitcoin?.date || null,
             },
             overall: {
-                total: ethereumTotal + bitcoinTotal,
+                total: overallTotal,
                 count: ethereumData.length + bitcoinData.length,
+                latestDate: latestEthereum?.date || latestBitcoin?.date || null,
+            },
+        };
+    }
+    async getFundHoldings() {
+        const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
+        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+        const fundHoldings = {
+            blackrock: { eth: 0, btc: 0 },
+            fidelity: { eth: 0, btc: 0 },
+            bitwise: { eth: 0, btc: 0 },
+            twentyOneShares: { eth: 0, btc: 0 },
+            vanEck: { eth: 0, btc: 0 },
+            invesco: { eth: 0, btc: 0 },
+            franklin: { eth: 0, btc: 0 },
+            grayscale: { eth: 0, btc: 0 },
+            grayscaleCrypto: { eth: 0, btc: 0 },
+        };
+        ethereumData.forEach((item) => {
+            fundHoldings.blackrock.eth += item.blackrock || 0;
+            fundHoldings.fidelity.eth += item.fidelity || 0;
+            fundHoldings.bitwise.eth += item.bitwise || 0;
+            fundHoldings.twentyOneShares.eth += item.twentyOneShares || 0;
+            fundHoldings.vanEck.eth += item.vanEck || 0;
+            fundHoldings.invesco.eth += item.invesco || 0;
+            fundHoldings.franklin.eth += item.franklin || 0;
+            fundHoldings.grayscale.eth += item.grayscale || 0;
+            fundHoldings.grayscaleCrypto.eth += item.grayscaleCrypto || 0;
+        });
+        bitcoinData.forEach((item) => {
+            fundHoldings.blackrock.btc += item.blackrock || 0;
+            fundHoldings.fidelity.btc += item.fidelity || 0;
+            fundHoldings.bitwise.btc += item.bitwise || 0;
+            fundHoldings.twentyOneShares.btc += item.twentyOneShares || 0;
+            fundHoldings.vanEck.btc += item.vanEck || 0;
+            fundHoldings.invesco.btc += item.invesco || 0;
+            fundHoldings.franklin.btc += item.franklin || 0;
+            fundHoldings.grayscale.btc += item.grayscale || 0;
+            fundHoldings.grayscaleCrypto.btc += item.grayscaleCrypto || 0;
+        });
+        Object.keys(fundHoldings).forEach((fund) => {
+            fundHoldings[fund].eth = Math.round(fundHoldings[fund].eth * 100) / 100;
+            fundHoldings[fund].btc = Math.round(fundHoldings[fund].btc * 100) / 100;
+        });
+        return {
+            fundHoldings,
+            summary: {
+                totalEth: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.eth, 0) * 100) / 100,
+                totalBtc: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.btc, 0) * 100) / 100,
+                totalHoldings: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.eth + fund.btc, 0) * 100) / 100,
+                fundCount: Object.keys(fundHoldings).length,
             },
         };
     }
@@ -96,6 +174,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ETFFlowController.prototype, "getETFFlowSummary", null);
+__decorate([
+    (0, common_1.Get)('holdings'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ETFFlowController.prototype, "getFundHoldings", null);
 __decorate([
     (0, common_1.Post)('parse'),
     __metadata("design:type", Function),

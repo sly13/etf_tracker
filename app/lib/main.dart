@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/etf_provider.dart';
-import 'screens/etf_tabs_screen.dart';
+import 'screens/main_navigation_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => ETFProvider(),
       child: MaterialApp(
-        title: 'ETF Потоки',
+        title: 'ETF Tracker',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const ETFTabsScreen(),
+        home: const MainNavigationScreen(),
         debugShowCheckedModeBanner: false,
       ),
     );

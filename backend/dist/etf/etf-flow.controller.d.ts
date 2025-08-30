@@ -12,15 +12,30 @@ export declare class ETFFlowController {
             total: number;
             count: number;
             average: number;
+            latestDate: string | null;
         };
         bitcoin: {
             total: number;
             count: number;
             average: number;
+            latestDate: string | null;
         };
         overall: {
             total: number;
             count: number;
+            latestDate: string | null;
+        };
+    }>;
+    getFundHoldings(): Promise<{
+        fundHoldings: Record<string, {
+            eth: number;
+            btc: number;
+        }>;
+        summary: {
+            totalEth: number;
+            totalBtc: number;
+            totalHoldings: number;
+            fundCount: number;
         };
     }>;
     parseETFFlowData(): Promise<{

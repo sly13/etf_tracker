@@ -9,6 +9,7 @@ class ETFProvider with ChangeNotifier {
   List<ETFFlowData> _ethereumData = [];
   List<ETFFlowData> _bitcoinData = [];
   List<ETFFlowData> _etfFlowData = [];
+  Map<String, dynamic>? _fundHoldings;
   Map<String, dynamic>? _summaryData;
   bool _isLoading = false;
   String? _error;
@@ -18,6 +19,7 @@ class ETFProvider with ChangeNotifier {
   List<ETFFlowData> get ethereumData => _ethereumData;
   List<ETFFlowData> get bitcoinData => _bitcoinData;
   List<ETFFlowData> get etfFlowData => _etfFlowData;
+  Map<String, dynamic>? get fundHoldings => _fundHoldings;
   List<ETFFlowData> get currentData =>
       _currentTab == 'ethereum' ? _ethereumData : _bitcoinData;
   Map<String, dynamic>? get summaryData => _summaryData;
@@ -34,12 +36,20 @@ class ETFProvider with ChangeNotifier {
   // Загрузить данные Ethereum
   Future<void> loadEthereumData() async {
     try {
+      print('🔄 Загружаю данные Ethereum...');
       _setLoading(true);
       _clearError();
 
       _ethereumData = await _etfService.getEthereumData();
+      print('✅ Ethereum данные загружены: ${_ethereumData.length} записей');
+      if (_ethereumData.isNotEmpty) {
+        print(
+          '📊 Первая запись: ${_ethereumData.first.date} - total: ${_ethereumData.first.total}',
+        );
+      }
       notifyListeners();
     } catch (e) {
+      print('❌ Ошибка загрузки Ethereum: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -49,12 +59,20 @@ class ETFProvider with ChangeNotifier {
   // Загрузить данные Bitcoin
   Future<void> loadBitcoinData() async {
     try {
+      print('🔄 Загружаю данные Bitcoin...');
       _setLoading(true);
       _clearError();
 
       _bitcoinData = await _etfService.getBitcoinData();
+      print('✅ Bitcoin данные загружены: ${_bitcoinData.length} записей');
+      if (_bitcoinData.isNotEmpty) {
+        print(
+          '📊 Первая запись: ${_bitcoinData.first.date} - total: ${_bitcoinData.first.total}',
+        );
+      }
       notifyListeners();
     } catch (e) {
+      print('❌ Ошибка загрузки Bitcoin: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -64,12 +82,15 @@ class ETFProvider with ChangeNotifier {
   // Загрузить суммарные данные
   Future<void> loadSummaryData() async {
     try {
+      print('🔄 Загружаю суммарные данные...');
       _setLoading(true);
       _clearError();
 
       _summaryData = await _etfService.getSummaryData();
+      print('✅ Суммарные данные загружены: $_summaryData');
       notifyListeners();
     } catch (e) {
+      print('❌ Ошибка загрузки суммарных данных: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -91,9 +112,27 @@ class ETFProvider with ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      // _etfFlowData = await _etfService.getETFFlowData(); // This line was commented out in the original file
+      _etfFlowData = await _etfService.getETFFlowData();
       notifyListeners();
     } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Загрузить данные о владении фондами
+  Future<void> loadFundHoldings() async {
+    try {
+      print('🔄 Загружаю данные о владении фондами...');
+      _setLoading(true);
+      _clearError();
+
+      _fundHoldings = await _etfService.getFundHoldings();
+      print('✅ Данные о владении загружены: $_fundHoldings');
+      notifyListeners();
+    } catch (e) {
+      print('❌ Ошибка загрузки данных о владении: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);

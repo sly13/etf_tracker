@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
+import '../config/app_config.dart';
 import 'package:intl/intl.dart';
 
 class ETFTabsScreen extends StatefulWidget {
@@ -43,7 +44,28 @@ class _ETFTabsScreenState extends State<ETFTabsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ETF Tracker: Bitcoin & Ethereum'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('ETF Tracker'),
+            if (AppConfig.isDebugMode)
+              Text(
+                'Dev Mode - ${AppConfig.backendBaseUrl}',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            if (AppConfig.isDebugMode)
+              Text(
+                'API: ${AppConfig.getApiUrl('/etf-flow/summary')}',
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
