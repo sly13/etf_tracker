@@ -13,9 +13,10 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ETFProvider>().loadAllData();
-    });
+    // Убираем автоматическую загрузку данных, так как они уже загружаются при инициализации приложения
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<ETFProvider>().loadAllData();
+    // });
   }
 
   @override
@@ -36,10 +37,7 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
       ),
       body: Consumer<ETFProvider>(
         builder: (context, etfProvider, child) {
-          if (etfProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          // Показываем ошибку только если она есть
           if (etfProvider.error != null) {
             return Center(
               child: Column(

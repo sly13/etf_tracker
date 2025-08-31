@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
 import '../config/app_config.dart';
+import 'settings_screen.dart';
 import 'package:intl/intl.dart';
 
 class ETFTabsScreen extends StatefulWidget {
@@ -15,9 +16,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ETFProvider>().loadAllData();
-    });
+    // Данные загружаются только при инициализации приложения, не здесь
   }
 
   @override
@@ -47,14 +46,20 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               context.read<ETFProvider>().loadAllData();
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Consumer<ETFProvider>(
         builder: (context, etfProvider, child) {
-          if (etfProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          // Показываем ошибку только если она есть
           if (etfProvider.error != null) {
             return Center(
               child: Column(
@@ -102,6 +107,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   // Карточка с общей сводкой
   Widget _buildSummaryCard(ETFProvider etfProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final ethereumData = etfProvider.ethereumData.isNotEmpty
         ? etfProvider.ethereumData.first
         : null;
@@ -124,9 +130,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   size: 28,
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Общая сводка ETF',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ],
             ),
@@ -158,7 +168,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             const SizedBox(height: 16),
             Text(
               'Обновлено: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -174,15 +187,22 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     Color color,
     String subtitle,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Делаем Ethereum темнее
+    final adjustedColor = title.contains('Ethereum')
+        ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
+        : color;
+
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: adjustedColor.withOpacity(isDark ? 0.2 : 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: adjustedColor, size: 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -191,14 +211,18 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               Text(
                 subtitle,
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
             ],
           ),
@@ -208,7 +232,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: color,
+            color: adjustedColor,
           ),
         ),
       ],
@@ -217,12 +241,17 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   // Последние обновления
   Widget _buildRecentUpdates(ETFProvider etfProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Последние обновления',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -254,6 +283,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     double total,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Делаем Ethereum темнее
+    final adjustedColor = title.contains('Ethereum')
+        ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
+        : color;
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -264,7 +300,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               width: 8,
               height: 40,
               decoration: BoxDecoration(
-                color: color,
+                color: adjustedColor,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -275,14 +311,18 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                   Text(
                     'Обновлено: ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
                   ),
                 ],
               ),
@@ -292,7 +332,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: adjustedColor,
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/etf_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/main_navigation_screen.dart';
 
 void main() {
@@ -12,23 +13,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ETFProvider()..initializeData(),
-      child: MaterialApp(
-        title: 'ETF Tracker',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-          cardTheme: CardThemeData(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = ETFProvider();
+            // Инициализируем данные сразу при создании провайдера
+            provider.initializeData();
+            return provider;
+          },
         ),
-        home: const MainNavigationScreen(),
-        debugShowCheckedModeBanner: false,
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'ETF Tracker',
+            theme: themeProvider.currentTheme,
+            home: const MainNavigationScreen(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

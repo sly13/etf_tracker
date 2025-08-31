@@ -1,0 +1,464 @@
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../models/etf_flow_data.dart';
+import 'package:intl/intl.dart';
+
+enum ChartPeriod { daily, weekly, monthly }
+
+class ETFFlowChart extends StatefulWidget {
+  final List<ETFFlowData> data;
+  final String title;
+  final Color primaryColor;
+  final Color secondaryColor;
+
+  const ETFFlowChart({
+    super.key,
+    required this.data,
+    required this.title,
+    this.primaryColor = Colors.blue,
+    this.secondaryColor = Colors.orange,
+  });
+
+  @override
+  State<ETFFlowChart> createState() => _ETFFlowChartState();
+}
+
+class _ETFFlowChartState extends State<ETFFlowChart> {
+  ChartPeriod _selectedPeriod = ChartPeriod.daily;
+  List<ETFFlowData> _filteredData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filterData();
+  }
+
+  @override
+  void didUpdateWidget(ETFFlowChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.data != widget.data) {
+      _filterData();
+    }
+  }
+
+  void _filterData() {
+    if (widget.data.isEmpty) {
+      _filteredData = [];
+      return;
+    }
+
+    final now = DateTime.now();
+    final sortedData = List<ETFFlowData>.from(
+      widget.data,
+    )..sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+    switch (_selectedPeriod) {
+      case ChartPeriod.daily:
+        // Показать последние 30 дней
+        final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+        _filteredData = sortedData
+            .where((item) => DateTime.parse(item.date).isAfter(thirtyDaysAgo))
+            .toList();
+        break;
+      case ChartPeriod.weekly:
+        // Показать последние 12 недель
+        final twelveWeeksAgo = now.subtract(const Duration(days: 84));
+        _filteredData = sortedData
+            .where((item) => DateTime.parse(item.date).isAfter(twelveWeeksAgo))
+            .toList();
+        break;
+      case ChartPeriod.monthly:
+        // Показать последние 6 месяцев
+        final sixMonthsAgo = now.subtract(const Duration(days: 180));
+        _filteredData = sortedData
+            .where((item) => DateTime.parse(item.date).isAfter(sixMonthsAgo))
+            .toList();
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Заголовок и переключатели периода
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              _buildPeriodSelector(),
+            ],
+          ),
+        ),
+
+        // Ключевые метрики
+        _buildKeyMetrics(),
+
+        // График
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildChart(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildPeriodButton('Ежедневно', ChartPeriod.daily),
+          _buildPeriodButton('Еженедельно', ChartPeriod.weekly),
+          _buildPeriodButton('Ежемесячно', ChartPeriod.monthly),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodButton(String label, ChartPeriod period) {
+    final isSelected = _selectedPeriod == period;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedPeriod = period;
+          _filterData();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? widget.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[400],
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKeyMetrics() {
+    if (_filteredData.isEmpty) return const SizedBox.shrink();
+
+    final latestData = _filteredData.last;
+    final totalInflow = latestData.total ?? 0;
+    final totalAssets = _calculateTotalAssets();
+    final ethPrice = _calculateETHPrice();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              'Общий ежедневный\nчистый приток',
+              _formatCurrency(totalInflow),
+              totalInflow >= 0 ? Colors.green : Colors.red,
+              Icons.trending_up,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              'Общая сумма\nчистых активов',
+              _formatCurrency(totalAssets),
+              widget.primaryColor,
+              Icons.account_balance,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              'Цена ETH',
+              _formatCurrency(ethPrice),
+              widget.secondaryColor,
+              Icons.currency_exchange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[800]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(fontSize: 10, color: Colors.grey[400]),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChart() {
+    if (_filteredData.isEmpty) {
+      return const Center(
+        child: Text(
+          'Нет данных для отображения',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: true,
+          horizontalInterval: 200,
+          verticalInterval: 1,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(color: Colors.grey[800], strokeWidth: 1);
+          },
+          getDrawingVerticalLine: (value) {
+            return FlLine(color: Colors.grey[800], strokeWidth: 1);
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              interval: _getInterval(),
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() >= 0 &&
+                    value.toInt() < _filteredData.length) {
+                  final date = DateTime.parse(
+                    _filteredData[value.toInt()].date,
+                  );
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(
+                      DateFormat('MM/dd').format(date),
+                      style: const TextStyle(color: Colors.grey, fontSize: 10),
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: _getLeftInterval(),
+              reservedSize: 60,
+              getTitlesWidget: (value, meta) {
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(
+                    _formatCurrency(value),
+                    style: const TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.grey[800]!),
+        ),
+        minX: 0,
+        maxX: (_filteredData.length - 1).toDouble(),
+        minY: _getMinY(),
+        maxY: _getMaxY(),
+        lineBarsData: [
+          // Линия общих активов
+          LineChartBarData(
+            spots: _getTotalAssetsSpots(),
+            isCurved: true,
+            gradient: LinearGradient(
+              colors: [
+                widget.primaryColor,
+                widget.primaryColor.withOpacity(0.5),
+              ],
+            ),
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  widget.primaryColor.withOpacity(0.3),
+                  widget.primaryColor.withOpacity(0.1),
+                ],
+              ),
+            ),
+          ),
+          // Линия цены ETH
+          LineChartBarData(
+            spots: _getETHPriceSpots(),
+            isCurved: true,
+            gradient: LinearGradient(
+              colors: [
+                widget.secondaryColor,
+                widget.secondaryColor.withOpacity(0.5),
+              ],
+            ),
+            barWidth: 2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<FlSpot> _getTotalAssetsSpots() {
+    double cumulativeTotal = 0;
+    return _filteredData.asMap().entries.map((entry) {
+      final total = entry.value.total ?? 0;
+      cumulativeTotal += total;
+      return FlSpot(entry.key.toDouble(), cumulativeTotal);
+    }).toList();
+  }
+
+  List<FlSpot> _getETHPriceSpots() {
+    // Симуляция цены ETH на основе общих активов
+    double basePrice = 4000;
+    return _filteredData.asMap().entries.map((entry) {
+      final total = entry.value.total ?? 0;
+      final priceChange = total * 0.01; // Простая формула для демонстрации
+      return FlSpot(entry.key.toDouble(), basePrice + priceChange);
+    }).toList();
+  }
+
+  double _getMinY() {
+    if (_filteredData.isEmpty) return 0;
+
+    final totalAssetsSpots = _getTotalAssetsSpots();
+    final ethPriceSpots = _getETHPriceSpots();
+
+    final minTotalAssets = totalAssetsSpots
+        .map((spot) => spot.y)
+        .reduce((a, b) => a < b ? a : b);
+    final minETHPrice = ethPriceSpots
+        .map((spot) => spot.y)
+        .reduce((a, b) => a < b ? a : b);
+
+    return (minTotalAssets < minETHPrice ? minTotalAssets : minETHPrice) * 0.9;
+  }
+
+  double _getMaxY() {
+    if (_filteredData.isEmpty) return 100;
+
+    final totalAssetsSpots = _getTotalAssetsSpots();
+    final ethPriceSpots = _getETHPriceSpots();
+
+    final maxTotalAssets = totalAssetsSpots
+        .map((spot) => spot.y)
+        .reduce((a, b) => a > b ? a : b);
+    final maxETHPrice = ethPriceSpots
+        .map((spot) => spot.y)
+        .reduce((a, b) => a > b ? a : b);
+
+    return (maxTotalAssets > maxETHPrice ? maxTotalAssets : maxETHPrice) * 1.1;
+  }
+
+  double _getInterval() {
+    final length = _filteredData.length;
+    if (length <= 10) return 1;
+    if (length <= 30) return 3;
+    if (length <= 60) return 7;
+    return 14;
+  }
+
+  double _getLeftInterval() {
+    final maxY = _getMaxY();
+    if (maxY <= 1000) return 100;
+    if (maxY <= 10000) return 1000;
+    if (maxY <= 100000) return 10000;
+    return 100000;
+  }
+
+  double _calculateTotalAssets() {
+    if (_filteredData.isEmpty) return 0;
+
+    double total = 0;
+    for (final data in _filteredData) {
+      total += data.total ?? 0;
+    }
+    return total;
+  }
+
+  double _calculateETHPrice() {
+    if (_filteredData.isEmpty) return 4000;
+
+    final latestTotal = _filteredData.last.total ?? 0;
+    return 4000 + (latestTotal * 0.01);
+  }
+
+  String _formatCurrency(double value) {
+    if (value.abs() >= 1e9) {
+      return '${(value / 1e9).toStringAsFixed(2)}B';
+    } else if (value.abs() >= 1e6) {
+      return '${(value / 1e6).toStringAsFixed(2)}M';
+    } else if (value.abs() >= 1e3) {
+      return '${(value / 1e3).toStringAsFixed(2)}K';
+    } else {
+      return value.toStringAsFixed(2);
+    }
+  }
+}

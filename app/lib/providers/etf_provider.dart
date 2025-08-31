@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../models/etf_flow_data.dart';
 import '../services/etf_service.dart';
+import '../services/local_storage_service.dart';
 
 class ETFProvider with ChangeNotifier {
   final ETFService _etfService = ETFService();
+  final LocalStorageService _storageService = LocalStorageService();
 
   List<ETFFlowData> _ethereumData = [];
   List<BTCFlowData> _bitcoinData = [];
@@ -11,6 +13,11 @@ class ETFProvider with ChangeNotifier {
   Map<String, dynamic>? _fundHoldings;
   Map<String, dynamic>? _summaryData;
   bool _isLoading = false;
+  bool _isInitializing = false;
+  bool _isEthereumLoaded = false;
+  bool _isBitcoinLoaded = false;
+  bool _isSummaryLoaded = false;
+  bool _isFundHoldingsLoaded = false;
   String? _error;
   String _currentTab = 'ethereum'; // 'ethereum' или 'bitcoin'
 
@@ -23,13 +30,56 @@ class ETFProvider with ChangeNotifier {
       _currentTab == 'ethereum' ? _ethereumData : _bitcoinData;
   Map<String, dynamic>? get summaryData => _summaryData;
   bool get isLoading => _isLoading;
+  bool get isInitializing => _isInitializing;
+  bool get isEthereumLoaded => _isEthereumLoaded;
+  bool get isBitcoinLoaded => _isBitcoinLoaded;
+  bool get isSummaryLoaded => _isSummaryLoaded;
+  bool get isFundHoldingsLoaded => _isFundHoldingsLoaded;
   String? get error => _error;
   String get currentTab => _currentTab;
+
+  // Проверка готовности основных данных
+  bool get isDataReady => _isEthereumLoaded && _isBitcoinLoaded;
 
   // Переключить таб
   void switchTab(String tab) {
     _currentTab = tab;
     notifyListeners();
+  }
+
+  // Загрузить данные из кэша
+  Future<void> loadFromCache() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Загружаем все данные из кэша параллельно
+      final results = await Future.wait([
+        _storageService.getEthereumData(),
+        _storageService.getBitcoinData(),
+        _storageService.getSummaryData(),
+        _storageService.getFundHoldings(),
+        _storageService.getETFFlowData(),
+      ]);
+
+      _ethereumData = results[0] as List<ETFFlowData>;
+      _bitcoinData = results[1] as List<BTCFlowData>;
+      _summaryData = results[2] as Map<String, dynamic>?;
+      _fundHoldings = results[3] as Map<String, dynamic>?;
+      _etfFlowData = results[4] as List<ETFFlowData>;
+
+      // Устанавливаем флаги загрузки
+      _isEthereumLoaded = _ethereumData.isNotEmpty;
+      _isBitcoinLoaded = _bitcoinData.isNotEmpty;
+      _isSummaryLoaded = _summaryData != null;
+      _isFundHoldingsLoaded = _fundHoldings != null;
+
+      notifyListeners();
+    } catch (e) {
+      _setError('Ошибка загрузки кэшированных данных: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Загрузить данные Ethereum
@@ -38,9 +88,16 @@ class ETFProvider with ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      debugPrint('ETFProvider: Загружаем Ethereum данные');
       _ethereumData = await _etfService.getEthereumData();
+      await _storageService.saveEthereumData(_ethereumData);
+      _isEthereumLoaded = true;
+      debugPrint(
+        'ETFProvider: Ethereum данные загружены: ${_ethereumData.length} записей',
+      );
       notifyListeners();
     } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки Ethereum: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -53,9 +110,16 @@ class ETFProvider with ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      debugPrint('ETFProvider: Загружаем Bitcoin данные');
       _bitcoinData = await _etfService.getBitcoinData();
+      await _storageService.saveBitcoinData(_bitcoinData);
+      _isBitcoinLoaded = true;
+      debugPrint(
+        'ETFProvider: Bitcoin данные загружены: ${_bitcoinData.length} записей',
+      );
       notifyListeners();
     } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки Bitcoin: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -68,9 +132,14 @@ class ETFProvider with ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      debugPrint('ETFProvider: Загружаем сводные данные');
       _summaryData = await _etfService.getSummaryData();
+      await _storageService.saveSummaryData(_summaryData!);
+      _isSummaryLoaded = true;
+      debugPrint('ETFProvider: Сводные данные загружены');
       notifyListeners();
     } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки сводных данных: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -80,30 +149,101 @@ class ETFProvider with ChangeNotifier {
   // Инициализация данных при старте приложения
   Future<void> initializeData() async {
     try {
-      _setLoading(true);
+      _isInitializing = true;
       _clearError();
+      notifyListeners();
 
-      // Загружаем все основные данные параллельно
-      await Future.wait([
-        loadEthereumData(),
-        loadBitcoinData(),
-        loadSummaryData(),
-        loadFundHoldings(),
-      ]);
+      debugPrint('ETFProvider: Начинаем инициализацию данных');
+
+      // Сначала проверяем, есть ли кэшированные данные
+      final hasCachedData = await _storageService.hasCachedData();
+      debugPrint('ETFProvider: Кэшированные данные найдены: $hasCachedData');
+
+      if (hasCachedData) {
+        // Проверяем, нужно ли обновлять данные
+        final shouldUpdate = await _storageService.shouldUpdateData();
+        debugPrint('ETFProvider: Нужно обновить данные: $shouldUpdate');
+
+        if (shouldUpdate) {
+          // Данные устарели, загружаем новые с сервера
+          debugPrint('ETFProvider: Данные устарели, загружаем с сервера');
+          await _loadAllDataFromServer();
+        } else {
+          // Данные свежие, загружаем из кэша
+          debugPrint('ETFProvider: Данные свежие, загружаем из кэша');
+          await loadFromCache();
+        }
+      } else {
+        // Кэшированных данных нет, загружаем все с сервера
+        debugPrint('ETFProvider: Кэша нет, загружаем с сервера');
+        await _loadAllDataFromServer();
+      }
+
+      debugPrint(
+        'ETFProvider: Инициализация завершена. Ethereum: $_isEthereumLoaded, Bitcoin: $_isBitcoinLoaded',
+      );
     } catch (e) {
+      debugPrint('ETFProvider: Ошибка инициализации: $e');
       _setError(e.toString());
     } finally {
-      _setLoading(false);
+      _isInitializing = false;
+      notifyListeners();
     }
   }
 
-  // Загрузить все данные
+  // Загрузить все данные с сервера
+  Future<void> _loadAllDataFromServer() async {
+    try {
+      debugPrint('ETFProvider: Начинаем загрузку данных с сервера');
+
+      // Загружаем все основные данные параллельно без установки loading
+      final results = await Future.wait([
+        _etfService.getEthereumData(),
+        _etfService.getBitcoinData(),
+        _etfService.getSummaryData(),
+        _etfService.getFundHoldings(),
+      ]);
+
+      debugPrint('ETFProvider: Данные получены с сервера');
+      debugPrint(
+        'ETFProvider: Ethereum данных: ${(results[0] as List).length}',
+      );
+      debugPrint('ETFProvider: Bitcoin данных: ${(results[1] as List).length}');
+
+      // Сохраняем данные
+      _ethereumData = results[0] as List<ETFFlowData>;
+      _bitcoinData = results[1] as List<BTCFlowData>;
+      _summaryData = results[2] as Map<String, dynamic>;
+      _fundHoldings = results[3] as Map<String, dynamic>;
+
+      // Сохраняем в кэш
+      await Future.wait([
+        _storageService.saveEthereumData(_ethereumData),
+        _storageService.saveBitcoinData(_bitcoinData),
+        _storageService.saveSummaryData(_summaryData!),
+        _storageService.saveFundHoldings(_fundHoldings!),
+      ]);
+
+      // Устанавливаем флаги готовности
+      _isEthereumLoaded = _ethereumData.isNotEmpty;
+      _isBitcoinLoaded = _bitcoinData.isNotEmpty;
+      _isSummaryLoaded = _summaryData != null;
+      _isFundHoldingsLoaded = _fundHoldings != null;
+
+      debugPrint(
+        'ETFProvider: Флаги установлены - Ethereum: $_isEthereumLoaded, Bitcoin: $_isBitcoinLoaded',
+      );
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки с сервера: $e');
+      _setError(e.toString());
+    }
+  }
+
+  // Загрузить все данные (принудительное обновление)
   Future<void> loadAllData() async {
-    await Future.wait([
-      loadEthereumData(),
-      loadBitcoinData(),
-      loadSummaryData(),
-    ]);
+    await _loadAllDataFromServer();
   }
 
   // Загрузить данные ETF потоков
@@ -113,6 +253,7 @@ class ETFProvider with ChangeNotifier {
       _clearError();
 
       _etfFlowData = await _etfService.getETFFlowData();
+      await _storageService.saveETFFlowData(_etfFlowData);
       notifyListeners();
     } catch (e) {
       _setError(e.toString());
@@ -128,6 +269,8 @@ class ETFProvider with ChangeNotifier {
       _clearError();
 
       _fundHoldings = await _etfService.getFundHoldings();
+      await _storageService.saveFundHoldings(_fundHoldings!);
+      _isFundHoldingsLoaded = true;
       notifyListeners();
     } catch (e) {
       _setError(e.toString());
@@ -155,5 +298,54 @@ class ETFProvider with ChangeNotifier {
   void clearError() {
     _clearError();
     notifyListeners();
+  }
+
+  // Сбросить состояние загрузки (для повторной инициализации)
+  void resetLoadingState() {
+    _isEthereumLoaded = false;
+    _isBitcoinLoaded = false;
+    _isSummaryLoaded = false;
+    _isFundHoldingsLoaded = false;
+    _isInitializing = false;
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
+
+  // Очистить кэш
+  Future<void> clearCache() async {
+    await _storageService.clearAllData();
+    resetLoadingState();
+  }
+
+  // Получить время последнего обновления
+  Future<DateTime?> getLastUpdateTime() async {
+    return await _storageService.getLastUpdateTime();
+  }
+
+  // Проверить и загрузить данные с учетом кэша
+  Future<void> checkAndLoadData() async {
+    try {
+      debugPrint('ETFProvider: Проверяем актуальность данных');
+
+      final hasCachedData = await _storageService.hasCachedData();
+      if (!hasCachedData) {
+        debugPrint('ETFProvider: Кэша нет, загружаем с сервера');
+        await _loadAllDataFromServer();
+        return;
+      }
+
+      final shouldUpdate = await _storageService.shouldUpdateData();
+      if (shouldUpdate) {
+        debugPrint('ETFProvider: Данные устарели, загружаем с сервера');
+        await _loadAllDataFromServer();
+      } else {
+        debugPrint('ETFProvider: Данные актуальны, загружаем из кэша');
+        await loadFromCache();
+      }
+    } catch (e) {
+      debugPrint('ETFProvider: Ошибка при проверке данных: $e');
+      _setError(e.toString());
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
 import '../services/fund_logo_service.dart';
+import 'settings_screen.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -14,9 +15,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ETFProvider>().loadFundHoldings();
-    });
+    // Данные загружаются только при инициализации приложения, не здесь
   }
 
   @override
@@ -33,14 +32,20 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
               context.read<ETFProvider>().loadFundHoldings();
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Consumer<ETFProvider>(
         builder: (context, etfProvider, child) {
-          if (etfProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          // Показываем ошибку только если она есть
           if (etfProvider.error != null) {
             return Center(
               child: Column(

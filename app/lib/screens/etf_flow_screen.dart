@@ -15,9 +15,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ETFProvider>().loadETFFlowData();
-    });
+    // Данные загружаются только при инициализации приложения, не здесь
   }
 
   @override
@@ -38,10 +36,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
       ),
       body: Consumer<ETFProvider>(
         builder: (context, etfProvider, child) {
-          if (etfProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          // Показываем ошибку только если она есть
           if (etfProvider.error != null) {
             return Center(
               child: Column(

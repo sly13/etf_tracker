@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
+import '../widgets/btc_flow_bar_chart.dart';
+import 'settings_screen.dart';
 import 'package:intl/intl.dart';
 
 class BitcoinETFScreen extends StatefulWidget {
@@ -15,9 +17,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ETFProvider>().loadBitcoinData();
-    });
+    // Данные загружаются только при инициализации приложения, не здесь
   }
 
   @override
@@ -34,14 +34,20 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
               context.read<ETFProvider>().loadBitcoinData();
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Consumer<ETFProvider>(
         builder: (context, etfProvider, child) {
-          if (etfProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          // Показываем ошибку только если она есть
           if (etfProvider.error != null) {
             return Center(
               child: Column(
@@ -82,8 +88,8 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   _buildHeader(etfProvider.bitcoinData.first),
                   const SizedBox(height: 24),
 
-                  // График или диаграмма (можно добавить позже)
-                  _buildChartPlaceholder(),
+                  // График потоков
+                  _buildChartSection(etfProvider.bitcoinData),
                   const SizedBox(height: 24),
 
                   // Список данных по дням
@@ -99,6 +105,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
   // Заголовок с общей статистикой
   Widget _buildHeader(BTCFlowData latestData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final total = latestData.total ?? 0;
     final isPositive = total >= 0;
     final color = isPositive ? Colors.green : Colors.red;
@@ -110,7 +117,9 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.orange.shade50, Colors.orange.shade100],
+            colors: isDark
+                ? [const Color(0xFF1A1A1A), const Color(0xFF0A0A0A)]
+                : [Colors.orange.shade50, Colors.orange.shade100],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -121,15 +130,19 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.currency_bitcoin, color: Colors.orange, size: 32),
+                Icon(
+                  Icons.currency_bitcoin,
+                  color: isDark ? Colors.orange.shade400 : Colors.orange,
+                  size: 32,
+                ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Bitcoin ETF Flow',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange,
+                      color: isDark ? Colors.orange.shade400 : Colors.orange,
                     ),
                   ),
                 ),
@@ -143,11 +156,13 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Общий дневной поток',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.orange,
+                          color: isDark
+                              ? Colors.orange.shade300
+                              : Colors.orange,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -172,7 +187,9 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: isDark
+                        ? Colors.orange.shade800.withOpacity(0.3)
+                        : Colors.white.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -181,19 +198,23 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                         DateFormat(
                           'dd',
                         ).format(DateTime.parse(latestData.date)),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+                          color: isDark
+                              ? Colors.orange.shade300
+                              : Colors.orange,
                         ),
                       ),
                       Text(
                         DateFormat(
                           'MMM',
                         ).format(DateTime.parse(latestData.date)),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.orange,
+                          color: isDark
+                              ? Colors.orange.shade300
+                              : Colors.orange,
                         ),
                       ),
                     ],
@@ -207,46 +228,31 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
     );
   }
 
-  // Заглушка для графика
-  Widget _buildChartPlaceholder() {
+  // Секция с графиком
+  Widget _buildChartSection(List<BTCFlowData> data) {
     return Card(
       elevation: 2,
       child: Container(
-        height: 200,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'График потоков Bitcoin ETF',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Здесь будет отображаться график изменения потоков',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+        height: 420,
+        padding: const EdgeInsets.all(8),
+        child: BTCFlowBarChart(flowData: data),
       ),
     );
   }
 
   // Список данных по дням
   Widget _buildDataList(List<BTCFlowData> data) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'История потоков',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -265,6 +271,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
   // Карточка с данными потока
   Widget _buildFlowDataCard(BTCFlowData flowData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final date = DateTime.parse(flowData.date);
     final total = flowData.total ?? 0;
     final isPositive = total >= 0;
@@ -288,9 +295,10 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                     const SizedBox(width: 8),
                     Text(
                       DateFormat('dd.MM.yyyy').format(date),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
@@ -350,6 +358,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
   // Элемент компании
   Widget _buildCompanyItem(String companyKey, double? value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final companyName = BTCFlowData.getCompanyName(companyKey);
     final isPositive = value != null && value >= 0;
     final color = value == null
@@ -361,9 +370,11 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3A3A3A) : Colors.grey[300]!,
+        ),
       ),
       child: Column(
         children: [
@@ -372,7 +383,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: isDark ? Colors.grey[300] : Colors.grey[700],
             ),
             textAlign: TextAlign.center,
             maxLines: 2,

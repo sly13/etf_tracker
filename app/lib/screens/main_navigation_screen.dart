@@ -28,29 +28,83 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Consumer<ETFProvider>(
       builder: (context, etfProvider, child) {
-        // Показываем экран загрузки во время инициализации
-        if (etfProvider.isLoading &&
-            etfProvider.ethereumData.isEmpty &&
-            etfProvider.bitcoinData.isEmpty) {
-          return const LoadingScreen(message: 'Инициализация приложения...');
-        }
+        // Отладочная информация
+        debugPrint(
+          'MainNavigationScreen: isInitializing: ${etfProvider.isInitializing}',
+        );
+        debugPrint(
+          'MainNavigationScreen: isDataReady: ${etfProvider.isDataReady}',
+        );
+        debugPrint(
+          'MainNavigationScreen: isEthereumLoaded: ${etfProvider.isEthereumLoaded}',
+        );
+        debugPrint(
+          'MainNavigationScreen: isBitcoinLoaded: ${etfProvider.isBitcoinLoaded}',
+        );
+        debugPrint('MainNavigationScreen: error: ${etfProvider.error}');
+        debugPrint(
+          'MainNavigationScreen: ethereumData.length: ${etfProvider.ethereumData.length}',
+        );
+        debugPrint(
+          'MainNavigationScreen: bitcoinData.length: ${etfProvider.bitcoinData.length}',
+        );
 
-        // Показываем экран загрузки при ошибке и отсутствии данных
-        if (etfProvider.error != null &&
-            etfProvider.ethereumData.isEmpty &&
-            etfProvider.bitcoinData.isEmpty) {
-          return LoadingScreen(
-            message: 'Ошибка загрузки данных',
-            showProgress: false,
-            error: etfProvider.error,
-            onRetry: () {
-              etfProvider.clearError();
-              etfProvider.initializeData();
-            },
+        // Показываем экран загрузки во время инициализации
+        if (etfProvider.isInitializing) {
+          debugPrint('MainNavigationScreen: Показываем экран инициализации');
+          return const LoadingScreen(
+            message: 'Инициализация приложения...',
+            showProgress: true,
+            showDetailedProgress: true,
           );
         }
 
-        // Основной интерфейс приложения
+        // Показываем экран загрузки если данные еще не готовы
+        if (!etfProvider.isDataReady) {
+          debugPrint(
+            'MainNavigationScreen: Данные не готовы, показываем экран загрузки',
+          );
+          String loadingMessage = 'Загрузка данных...';
+
+          if (etfProvider.error != null) {
+            debugPrint('MainNavigationScreen: Показываем экран ошибки');
+            return LoadingScreen(
+              message: 'Ошибка загрузки данных',
+              showProgress: false,
+              error: etfProvider.error,
+              showDetailedProgress: true,
+              onRetry: () {
+                etfProvider.resetLoadingState();
+                etfProvider.initializeData();
+              },
+            );
+          }
+
+          // Показываем прогресс загрузки с детальной информацией
+          if (etfProvider.isEthereumLoaded && !etfProvider.isBitcoinLoaded) {
+            loadingMessage = 'Загрузка данных Bitcoin ETF...';
+          } else if (!etfProvider.isEthereumLoaded &&
+              etfProvider.isBitcoinLoaded) {
+            loadingMessage = 'Загрузка данных Ethereum ETF...';
+          } else if (!etfProvider.isEthereumLoaded &&
+              !etfProvider.isBitcoinLoaded) {
+            loadingMessage = 'Загрузка данных ETF...';
+          }
+
+          debugPrint(
+            'MainNavigationScreen: Показываем экран загрузки с сообщением: $loadingMessage',
+          );
+          return LoadingScreen(
+            message: loadingMessage,
+            showProgress: true,
+            showDetailedProgress: true,
+          );
+        }
+
+        // Основной интерфейс приложения - показываем только когда данные готовы
+        debugPrint(
+          'MainNavigationScreen: Данные готовы, показываем основной интерфейс',
+        );
         return Scaffold(
           body: IndexedStack(index: _currentIndex, children: _screens),
           bottomNavigationBar: BottomNavigationBar(

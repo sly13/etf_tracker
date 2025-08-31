@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/etf_provider.dart';
 
 class LoadingScreen extends StatelessWidget {
   final String message;
   final bool showProgress;
   final VoidCallback? onRetry;
   final String? error;
+  final bool showDetailedProgress;
 
   const LoadingScreen({
     super.key,
@@ -12,12 +15,13 @@ class LoadingScreen extends StatelessWidget {
     this.showProgress = true,
     this.onRetry,
     this.error,
+    this.showDetailedProgress = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,7 +37,7 @@ class LoadingScreen extends StatelessWidget {
                   BoxShadow(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.3),
+                    ).colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -67,7 +71,7 @@ class LoadingScreen extends StatelessWidget {
                 fontSize: 16,
                 color: Theme.of(
                   context,
-                ).colorScheme.onBackground.withOpacity(0.7),
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -80,24 +84,17 @@ class LoadingScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.symmetric(horizontal: 32),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 32,
-                    ),
+                    Icon(Icons.error_outline, color: Colors.red, size: 32),
                     const SizedBox(height: 8),
                     Text(
                       error!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -122,7 +119,7 @@ class LoadingScreen extends StatelessWidget {
                   fontSize: 16,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onBackground.withOpacity(0.8),
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -137,58 +134,133 @@ class LoadingScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
 
             const SizedBox(height: 40),
 
-            // Информация о загружаемых данных
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            // Детальный прогресс загрузки
+            if (showDetailedProgress) ...[
+              Consumer<ETFProvider>(
+                builder: (context, etfProvider, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildLoadingItem(
+                          'Bitcoin ETF',
+                          Icons.currency_bitcoin,
+                          Colors.orange,
+                          etfProvider.isBitcoinLoaded,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildLoadingItem(
+                          'Ethereum ETF',
+                          Icons.currency_exchange,
+                          Colors.blue,
+                          etfProvider.isEthereumLoaded,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildLoadingItem(
+                          'Сводные данные',
+                          Icons.analytics,
+                          Colors.green,
+                          etfProvider.isSummaryLoaded,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildLoadingItem(
+                          'Данные фондов',
+                          Icons.account_balance,
+                          Colors.purple,
+                          etfProvider.isFundHoldingsLoaded,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ] else ...[
+              // Статичная информация о загружаемых данных
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildLoadingItem(
+                      'Bitcoin ETF',
+                      Icons.currency_bitcoin,
+                      Colors.orange,
+                      false,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildLoadingItem(
+                      'Ethereum ETF',
+                      Icons.currency_exchange,
+                      Colors.blue,
+                      false,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildLoadingItem(
+                      'Данные фондов',
+                      Icons.account_balance,
+                      Colors.green,
+                      false,
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  _buildLoadingItem(
-                    'Bitcoin ETF',
-                    Icons.currency_bitcoin,
-                    Colors.orange,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildLoadingItem(
-                    'Ethereum ETF',
-                    Icons.currency_exchange,
-                    Colors.blue,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildLoadingItem(
-                    'Данные фондов',
-                    Icons.account_balance,
-                    Colors.green,
-                  ),
-                ],
-              ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingItem(String title, IconData icon, Color color) {
+  Widget _buildLoadingItem(
+    String title,
+    IconData icon,
+    Color color,
+    bool isLoaded,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: color),
+        Icon(icon, size: 20, color: isLoaded ? Colors.green : color),
         const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 14)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: isLoaded ? Colors.green : null,
+            fontWeight: isLoaded ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        if (isLoaded) ...[
+          const SizedBox(width: 4),
+          Icon(Icons.check_circle, size: 16, color: Colors.green),
+        ],
       ],
     );
   }
