@@ -7,9 +7,7 @@ import { schedulerConfig } from '../config/scheduler.config';
 export class ETFSchedulerService {
   private readonly logger = new Logger(ETFSchedulerService.name);
 
-  constructor(
-    private readonly etfFlowService: UniversalETFFlowService,
-  ) {}
+  constructor(private readonly etfFlowService: UniversalETFFlowService) {}
 
   // Запуск каждый час в 00 минут
   @Cron(CronExpression.EVERY_HOUR)
@@ -20,23 +18,33 @@ export class ETFSchedulerService {
     }
 
     this.logger.log('🕐 Запуск автоматического обновления ETF данных...');
-    
+
     try {
       // Парсинг Ethereum данных
       this.logger.log('📊 Парсинг Ethereum ETF данных...');
-      const ethereumData = await this.etfFlowService.parseETFFlowData('ethereum');
+      const ethereumData =
+        await this.etfFlowService.parseETFFlowData('ethereum');
       await this.etfFlowService.saveETFFlowData('ethereum', ethereumData);
-      this.logger.log(`✅ Ethereum данные обновлены: ${ethereumData.length} записей`);
+      this.logger.log(
+        `✅ Ethereum данные обновлены: ${ethereumData.length} записей`,
+      );
 
       // Парсинг Bitcoin данных
       this.logger.log('📊 Парсинг Bitcoin ETF данных...');
       const bitcoinData = await this.etfFlowService.parseETFFlowData('bitcoin');
       await this.etfFlowService.saveETFFlowData('bitcoin', bitcoinData);
-      this.logger.log(`✅ Bitcoin данные обновлены: ${bitcoinData.length} записей`);
+      this.logger.log(
+        `✅ Bitcoin данные обновлены: ${bitcoinData.length} записей`,
+      );
 
-      this.logger.log('🎉 Автоматическое обновление ETF данных завершено успешно!');
+      this.logger.log(
+        '🎉 Автоматическое обновление ETF данных завершено успешно!',
+      );
     } catch (error) {
-      this.logger.error('❌ Ошибка при автоматическом обновлении ETF данных:', error);
+      this.logger.error(
+        '❌ Ошибка при автоматическом обновлении ETF данных:',
+        error,
+      );
     }
   }
 
@@ -44,14 +52,17 @@ export class ETFSchedulerService {
   @Cron('0 9 * * *')
   async handleDailyETFDataUpdate() {
     this.logger.log('🌅 Запуск ежедневного обновления ETF данных...');
-    
+
     try {
       // Полный парсинг всех данных
       this.logger.log('📊 Полный парсинг всех ETF данных...');
       await this.etfFlowService.parseAllETFFlowData();
       this.logger.log('✅ Ежедневное обновление ETF данных завершено успешно!');
     } catch (error) {
-      this.logger.error('❌ Ошибка при ежедневном обновлении ETF данных:', error);
+      this.logger.error(
+        '❌ Ошибка при ежедневном обновлении ETF данных:',
+        error,
+      );
     }
   }
 

@@ -1,5 +1,9 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { UniversalETFFlowService, ETFFlowData, BTCFlowData } from './universal-etf-flow.service';
+import {
+  UniversalETFFlowService,
+  ETFFlowData,
+  BTCFlowData,
+} from './universal-etf-flow.service';
 import { ETFSchedulerService } from './etf-scheduler.service';
 
 @Controller('etf-flow')
@@ -12,8 +16,12 @@ export class ETFFlowController {
   @Get()
   async getETFFlowData() {
     // Возвращаем общие данные для всех ETF
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
+    const ethereumData = (await this.etfFlowService.getETFFlowData(
+      'ethereum',
+    )) as ETFFlowData[];
+    const bitcoinData = (await this.etfFlowService.getETFFlowData(
+      'bitcoin',
+    )) as BTCFlowData[];
 
     // Объединяем данные, убирая дубликаты по дате
     const allData = [...ethereumData, ...bitcoinData];
@@ -47,8 +55,12 @@ export class ETFFlowController {
 
   @Get('summary')
   async getETFFlowSummary() {
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
+    const ethereumData = (await this.etfFlowService.getETFFlowData(
+      'ethereum',
+    )) as ETFFlowData[];
+    const bitcoinData = (await this.etfFlowService.getETFFlowData(
+      'bitcoin',
+    )) as BTCFlowData[];
 
     // Берем только последние данные для каждого типа
     const latestEthereum = ethereumData[0];
@@ -105,8 +117,12 @@ export class ETFFlowController {
 
   @Get('holdings')
   async getFundHoldings() {
-    const ethereumData = await this.etfFlowService.getETFFlowData('ethereum') as ETFFlowData[];
-    const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin') as BTCFlowData[];
+    const ethereumData = (await this.etfFlowService.getETFFlowData(
+      'ethereum',
+    )) as ETFFlowData[];
+    const bitcoinData = (await this.etfFlowService.getETFFlowData(
+      'bitcoin',
+    )) as BTCFlowData[];
 
     // Создаем объект для хранения суммарного владения каждого фонда
     const fundHoldings: Record<string, { eth: number; btc: number }> = {
@@ -119,6 +135,10 @@ export class ETFFlowController {
       franklin: { eth: 0, btc: 0 },
       grayscale: { eth: 0, btc: 0 },
       grayscaleCrypto: { eth: 0, btc: 0 },
+    };
+
+    // Добавляем Bitcoin-специфичные фонды
+    const bitcoinFundHoldings: Record<string, { eth: number; btc: number }> = {
       valkyrie: { eth: 0, btc: 0 },
       wisdomTree: { eth: 0, btc: 0 },
     };
@@ -148,43 +168,48 @@ export class ETFFlowController {
       fundHoldings.franklin.btc += item.franklin || 0;
       fundHoldings.grayscale.btc += item.grayscale || 0;
       fundHoldings.grayscaleCrypto.btc += item.grayscaleCrypto || 0;
-      // Для Bitcoin данных нужно проверить наличие полей
+      // Для Bitcoin данных добавляем специфичные фонды
       const btcItem = item as any;
-      fundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
-      fundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
+      bitcoinFundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
+      bitcoinFundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
     });
 
+    // Объединяем общие фонды с Bitcoin-специфичными
+    const allFundHoldings = { ...fundHoldings, ...bitcoinFundHoldings };
+
     // Округляем значения до 2 знаков после запятой
-    Object.keys(fundHoldings).forEach((fund) => {
-      fundHoldings[fund].eth = Math.round(fundHoldings[fund].eth * 100) / 100;
-      fundHoldings[fund].btc = Math.round(fundHoldings[fund].btc * 100) / 100;
+    Object.keys(allFundHoldings).forEach((fund) => {
+      allFundHoldings[fund].eth =
+        Math.round(allFundHoldings[fund].eth * 100) / 100;
+      allFundHoldings[fund].btc =
+        Math.round(allFundHoldings[fund].btc * 100) / 100;
     });
 
     return {
-      fundHoldings,
+      fundHoldings: allFundHoldings,
       summary: {
         totalEth:
           Math.round(
-            Object.values(fundHoldings).reduce(
+            Object.values(allFundHoldings).reduce(
               (sum, fund) => sum + fund.eth,
               0,
             ) * 100,
           ) / 100,
         totalBtc:
           Math.round(
-            Object.values(fundHoldings).reduce(
+            Object.values(allFundHoldings).reduce(
               (sum, fund) => sum + fund.btc,
               0,
             ) * 100,
           ) / 100,
         totalHoldings:
           Math.round(
-            Object.values(fundHoldings).reduce(
+            Object.values(allFundHoldings).reduce(
               (sum, fund) => sum + fund.eth + fund.btc,
               0,
             ) * 100,
           ) / 100,
-        fundCount: Object.keys(fundHoldings).length,
+        fundCount: Object.keys(allFundHoldings).length,
       },
     };
   }

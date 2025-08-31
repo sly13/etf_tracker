@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
-import '../models/etf_flow_data.dart';
 import '../config/app_config.dart';
 import 'package:intl/intl.dart';
 
@@ -12,32 +11,13 @@ class ETFTabsScreen extends StatefulWidget {
   State<ETFTabsScreen> createState() => _ETFTabsScreenState();
 }
 
-class _ETFTabsScreenState extends State<ETFTabsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
+class _ETFTabsScreenState extends State<ETFTabsScreen> {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      final provider = context.read<ETFProvider>();
-      if (_tabController.index == 0) {
-        provider.switchTab('ethereum');
-      } else {
-        provider.switchTab('bitcoin');
-      }
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ETFProvider>().loadAllData();
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -56,14 +36,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen>
                   fontWeight: FontWeight.normal,
                 ),
               ),
-            if (AppConfig.isDebugMode)
-              Text(
-                'API: ${AppConfig.getApiUrl('/etf-flow/summary')}',
-                style: const TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -72,393 +44,259 @@ class _ETFTabsScreenState extends State<ETFTabsScreen>
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              final provider = context.read<ETFProvider>();
-              if (_tabController.index == 0) {
-                provider.loadEthereumData();
-              } else {
-                provider.loadBitcoinData();
-              }
+              context.read<ETFProvider>().loadAllData();
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Блок с суммарной статистикой сразу после заголовка
-          _buildSummaryCard(),
-          const SizedBox(height: 8),
-          // Табы для переключения между Ethereum и Bitcoin
-          Container(
-            color: Theme.of(context).colorScheme.primary,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              tabs: const [
-                Tab(icon: Icon(Icons.currency_bitcoin), text: 'Ethereum'),
-                Tab(icon: Icon(Icons.currency_bitcoin), text: 'Bitcoin'),
-              ],
+      body: Consumer<ETFProvider>(
+        builder: (context, etfProvider, child) {
+          if (etfProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (etfProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Ошибка: ${etfProvider.error}',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      etfProvider.clearError();
+                      etfProvider.loadAllData();
+                    },
+                    child: const Text('Повторить'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => etfProvider.loadAllData(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Общая сводка
+                  _buildSummaryCard(etfProvider),
+                  const SizedBox(height: 24),
+
+                  // Последние обновления
+                  _buildRecentUpdates(etfProvider),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          // Содержимое табов
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [_buildDataList('ethereum'), _buildDataList('bitcoin')],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildDataList(String type) {
-    return Consumer<ETFProvider>(
-      builder: (context, etfProvider, child) {
-        if (etfProvider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (etfProvider.error != null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Ошибка: ${etfProvider.error}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    etfProvider.clearError();
-                    if (type == 'ethereum') {
-                      etfProvider.loadEthereumData();
-                    } else {
-                      etfProvider.loadBitcoinData();
-                    }
-                  },
-                  child: const Text('Повторить'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final data = type == 'ethereum'
-            ? etfProvider.ethereumData
-            : etfProvider.bitcoinData;
-
-        if (data.isEmpty) {
-          return Center(
-            child: Text('Данные не найдены', style: TextStyle(fontSize: 18)),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () {
-            if (type == 'ethereum') {
-              return etfProvider.loadEthereumData();
-            } else {
-              return etfProvider.loadBitcoinData();
-            }
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final flowData = data[index];
-              return _buildFlowDataCard(flowData, type);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFlowDataCard(ETFFlowData flowData, String type) {
-    final date = DateTime.parse(flowData.date);
-    final isPositive = flowData.total != null && flowData.total! >= 0;
-    final totalColor = isPositive ? Colors.green : Colors.red;
-    final cryptoIcon = type == 'ethereum'
-        ? Icons.currency_bitcoin
-        : Icons.currency_bitcoin;
+  // Карточка с общей сводкой
+  Widget _buildSummaryCard(ETFProvider etfProvider) {
+    final ethereumData = etfProvider.ethereumData.isNotEmpty
+        ? etfProvider.ethereumData.first
+        : null;
+    final bitcoinData = etfProvider.bitcoinData.isNotEmpty
+        ? etfProvider.bitcoinData.first
+        : null;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(cryptoIcon, color: Colors.blue),
-                    const SizedBox(width: 8),
-                    Text(
-                      DateFormat('dd.MM.yyyy').format(date),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  Icons.analytics,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 28,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: totalColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: totalColor),
-                  ),
-                  child: Text(
-                    '\$${(flowData.total ?? 0).toStringAsFixed(1)}M',
-                    style: TextStyle(
-                      color: totalColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Общая сводка ETF',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            // Сводка по Ethereum
+            if (ethereumData != null) ...[
+              _buildSummaryRow(
+                'Ethereum ETF',
+                ethereumData.total ?? 0,
+                Icons.currency_exchange,
+                Colors.blue,
+                'Общий дневной поток',
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Сводка по Bitcoin
+            if (bitcoinData != null) ...[
+              _buildSummaryRow(
+                'Bitcoin ETF',
+                bitcoinData.total ?? 0,
+                Icons.currency_bitcoin,
+                Colors.orange,
+                'Общий дневной поток',
+              ),
+            ],
+
             const SizedBox(height: 16),
-            _buildCompanyGrid(flowData),
+            Text(
+              'Обновлено: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryCard() {
-    return Selector<ETFProvider, Map<String, dynamic>?>(
-      selector: (context, provider) => provider.summaryData,
-      builder: (context, summaryData, child) {
-        if (summaryData == null) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
+  // Строка сводки
+  Widget _buildSummaryRow(
+    String title,
+    double value,
+    IconData icon,
+    Color color,
+    String subtitle,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade50, Colors.orange.shade50],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
           ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '📊 ETF Flow Statistics',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Text(
-                        'Total: ${(summaryData['overall']['total']?.toDouble() ?? 0.0).toStringAsFixed(1)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color:
-                              (summaryData['overall']['total']?.toDouble() ??
-                                      0.0) >=
-                                  0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSummaryItem(
-                      'Ethereum',
-                      summaryData['ethereum']['total']?.toDouble() ?? 0.0,
-                      summaryData['ethereum']['count'] ?? 0,
-                      summaryData['ethereum']['average']?.toDouble() ?? 0.0,
-                      Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSummaryItem(
-                      'Bitcoin',
-                      summaryData['bitcoin']['total']?.toDouble() ?? 0.0,
-                      summaryData['bitcoin']['count'] ?? 0,
-                      summaryData['bitcoin']['average']?.toDouble() ?? 0.0,
-                      Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSummaryItem(
-    String title,
-    double total,
-    int count,
-    double average,
-    Color color,
-  ) {
-    final isPositive = total >= 0;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                title == 'Ethereum'
-                    ? Icons.currency_bitcoin
-                    : Icons.currency_bitcoin,
-                color: color,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${total.toStringAsFixed(1)}',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isPositive ? Colors.green : Colors.red,
-            ),
+        ),
+        Text(
+          '\$${value.toStringAsFixed(1)}M',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: color,
           ),
-          Text(
-            '$count days • ${average.toStringAsFixed(1)} avg',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildCompanyGrid(ETFFlowData flowData) {
-    final companies = flowData.getCompanies();
-    final rows = <Widget>[];
+  // Последние обновления
+  Widget _buildRecentUpdates(ETFProvider etfProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Последние обновления',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
 
-    for (int i = 0; i < companies.length; i += 3) {
-      final rowCompanies = companies.skip(i).take(3).toList();
-      final row = Row(
-        children: rowCompanies.map((company) {
-          return Expanded(child: _buildCompanyItem(company.key, company.value));
-        }).toList(),
-      );
-      rows.add(row);
-      if (i + 3 < companies.length) {
-        rows.add(const SizedBox(height: 12));
-      }
-    }
-
-    return Column(children: rows);
-  }
-
-  Widget _buildCompanyItem(String companyKey, double? value) {
-    final companyName = ETFFlowData.getCompanyName(companyKey);
-    final isPositive = value != null && value >= 0;
-    final color = value == null
-        ? Colors.grey
-        : (isPositive ? Colors.green : Colors.red);
-    final displayValue = value?.toStringAsFixed(1) ?? 'N/A';
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        children: [
-          Text(
-            companyName,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        if (etfProvider.ethereumData.isNotEmpty)
+          _buildUpdateCard(
+            'Ethereum ETF',
+            etfProvider.ethereumData.first.date,
+            etfProvider.ethereumData.first.total ?? 0,
+            Colors.blue,
           ),
-          const SizedBox(height: 4),
-          Text(
-            '\$${displayValue}M',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
+
+        if (etfProvider.bitcoinData.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildUpdateCard(
+            'Bitcoin ETF',
+            etfProvider.bitcoinData.first.date,
+            etfProvider.bitcoinData.first.total ?? 0,
+            Colors.orange,
           ),
         ],
+      ],
+    );
+  }
+
+  // Карточка обновления
+  Widget _buildUpdateCard(
+    String title,
+    String date,
+    double total,
+    Color color,
+  ) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Обновлено: ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '\$${total.toStringAsFixed(1)}M',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

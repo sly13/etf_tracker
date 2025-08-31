@@ -126,6 +126,60 @@ export class UniversalETFFlowService {
           const rows = tbody.querySelectorAll('tr');
           const data: any[] = [];
 
+          // Функция для правильного парсинга даты
+          function parseDate(dateText: string): string | null {
+            try {
+              // Ожидаемый формат: "29 Aug 2025"
+              const parts = dateText.trim().split(' ');
+              if (parts.length !== 3) return null;
+
+              const day = parseInt(parts[0]);
+              const month = parts[1];
+              const year = parseInt(parts[2]);
+
+              if (isNaN(day) || isNaN(year)) return null;
+
+              // Маппинг месяцев
+              const monthMap: { [key: string]: number } = {
+                Jan: 0,
+                Feb: 1,
+                Mar: 2,
+                Apr: 3,
+                May: 4,
+                Jun: 5,
+                Jul: 6,
+                Aug: 7,
+                Sep: 8,
+                Oct: 9,
+                Nov: 10,
+                Dec: 11,
+              };
+
+              const monthIndex = monthMap[month];
+              if (monthIndex === undefined) return null;
+
+              // Создаем дату в UTC для избежания проблем с временными зонами
+              const date = new Date(Date.UTC(year, monthIndex, day));
+
+              // Проверяем валидность даты
+              if (
+                date.getUTCFullYear() !== year ||
+                date.getUTCMonth() !== monthIndex ||
+                date.getUTCDate() !== day
+              ) {
+                return null;
+              }
+
+              // Возвращаем дату в формате YYYY-MM-DD
+              return date.toISOString().split('T')[0];
+            } catch (error) {
+              console.log('Ошибка парсинга даты:', dateText, error);
+              return null;
+            }
+          }
+
+          const seenDates = new Set<string>();
+
           rows.forEach((row, index) => {
             const cells = row.querySelectorAll('td');
 
@@ -134,12 +188,58 @@ export class UniversalETFFlowService {
                 .querySelector('span.tabletext')
                 ?.textContent?.trim();
 
+              // Обрабатываем seed данные отдельно
+              if (firstCellText === 'Seed') {
+                const seedData = {
+                  date: '2024-06-22', // За день до старта Ethereum ETF
+                  blackrock: parseNumber(
+                    cells[1].querySelector('span.tabletext')?.textContent,
+                  ),
+                  fidelity: parseNumber(
+                    cells[2].querySelector('span.tabletext')?.textContent,
+                  ),
+                  bitwise: parseNumber(
+                    cells[3].querySelector('span.tabletext')?.textContent,
+                  ),
+                  twentyOneShares: parseNumber(
+                    cells[4].querySelector('span.tabletext')?.textContent,
+                  ),
+                  vanEck: parseNumber(
+                    cells[5].querySelector('span.tabletext')?.textContent,
+                  ),
+                  invesco: parseNumber(
+                    cells[6].querySelector('span.tabletext')?.textContent,
+                  ),
+                  franklin: parseNumber(
+                    cells[7].querySelector('span.tabletext')?.textContent,
+                  ),
+                  grayscale: parseNumber(
+                    cells[8].querySelector('span.tabletext')?.textContent,
+                  ),
+                  grayscaleCrypto: parseNumber(
+                    cells[9].querySelector('span.tabletext')?.textContent,
+                  ),
+                  total: parseNumber(
+                    cells[10].querySelector('span.tabletext')?.textContent,
+                  ),
+                };
+
+                if (!seenDates.has(seedData.date)) {
+                  seenDates.add(seedData.date);
+                  data.push(seedData);
+                }
+                return;
+              }
+
+              // Обрабатываем обычные данные
               if (firstCellText && firstCellText !== 'Seed') {
                 try {
-                  const date = new Date(firstCellText);
-                  if (!isNaN(date.getTime())) {
+                  const parsedDate = parseDate(firstCellText);
+                  if (parsedDate && !seenDates.has(parsedDate)) {
+                    seenDates.add(parsedDate);
+
                     const flowDataItem = {
-                      date: date.toISOString().split('T')[0],
+                      date: parsedDate,
                       blackrock: parseNumber(
                         cells[1].querySelector('span.tabletext')?.textContent,
                       ),
@@ -221,18 +321,56 @@ export class UniversalETFFlowService {
           const rows = tbody.querySelectorAll('tr');
           const data: any[] = [];
 
-          // Логируем структуру первой строки для отладки
-          if (rows.length > 0) {
-            const firstRow = rows[0];
-            const cells = firstRow.querySelectorAll('td');
-            console.log(`Bitcoin: Найдено ${cells.length} колонок в таблице`);
+          // Функция для правильного парсинга даты
+          function parseDate(dateText: string): string | null {
+            try {
+              // Ожидаемый формат: "29 Aug 2025"
+              const parts = dateText.trim().split(' ');
+              if (parts.length !== 3) return null;
 
-            cells.forEach((cell, index) => {
-              const text = cell
-                .querySelector('span.tabletext')
-                ?.textContent?.trim();
-              console.log(`Bitcoin: Колонка ${index}: "${text}"`);
-            });
+              const day = parseInt(parts[0]);
+              const month = parts[1];
+              const year = parseInt(parts[2]);
+
+              if (isNaN(day) || isNaN(year)) return null;
+
+              // Маппинг месяцев
+              const monthMap: { [key: string]: number } = {
+                Jan: 0,
+                Feb: 1,
+                Mar: 2,
+                Apr: 3,
+                May: 4,
+                Jun: 5,
+                Jul: 6,
+                Aug: 7,
+                Sep: 8,
+                Oct: 9,
+                Nov: 10,
+                Dec: 11,
+              };
+
+              const monthIndex = monthMap[month];
+              if (monthIndex === undefined) return null;
+
+              // Создаем дату в UTC для избежания проблем с временными зонами
+              const date = new Date(Date.UTC(year, monthIndex, day));
+
+              // Проверяем валидность даты
+              if (
+                date.getUTCFullYear() !== year ||
+                date.getUTCMonth() !== monthIndex ||
+                date.getUTCDate() !== day
+              ) {
+                return null;
+              }
+
+              // Возвращаем дату в формате YYYY-MM-DD
+              return date.toISOString().split('T')[0];
+            } catch (error) {
+              console.log('Ошибка парсинга даты:', dateText, error);
+              return null;
+            }
           }
 
           rows.forEach((row, index) => {
@@ -245,10 +383,10 @@ export class UniversalETFFlowService {
 
               if (firstCellText && firstCellText !== 'Seed') {
                 try {
-                  const date = new Date(firstCellText);
-                  if (!isNaN(date.getTime())) {
+                  const parsedDate = parseDate(firstCellText);
+                  if (parsedDate) {
                     const flowDataItem = {
-                      date: date.toISOString().split('T')[0],
+                      date: parsedDate,
                       blackrock: parseNumber(
                         cells[1].querySelector('span.tabletext')?.textContent,
                       ),
@@ -286,16 +424,6 @@ export class UniversalETFFlowService {
                         cells[12].querySelector('span.tabletext')?.textContent,
                       ),
                     };
-
-                    // Логируем данные для отладки
-                    if (index < 3) {
-                      console.log(`Bitcoin: Строка ${index + 1}:`, {
-                        date: flowDataItem.date,
-                        valkyrie: flowDataItem.valkyrie,
-                        wisdomTree: flowDataItem.wisdomTree,
-                        total: flowDataItem.total,
-                      });
-                    }
 
                     data.push(flowDataItem);
                   }
@@ -358,6 +486,10 @@ export class UniversalETFFlowService {
         `Начинаю сохранение данных о потоках ${type.toUpperCase()} ETF в базу данных`,
       );
 
+      this.logger.log(
+        `Сохраняю ${flowData.length} записей ${type.toUpperCase()} ETF`,
+      );
+
       for (const data of flowData) {
         const date = new Date(data.date);
 
@@ -393,13 +525,6 @@ export class UniversalETFFlowService {
           });
         } else {
           const btcData = data as BTCFlowData;
-
-          // Логируем данные перед сохранением
-          console.log(`Bitcoin: Сохраняю данные для ${data.date}:`, {
-            valkyrie: btcData.valkyrie,
-            wisdomTree: btcData.wisdomTree,
-            total: btcData.total,
-          });
 
           await this.prisma.bTCFlow.upsert({
             where: { date },

@@ -90,6 +90,8 @@ let ETFFlowController = class ETFFlowController {
             franklin: { eth: 0, btc: 0 },
             grayscale: { eth: 0, btc: 0 },
             grayscaleCrypto: { eth: 0, btc: 0 },
+        };
+        const bitcoinFundHoldings = {
             valkyrie: { eth: 0, btc: 0 },
             wisdomTree: { eth: 0, btc: 0 },
         };
@@ -115,20 +117,21 @@ let ETFFlowController = class ETFFlowController {
             fundHoldings.grayscale.btc += item.grayscale || 0;
             fundHoldings.grayscaleCrypto.btc += item.grayscaleCrypto || 0;
             const btcItem = item;
-            fundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
-            fundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
+            bitcoinFundHoldings.valkyrie.btc += btcItem.valkyrie || 0;
+            bitcoinFundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
         });
-        Object.keys(fundHoldings).forEach((fund) => {
-            fundHoldings[fund].eth = Math.round(fundHoldings[fund].eth * 100) / 100;
-            fundHoldings[fund].btc = Math.round(fundHoldings[fund].btc * 100) / 100;
+        const allFundHoldings = { ...fundHoldings, ...bitcoinFundHoldings };
+        Object.keys(allFundHoldings).forEach((fund) => {
+            allFundHoldings[fund].eth = Math.round(allFundHoldings[fund].eth * 100) / 100;
+            allFundHoldings[fund].btc = Math.round(allFundHoldings[fund].btc * 100) / 100;
         });
         return {
-            fundHoldings,
+            fundHoldings: allFundHoldings,
             summary: {
-                totalEth: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.eth, 0) * 100) / 100,
-                totalBtc: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.btc, 0) * 100) / 100,
-                totalHoldings: Math.round(Object.values(fundHoldings).reduce((sum, fund) => sum + fund.eth + fund.btc, 0) * 100) / 100,
-                fundCount: Object.keys(fundHoldings).length,
+                totalEth: Math.round(Object.values(allFundHoldings).reduce((sum, fund) => sum + fund.eth, 0) * 100) / 100,
+                totalBtc: Math.round(Object.values(allFundHoldings).reduce((sum, fund) => sum + fund.btc, 0) * 100) / 100,
+                totalHoldings: Math.round(Object.values(allFundHoldings).reduce((sum, fund) => sum + fund.eth + fund.btc, 0) * 100) / 100,
+                fundCount: Object.keys(allFundHoldings).length,
             },
         };
     }

@@ -113,18 +113,80 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         return [];
                     const rows = tbody.querySelectorAll('tr');
                     const data = [];
+                    function parseDate(dateText) {
+                        try {
+                            const parts = dateText.trim().split(' ');
+                            if (parts.length !== 3)
+                                return null;
+                            const day = parseInt(parts[0]);
+                            const month = parts[1];
+                            const year = parseInt(parts[2]);
+                            if (isNaN(day) || isNaN(year))
+                                return null;
+                            const monthMap = {
+                                Jan: 0,
+                                Feb: 1,
+                                Mar: 2,
+                                Apr: 3,
+                                May: 4,
+                                Jun: 5,
+                                Jul: 6,
+                                Aug: 7,
+                                Sep: 8,
+                                Oct: 9,
+                                Nov: 10,
+                                Dec: 11,
+                            };
+                            const monthIndex = monthMap[month];
+                            if (monthIndex === undefined)
+                                return null;
+                            const date = new Date(Date.UTC(year, monthIndex, day));
+                            if (date.getUTCFullYear() !== year ||
+                                date.getUTCMonth() !== monthIndex ||
+                                date.getUTCDate() !== day) {
+                                return null;
+                            }
+                            return date.toISOString().split('T')[0];
+                        }
+                        catch (error) {
+                            console.log('Ошибка парсинга даты:', dateText, error);
+                            return null;
+                        }
+                    }
+                    const seenDates = new Set();
                     rows.forEach((row, index) => {
                         const cells = row.querySelectorAll('td');
                         if (cells.length >= 11) {
                             const firstCellText = cells[0]
                                 .querySelector('span.tabletext')
                                 ?.textContent?.trim();
+                            if (firstCellText === 'Seed') {
+                                const seedData = {
+                                    date: '2024-06-22',
+                                    blackrock: parseNumber(cells[1].querySelector('span.tabletext')?.textContent),
+                                    fidelity: parseNumber(cells[2].querySelector('span.tabletext')?.textContent),
+                                    bitwise: parseNumber(cells[3].querySelector('span.tabletext')?.textContent),
+                                    twentyOneShares: parseNumber(cells[4].querySelector('span.tabletext')?.textContent),
+                                    vanEck: parseNumber(cells[5].querySelector('span.tabletext')?.textContent),
+                                    invesco: parseNumber(cells[6].querySelector('span.tabletext')?.textContent),
+                                    franklin: parseNumber(cells[7].querySelector('span.tabletext')?.textContent),
+                                    grayscale: parseNumber(cells[8].querySelector('span.tabletext')?.textContent),
+                                    grayscaleCrypto: parseNumber(cells[9].querySelector('span.tabletext')?.textContent),
+                                    total: parseNumber(cells[10].querySelector('span.tabletext')?.textContent),
+                                };
+                                if (!seenDates.has(seedData.date)) {
+                                    seenDates.add(seedData.date);
+                                    data.push(seedData);
+                                }
+                                return;
+                            }
                             if (firstCellText && firstCellText !== 'Seed') {
                                 try {
-                                    const date = new Date(firstCellText);
-                                    if (!isNaN(date.getTime())) {
+                                    const parsedDate = parseDate(firstCellText);
+                                    if (parsedDate && !seenDates.has(parsedDate)) {
+                                        seenDates.add(parsedDate);
                                         const flowDataItem = {
-                                            date: date.toISOString().split('T')[0],
+                                            date: parsedDate,
                                             blackrock: parseNumber(cells[1].querySelector('span.tabletext')?.textContent),
                                             fidelity: parseNumber(cells[2].querySelector('span.tabletext')?.textContent),
                                             bitwise: parseNumber(cells[3].querySelector('span.tabletext')?.textContent),
@@ -176,6 +238,46 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         return [];
                     const rows = tbody.querySelectorAll('tr');
                     const data = [];
+                    function parseDate(dateText) {
+                        try {
+                            const parts = dateText.trim().split(' ');
+                            if (parts.length !== 3)
+                                return null;
+                            const day = parseInt(parts[0]);
+                            const month = parts[1];
+                            const year = parseInt(parts[2]);
+                            if (isNaN(day) || isNaN(year))
+                                return null;
+                            const monthMap = {
+                                Jan: 0,
+                                Feb: 1,
+                                Mar: 2,
+                                Apr: 3,
+                                May: 4,
+                                Jun: 5,
+                                Jul: 6,
+                                Aug: 7,
+                                Sep: 8,
+                                Oct: 9,
+                                Nov: 10,
+                                Dec: 11,
+                            };
+                            const monthIndex = monthMap[month];
+                            if (monthIndex === undefined)
+                                return null;
+                            const date = new Date(Date.UTC(year, monthIndex, day));
+                            if (date.getUTCFullYear() !== year ||
+                                date.getUTCMonth() !== monthIndex ||
+                                date.getUTCDate() !== day) {
+                                return null;
+                            }
+                            return date.toISOString().split('T')[0];
+                        }
+                        catch (error) {
+                            console.log('Ошибка парсинга даты:', dateText, error);
+                            return null;
+                        }
+                    }
                     if (rows.length > 0) {
                         const firstRow = rows[0];
                         const cells = firstRow.querySelectorAll('td');
@@ -195,10 +297,10 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                 ?.textContent?.trim();
                             if (firstCellText && firstCellText !== 'Seed') {
                                 try {
-                                    const date = new Date(firstCellText);
-                                    if (!isNaN(date.getTime())) {
+                                    const parsedDate = parseDate(firstCellText);
+                                    if (parsedDate) {
                                         const flowDataItem = {
-                                            date: date.toISOString().split('T')[0],
+                                            date: parsedDate,
                                             blackrock: parseNumber(cells[1].querySelector('span.tabletext')?.textContent),
                                             fidelity: parseNumber(cells[2].querySelector('span.tabletext')?.textContent),
                                             bitwise: parseNumber(cells[3].querySelector('span.tabletext')?.textContent),
@@ -265,6 +367,7 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
     async saveETFFlowData(type, flowData) {
         try {
             this.logger.log(`Начинаю сохранение данных о потоках ${type.toUpperCase()} ETF в базу данных`);
+            this.logger.log(`Сохраняю ${flowData.length} записей ${type.toUpperCase()} ETF`);
             for (const data of flowData) {
                 const date = new Date(data.date);
                 if (type === 'ethereum') {

@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 class LoadingScreen extends StatelessWidget {
   final String message;
   final bool showProgress;
+  final VoidCallback? onRetry;
+  final String? error;
 
   const LoadingScreen({
     super.key,
     this.message = 'Загрузка данных...',
     this.showProgress = true,
+    this.onRetry,
+    this.error,
   });
 
   @override
@@ -68,10 +72,42 @@ class LoadingScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
 
-            const SizedBox(height: 60),
+            const SizedBox(height: 40),
 
-            // Индикатор загрузки
-            if (showProgress) ...[
+            // Показываем ошибку если есть
+            if (error != null) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Индикатор загрузки или кнопка повтора
+            if (showProgress && error == null) ...[
               CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Theme.of(context).colorScheme.primary,
@@ -89,6 +125,20 @@ class LoadingScreen extends StatelessWidget {
                   ).colorScheme.onBackground.withOpacity(0.8),
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ],
+
+            // Кнопка повтора если есть ошибка
+            if (error != null && onRetry != null) ...[
+              ElevatedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Повторить'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
               ),
             ],
 

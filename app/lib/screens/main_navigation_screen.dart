@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'etf_tabs_screen.dart';
-import 'etf_list_screen.dart';
 import 'fund_holdings_screen.dart';
-import '../config/app_config.dart';
+import 'ethereum_etf_screen.dart';
+import 'bitcoin_etf_screen.dart';
 import '../providers/etf_provider.dart';
 import '../widgets/loading_screen.dart';
 
@@ -19,8 +19,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const ETFTabsScreen(),
+    const EthereumETFScreen(),
+    const BitcoinETFScreen(),
     const FundHoldingsScreen(),
-    const ETFListScreen(),
   ];
 
   @override
@@ -39,8 +40,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             etfProvider.ethereumData.isEmpty &&
             etfProvider.bitcoinData.isEmpty) {
           return LoadingScreen(
-            message: 'Ошибка загрузки данных: ${etfProvider.error}',
+            message: 'Ошибка загрузки данных',
             showProgress: false,
+            error: etfProvider.error,
+            onRetry: () {
+              etfProvider.clearError();
+              etfProvider.initializeData();
+            },
           );
         }
 
@@ -63,12 +69,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 label: 'ETF Потоки',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance),
-                label: 'Владение',
+                icon: Icon(Icons.currency_exchange),
+                label: 'Ethereum ETF',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.list),
-                label: 'Портфель',
+                icon: Icon(Icons.currency_bitcoin),
+                label: 'Bitcoin ETF',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance),
+                label: 'Владение',
               ),
             ],
           ),

@@ -27,10 +27,15 @@ export declare class ETFFlowController {
         };
     }>;
     getFundHoldings(): Promise<{
-        fundHoldings: Record<string, {
-            eth: number;
-            btc: number;
-        }>;
+        fundHoldings: {
+            [x: string]: {
+                eth: number;
+                btc: number;
+            } | {
+                eth: number;
+                btc: number;
+            };
+        };
         summary: {
             totalEth: number;
             totalBtc: number;
