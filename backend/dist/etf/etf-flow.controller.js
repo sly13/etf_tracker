@@ -19,8 +19,8 @@ let ETFFlowController = class ETFFlowController {
         this.etfSchedulerService = etfSchedulerService;
     }
     async getETFFlowData() {
-        const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+        const ethereumData = (await this.etfFlowService.getETFFlowData('ethereum'));
+        const bitcoinData = (await this.etfFlowService.getETFFlowData('bitcoin'));
         const allData = [...ethereumData, ...bitcoinData];
         const uniqueData = allData.filter((item, index, self) => index === self.findIndex((t) => t.date === item.date));
         const sortedData = uniqueData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -34,8 +34,8 @@ let ETFFlowController = class ETFFlowController {
         return await this.etfFlowService.getETFFlowData('bitcoin');
     }
     async getETFFlowSummary() {
-        const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+        const ethereumData = (await this.etfFlowService.getETFFlowData('ethereum'));
+        const bitcoinData = (await this.etfFlowService.getETFFlowData('bitcoin'));
         const latestEthereum = ethereumData[0];
         const latestBitcoin = bitcoinData[0];
         let ethereumTotal = latestEthereum?.total || 0;
@@ -78,8 +78,8 @@ let ETFFlowController = class ETFFlowController {
         };
     }
     async getFundHoldings() {
-        const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
-        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+        const ethereumData = (await this.etfFlowService.getETFFlowData('ethereum'));
+        const bitcoinData = (await this.etfFlowService.getETFFlowData('bitcoin'));
         const fundHoldings = {
             blackrock: { eth: 0, btc: 0 },
             fidelity: { eth: 0, btc: 0 },
@@ -122,8 +122,10 @@ let ETFFlowController = class ETFFlowController {
         });
         const allFundHoldings = { ...fundHoldings, ...bitcoinFundHoldings };
         Object.keys(allFundHoldings).forEach((fund) => {
-            allFundHoldings[fund].eth = Math.round(allFundHoldings[fund].eth * 100) / 100;
-            allFundHoldings[fund].btc = Math.round(allFundHoldings[fund].btc * 100) / 100;
+            allFundHoldings[fund].eth =
+                Math.round(allFundHoldings[fund].eth * 100) / 100;
+            allFundHoldings[fund].btc =
+                Math.round(allFundHoldings[fund].btc * 100) / 100;
         });
         return {
             fundHoldings: allFundHoldings,

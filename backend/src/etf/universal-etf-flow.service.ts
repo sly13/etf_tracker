@@ -19,6 +19,7 @@ export interface ETFFlowData {
 export interface BTCFlowData extends ETFFlowData {
   valkyrie: number;
   wisdomTree: number;
+  grayscaleBtc: number;
 }
 
 export interface ParsingResult {
@@ -184,14 +185,18 @@ export class UniversalETFFlowService {
             const cells = row.querySelectorAll('td');
 
             if (cells.length >= 11) {
+              console.log(
+                `Ethereum processing row ${index + 1} with ${cells.length} cells`,
+              );
               const firstCellText = cells[0]
                 .querySelector('span.tabletext')
                 ?.textContent?.trim();
 
               // Обрабатываем seed данные отдельно
               if (firstCellText === 'Seed') {
+                console.log('Ethereum processing Seed data');
                 const seedData = {
-                  date: '2024-06-22', // За день до старта Ethereum ETF
+                  date: '2024-07-22', // За день до старта Ethereum ETF
                   blackrock: parseNumber(
                     cells[1].querySelector('span.tabletext')?.textContent,
                   ),
@@ -227,15 +232,27 @@ export class UniversalETFFlowService {
                 if (!seenDates.has(seedData.date)) {
                   seenDates.add(seedData.date);
                   data.push(seedData);
+                  console.log('Ethereum Seed data saved:', seedData);
+                } else {
+                  console.log(
+                    'Ethereum Seed data already exists for date:',
+                    seedData.date,
+                  );
                 }
                 return;
               }
 
               // Обрабатываем обычные данные
               if (firstCellText && firstCellText !== 'Seed') {
+                console.log(
+                  `Ethereum Row ${index + 1}: processing date "${firstCellText}"`,
+                );
                 try {
                   const parsedDate = parseDate(firstCellText);
                   if (parsedDate && !seenDates.has(parsedDate)) {
+                    console.log(
+                      `Ethereum successfully parsed date: ${parsedDate}`,
+                    );
                     seenDates.add(parsedDate);
 
                     const flowDataItem = {
@@ -290,14 +307,21 @@ export class UniversalETFFlowService {
             if (!text) return 0;
 
             try {
-              const cleanText = text.replace(/[^\d.,-]/g, '');
+              // Удаляем все символы кроме цифр, точек, запятых, минусов и скобок
+              const cleanText = text.replace(/[^\d.,\-()]/g, '');
 
               if (text.includes('(') && text.includes(')')) {
-                const number = parseFloat(cleanText.replace(/[()]/g, ''));
+                // Для отрицательных чисел в скобках
+                const numberText = cleanText.replace(/[()]/g, '');
+                const number = parseFloat(numberText.replace(/,/g, ''));
                 return isNaN(number) ? 0 : -number;
               }
 
-              const number = parseFloat(cleanText.replace(',', '.'));
+              // Для положительных чисел
+              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
+              // Оставляем точку как десятичный разделитель
+              const numberText = cleanText.replace(/,/g, '');
+              const number = parseFloat(numberText);
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;
@@ -308,6 +332,7 @@ export class UniversalETFFlowService {
         this.logger.log(
           `Успешно спарсено ${flowData.length} записей о потоках ${type.toUpperCase()} ETF`,
         );
+        console.log('Ethereum total records parsed:', flowData.length);
         return flowData;
       } else {
         // Bitcoin парсинг с дополнительными полями
@@ -381,10 +406,15 @@ export class UniversalETFFlowService {
                 .querySelector('span.tabletext')
                 ?.textContent?.trim();
 
+              console.log(
+                `Row ${index + 1}: processing date "${firstCellText}"`,
+              );
+
               if (firstCellText && firstCellText !== 'Seed') {
                 try {
                   const parsedDate = parseDate(firstCellText);
                   if (parsedDate) {
+                    console.log(`Successfully parsed date: ${parsedDate}`);
                     const flowDataItem = {
                       date: parsedDate,
                       blackrock: parseNumber(
@@ -399,25 +429,25 @@ export class UniversalETFFlowService {
                       twentyOneShares: parseNumber(
                         cells[4].querySelector('span.tabletext')?.textContent,
                       ),
-                      vanEck: parseNumber(
+                      invesco: parseNumber(
                         cells[5].querySelector('span.tabletext')?.textContent,
                       ),
-                      invesco: parseNumber(
+                      franklin: parseNumber(
                         cells[6].querySelector('span.tabletext')?.textContent,
                       ),
-                      franklin: parseNumber(
+                      valkyrie: parseNumber(
                         cells[7].querySelector('span.tabletext')?.textContent,
                       ),
-                      grayscale: parseNumber(
+                      vanEck: parseNumber(
                         cells[8].querySelector('span.tabletext')?.textContent,
                       ),
-                      grayscaleCrypto: parseNumber(
+                      wisdomTree: parseNumber(
                         cells[9].querySelector('span.tabletext')?.textContent,
                       ),
-                      valkyrie: parseNumber(
+                      grayscale: parseNumber(
                         cells[10].querySelector('span.tabletext')?.textContent,
                       ),
-                      wisdomTree: parseNumber(
+                      grayscaleBtc: parseNumber(
                         cells[11].querySelector('span.tabletext')?.textContent,
                       ),
                       total: parseNumber(
@@ -425,6 +455,11 @@ export class UniversalETFFlowService {
                       ),
                     };
 
+                    console.log(
+                      'Bitcoin Grayscale BTC parsed value:',
+                      flowDataItem.grayscaleBtc,
+                    );
+                    console.log('Bitcoin data date:', flowDataItem.date);
                     data.push(flowDataItem);
                   }
                 } catch (error) {
@@ -443,14 +478,21 @@ export class UniversalETFFlowService {
             if (!text) return 0;
 
             try {
-              const cleanText = text.replace(/[^\d.,-]/g, '');
+              // Удаляем все символы кроме цифр, точек, запятых, минусов и скобок
+              const cleanText = text.replace(/[^\d.,\-()]/g, '');
 
               if (text.includes('(') && text.includes(')')) {
-                const number = parseFloat(cleanText.replace(/[()]/g, ''));
+                // Для отрицательных чисел в скобках
+                const numberText = cleanText.replace(/[()]/g, '');
+                const number = parseFloat(numberText.replace(/,/g, ''));
                 return isNaN(number) ? 0 : -number;
               }
 
-              const number = parseFloat(cleanText.replace(',', '.'));
+              // Для положительных чисел
+              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
+              // Оставляем точку как десятичный разделитель
+              const numberText = cleanText.replace(/,/g, '');
+              const number = parseFloat(numberText);
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;
@@ -533,13 +575,13 @@ export class UniversalETFFlowService {
               fidelity: btcData.fidelity,
               bitwise: btcData.bitwise,
               twentyOneShares: btcData.twentyOneShares,
-              vanEck: btcData.vanEck,
               invesco: btcData.invesco,
               franklin: btcData.franklin,
-              grayscale: btcData.grayscale,
-              grayscaleBtc: btcData.grayscaleCrypto,
               valkyrie: btcData.valkyrie,
+              vanEck: btcData.vanEck,
               wisdomTree: btcData.wisdomTree,
+              grayscale: btcData.grayscale,
+              grayscaleBtc: btcData.grayscaleBtc,
               total: btcData.total,
               updatedAt: new Date(),
             },
@@ -549,13 +591,13 @@ export class UniversalETFFlowService {
               fidelity: btcData.fidelity,
               bitwise: btcData.bitwise,
               twentyOneShares: btcData.twentyOneShares,
-              vanEck: btcData.vanEck,
               invesco: btcData.invesco,
               franklin: btcData.franklin,
-              grayscale: btcData.grayscale,
-              grayscaleBtc: btcData.grayscaleCrypto,
               valkyrie: btcData.valkyrie,
+              vanEck: btcData.vanEck,
               wisdomTree: btcData.wisdomTree,
+              grayscale: btcData.grayscale,
+              grayscaleBtc: btcData.grayscaleBtc,
               total: btcData.total,
             },
           });
@@ -601,21 +643,24 @@ export class UniversalETFFlowService {
           orderBy: { date: 'desc' },
         });
 
-        return flows.map((flow) => ({
-          date: flow.date.toISOString().split('T')[0],
-          blackrock: flow.blackrock || 0,
-          fidelity: flow.fidelity || 0,
-          bitwise: flow.bitwise || 0,
-          twentyOneShares: flow.twentyOneShares || 0,
-          vanEck: flow.vanEck || 0,
-          invesco: flow.invesco || 0,
-          franklin: flow.franklin || 0,
-          grayscale: flow.grayscale || 0,
-          grayscaleCrypto: flow.grayscaleBtc || 0,
-          valkyrie: flow.valkyrie || 0,
-          wisdomTree: flow.wisdomTree || 0,
-          total: flow.total || 0,
-        }));
+        return flows.map(
+          (flow) =>
+            ({
+              date: flow.date.toISOString().split('T')[0],
+              blackrock: flow.blackrock || 0,
+              fidelity: flow.fidelity || 0,
+              bitwise: flow.bitwise || 0,
+              twentyOneShares: flow.twentyOneShares || 0,
+              invesco: flow.invesco || 0,
+              franklin: flow.franklin || 0,
+              valkyrie: flow.valkyrie || 0,
+              vanEck: flow.vanEck || 0,
+              wisdomTree: flow.wisdomTree || 0,
+              grayscale: flow.grayscale || 0,
+              grayscaleBtc: flow.grayscaleBtc || 0,
+              total: flow.total || 0,
+            }) as BTCFlowData,
+        );
       }
     } catch (error) {
       this.logger.error(

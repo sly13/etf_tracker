@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/etf_flow_bar_chart.dart';
+import '../widgets/crypto_price_widget.dart';
+import '../widgets/ethereum_flow_card.dart';
 import 'settings_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -14,6 +16,11 @@ class EthereumETFScreen extends StatefulWidget {
 }
 
 class _EthereumETFScreenState extends State<EthereumETFScreen> {
+  int _displayedItems = 10;
+  Map<int, bool> _expandedStates = {};
+  String _sortBy = 'date'; // 'date', 'total', 'blackrock', 'fidelity', etc.
+  bool _sortAscending = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,9 +36,15 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
+            icon: const Icon(Icons.sort),
+            onPressed: () {
+              _showSortDialog(context);
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<ETFProvider>().loadEthereumData();
+              context.read<ETFProvider>().forceRefreshAllData();
             },
           ),
           IconButton(
@@ -84,8 +97,17 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Компактный виджет с ценами криптовалют
+                  const CompactCryptoPriceWidget(),
+                  const SizedBox(height: 16),
+
                   // Заголовок и общая статистика
-                  _buildHeader(etfProvider.ethereumData.first),
+                  EthereumFlowCard(
+                    flowData: etfProvider.ethereumData.first,
+                    onTap: () {
+                      // Можно добавить дополнительную логику при нажатии
+                    },
+                  ),
                   const SizedBox(height: 24),
 
                   // График потоков
@@ -103,124 +125,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
     );
   }
 
-  // Заголовок с общей статистикой
-  Widget _buildHeader(ETFFlowData latestData) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final total = latestData.total ?? 0;
-    final isPositive = total >= 0;
-    final color = isPositive ? Colors.green : Colors.red;
-    final icon = isPositive ? Icons.trending_up : Icons.trending_down;
 
-    return Card(
-      elevation: 4,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDark
-                ? [const Color(0xFF1A1A1A), const Color(0xFF0A0A0A)]
-                : [Colors.blue.shade50, Colors.blue.shade100],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.currency_exchange,
-                  color: isDark ? Colors.blue.shade400 : Colors.blue,
-                  size: 32,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    'Ethereum ETF Flow',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.blue.shade400 : Colors.blue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Общий дневной поток',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isDark ? Colors.blue.shade300 : Colors.blue,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(icon, color: color, size: 24),
-                          const SizedBox(width: 8),
-                          Text(
-                            '\$${total.toStringAsFixed(1)}M',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: color,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.blue.shade800.withOpacity(0.3)
-                        : Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        DateFormat(
-                          'dd',
-                        ).format(DateTime.parse(latestData.date)),
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.blue.shade300 : Colors.blue,
-                        ),
-                      ),
-                      Text(
-                        DateFormat(
-                          'MMM',
-                        ).format(DateTime.parse(latestData.date)),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark ? Colors.blue.shade300 : Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // Секция с графиком
   Widget _buildChartSection(List<ETFFlowData> data) {
@@ -237,96 +142,252 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
   // Список данных по дням
   Widget _buildDataList(List<ETFFlowData> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Сортируем данные
+    final sortedData = _sortData(data);
+    final displayedData = sortedData.take(_displayedItems).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'История потоков',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'История потоков',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            Text(
+              _getSortDescription(),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
 
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: data.length,
+          itemCount: displayedData.length,
           itemBuilder: (context, index) {
-            final flowData = data[index];
-            return _buildFlowDataCard(flowData);
+            final flowData = displayedData[index];
+            final isLatest = index == 0; // Первый элемент (самый последний)
+
+            // По умолчанию только первый блок развернут
+            if (!_expandedStates.containsKey(index)) {
+              _expandedStates[index] = isLatest;
+            }
+
+            return _buildFlowDataCard(flowData, index, isLatest);
           },
         ),
+
+        // Кнопка "Загрузить еще"
+        if (_displayedItems < data.length)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _displayedItems = (_displayedItems + 10).clamp(
+                      0,
+                      data.length,
+                    );
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? Colors.blue.shade800 : Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  'Загрузить еще (${data.length - _displayedItems} осталось)',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
   // Карточка с данными потока
-  Widget _buildFlowDataCard(ETFFlowData flowData) {
+  Widget _buildFlowDataCard(ETFFlowData flowData, int index, bool isLatest) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final date = DateTime.parse(flowData.date);
     final total = flowData.total ?? 0;
     final isPositive = total >= 0;
     final totalColor = isPositive ? Colors.green : Colors.red;
+    final isExpanded = _expandedStates[index] ?? false;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Заголовок с датой и общим потоком
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today, color: Colors.blue, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      DateFormat('dd.MM.yyyy').format(date),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: totalColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: totalColor),
-                  ),
-                  child: Text(
-                    '\$${total.toStringAsFixed(1)}M',
-                    style: TextStyle(
-                      color: totalColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [const Color(0xFF2A2A2A), const Color(0xFF1A1A1A)]
+                : [Colors.white, Colors.grey.shade50],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black26 : Colors.grey.shade300,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-
-            const SizedBox(height: 16),
-
-            // Сетка с данными по компаниям
-            _buildCompanyGrid(flowData),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Заголовок с датой и общим потоком
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.calendar_today,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        DateFormat('dd.MM.yyyy').format(date),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              totalColor.withOpacity(0.1),
+                              totalColor.withOpacity(0.2),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: totalColor.withOpacity(0.3),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: totalColor.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isPositive
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              color: totalColor,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '\$${total.toStringAsFixed(1)}M',
+                              style: TextStyle(
+                                color: totalColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _expandedStates[index] = !isExpanded;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.blue.withOpacity(0.2)
+                                : Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(
+                            isExpanded ? Icons.expand_less : Icons.expand_more,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Сетка с данными по компаниям (показываем только если развернуто)
+              if (isExpanded) ...[
+                const SizedBox(height: 16),
+                _buildCompanyGrid(flowData),
+              ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  // Общая статистика по компаниям
+  // Функция для умного форматирования чисел
+  String _formatLargeNumber(double value) {
+    if (value >= 1000) {
+      return '\$${(value / 1000).toStringAsFixed(1)}B';
+    } else {
+      return '\$${value.toStringAsFixed(1)}M';
+    }
   }
 
   // Сетка с данными по компаниям
@@ -396,5 +457,166 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
         ],
       ),
     );
+  }
+
+  // Показать диалог сортировки
+  void _showSortDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Сортировка'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('По дате'),
+                value: 'date',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('По общему потоку'),
+                value: 'total',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('По BlackRock'),
+                value: 'blackrock',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('По Fidelity'),
+                value: 'fidelity',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('По Grayscale'),
+                value: 'grayscale',
+                groupValue: _sortBy,
+                onChanged: (value) {
+                  setState(() {
+                    _sortBy = value!;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _sortAscending = !_sortAscending;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          _sortAscending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(_sortAscending ? 'По возрастанию' : 'По убыванию'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Сортировка данных
+  List<ETFFlowData> _sortData(List<ETFFlowData> data) {
+    final sortedData = List<ETFFlowData>.from(data);
+
+    sortedData.sort((a, b) {
+      int comparison = 0;
+
+      switch (_sortBy) {
+        case 'date':
+          comparison = DateTime.parse(a.date).compareTo(DateTime.parse(b.date));
+          break;
+        case 'total':
+          comparison = (a.total ?? 0).compareTo(b.total ?? 0);
+          break;
+        case 'blackrock':
+          comparison = (a.blackrock ?? 0).compareTo(b.blackrock ?? 0);
+          break;
+        case 'fidelity':
+          comparison = (a.fidelity ?? 0).compareTo(b.fidelity ?? 0);
+          break;
+        case 'grayscale':
+          comparison = (a.grayscale ?? 0).compareTo(b.grayscale ?? 0);
+          break;
+        default:
+          comparison = DateTime.parse(a.date).compareTo(DateTime.parse(b.date));
+      }
+
+      return _sortAscending ? comparison : -comparison;
+    });
+
+    return sortedData;
+  }
+
+  // Получить описание текущей сортировки
+  String _getSortDescription() {
+    String sortType = '';
+    switch (_sortBy) {
+      case 'date':
+        sortType = 'Дата';
+        break;
+      case 'total':
+        sortType = 'Общий поток';
+        break;
+      case 'blackrock':
+        sortType = 'BlackRock';
+        break;
+      case 'fidelity':
+        sortType = 'Fidelity';
+        break;
+      case 'grayscale':
+        sortType = 'Grayscale';
+        break;
+      default:
+        sortType = 'Дата';
+    }
+
+    return '${_sortAscending ? '↑' : '↓'} $sortType';
   }
 }

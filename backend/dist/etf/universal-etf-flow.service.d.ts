@@ -15,6 +15,7 @@ export interface ETFFlowData {
 export interface BTCFlowData extends ETFFlowData {
     valkyrie: number;
     wisdomTree: number;
+    grayscaleBtc: number;
 }
 export interface ParsingResult {
     success: boolean;

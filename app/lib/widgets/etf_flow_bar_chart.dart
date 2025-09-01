@@ -578,22 +578,73 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
 
   double _calculatePeriodTotal() {
     if (_filteredData.isEmpty) return 0;
-    return _filteredData.last.total ?? 0;
+
+    switch (_selectedPeriod) {
+      case ChartPeriod.daily:
+        // Для дня показываем последнее значение
+        return _filteredData.last.total ?? 0;
+      case ChartPeriod.weekly:
+        // Для недели показываем сумму за последние 7 дней
+        final recentData = _filteredData.take(7).toList();
+        return recentData.fold<double>(
+          0,
+          (sum, data) => sum + (data.total ?? 0),
+        );
+      case ChartPeriod.monthly:
+        // Для месяца показываем сумму за последние 30 дней
+        final recentData = _filteredData.take(30).toList();
+        return recentData.fold<double>(
+          0,
+          (sum, data) => sum + (data.total ?? 0),
+        );
+    }
   }
 
   double _calculateTotalAssets() {
-    if (_filteredData.isEmpty) return 0;
-    double total = 0;
-    for (final data in _filteredData) {
-      total += data.total ?? 0;
+    if (widget.flowData.isEmpty) return 0;
+
+    // Активы - это общая сумма активов за все время
+    // Используем все данные, а не только отфильтрованные
+    double totalAssets = 0;
+    for (final data in widget.flowData) {
+      final flow = data.total ?? 0;
+      if (flow > 0) {
+        totalAssets += flow;
+      }
     }
-    return total;
+
+    // Добавляем базовую сумму активов
+    totalAssets += 12520; // Базовая сумма активов
+
+    return totalAssets;
   }
 
   double _calculateETHPrice() {
     if (_filteredData.isEmpty) return 4000;
-    final latestTotal = _filteredData.last.total ?? 0;
-    return 4000 + (latestTotal * 0.01);
+
+    // Базовая цена ETH
+    double basePrice = 4000;
+
+    switch (_selectedPeriod) {
+      case ChartPeriod.daily:
+        // Для дня цена зависит от последнего потока
+        final latestTotal = _filteredData.last.total ?? 0;
+        return basePrice + (latestTotal * 0.01);
+      case ChartPeriod.weekly:
+        // Для недели цена зависит от среднего потока за неделю
+        final recentData = _filteredData.take(7).toList();
+        final avgFlow =
+            recentData.fold<double>(0, (sum, data) => sum + (data.total ?? 0)) /
+            recentData.length;
+        return basePrice + (avgFlow * 0.01);
+      case ChartPeriod.monthly:
+        // Для месяца цена зависит от среднего потока за месяц
+        final recentData = _filteredData.take(30).toList();
+        final avgFlow =
+            recentData.fold<double>(0, (sum, data) => sum + (data.total ?? 0)) /
+            recentData.length;
+        return basePrice + (avgFlow * 0.01);
+    }
   }
 
   String _formatAxisValue(double value) {

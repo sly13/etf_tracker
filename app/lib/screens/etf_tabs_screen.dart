@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/etf_provider.dart';
+import '../providers/crypto_price_provider.dart';
 import '../config/app_config.dart';
+import '../widgets/crypto_price_widget.dart';
+import '../models/etf_flow_data.dart';
 import 'settings_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -40,11 +43,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          // Кнопка обновления данных ETF
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<ETFProvider>().loadAllData();
+              context.read<ETFProvider>().forceRefreshAllData();
             },
+            tooltip: 'Обновить данные ETF',
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -54,6 +59,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
+            tooltip: 'Настройки',
           ),
         ],
       ),
@@ -74,7 +80,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   ElevatedButton(
                     onPressed: () {
                       etfProvider.clearError();
-                      etfProvider.loadAllData();
+                      etfProvider.forceRefreshAllData();
                     },
                     child: const Text('Повторить'),
                   ),
@@ -84,12 +90,16 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => etfProvider.loadAllData(),
+            onRefresh: () => etfProvider.forceRefreshAllData(),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Цены криптовалют (компактный вид)
+                  const CompactCryptoPriceWidget(),
+                  const SizedBox(height: 16),
+
                   // Общая сводка
                   _buildSummaryCard(etfProvider),
                   const SizedBox(height: 24),
@@ -146,10 +156,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             if (ethereumData != null) ...[
               _buildSummaryRow(
                 'Ethereum ETF',
-                ethereumData.total ?? 0,
+                _calculateTotalAssets(etfProvider.ethereumData),
                 Icons.currency_exchange,
                 Colors.blue,
-                'Общий дневной поток',
+                'Общая сумма активов',
               ),
               const SizedBox(height: 16),
             ],
@@ -158,10 +168,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             if (bitcoinData != null) ...[
               _buildSummaryRow(
                 'Bitcoin ETF',
-                bitcoinData.total ?? 0,
+                _calculateTotalAssetsBTC(etfProvider.bitcoinData),
                 Icons.currency_bitcoin,
                 Colors.orange,
-                'Общий дневной поток',
+                'Общая сумма активов',
               ),
             ],
 
@@ -177,6 +187,45 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         ),
       ),
     );
+  }
+
+  // Функция для расчета общей суммы активов
+  double _calculateTotalAssets(List<ETFFlowData> data) {
+    double total = 0.0;
+
+    for (final item in data) {
+      // Используем total из базы данных вместо суммирования компаний
+      if (item.total != null) {
+        total += item.total!;
+      }
+    }
+
+    print('=== Общая сводка ETH: $total ===');
+    return total;
+  }
+
+  // Функция для расчета общей суммы активов Bitcoin
+  double _calculateTotalAssetsBTC(List<BTCFlowData> data) {
+    double total = 0.0;
+
+    for (final item in data) {
+      // Используем total из базы данных вместо суммирования компаний
+      if (item.total != null) {
+        total += item.total!;
+      }
+    }
+
+    print('=== Общая сводка BTC: $total ===');
+    return total;
+  }
+
+  // Функция для умного форматирования чисел
+  String _formatLargeNumber(double value) {
+    if (value >= 1000) {
+      return '\$${(value / 1000).toStringAsFixed(1)}B';
+    } else {
+      return '\$${value.toStringAsFixed(1)}M';
+    }
   }
 
   // Строка сводки
@@ -228,7 +277,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           ),
         ),
         Text(
-          '\$${value.toStringAsFixed(1)}M',
+          _formatLargeNumber(value),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,

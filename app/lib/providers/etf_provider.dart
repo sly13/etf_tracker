@@ -155,28 +155,16 @@ class ETFProvider with ChangeNotifier {
 
       debugPrint('ETFProvider: Начинаем инициализацию данных');
 
-      // Сначала проверяем, есть ли кэшированные данные
-      final hasCachedData = await _storageService.hasCachedData();
-      debugPrint('ETFProvider: Кэшированные данные найдены: $hasCachedData');
-
-      if (hasCachedData) {
-        // Проверяем, нужно ли обновлять данные
-        final shouldUpdate = await _storageService.shouldUpdateData();
-        debugPrint('ETFProvider: Нужно обновить данные: $shouldUpdate');
-
-        if (shouldUpdate) {
-          // Данные устарели, загружаем новые с сервера
-          debugPrint('ETFProvider: Данные устарели, загружаем с сервера');
-          await _loadAllDataFromServer();
-        } else {
-          // Данные свежие, загружаем из кэша
-          debugPrint('ETFProvider: Данные свежие, загружаем из кэша');
-          await loadFromCache();
-        }
-      } else {
-        // Кэшированных данных нет, загружаем все с сервера
-        debugPrint('ETFProvider: Кэша нет, загружаем с сервера');
+      // При старте приложения всегда загружаем новые данные с сервера
+      debugPrint('ETFProvider: Загружаем свежие данные с сервера при старте');
+      try {
         await _loadAllDataFromServer();
+      } catch (e) {
+        debugPrint(
+          'ETFProvider: Ошибка загрузки с сервера, загружаем из кэша: $e',
+        );
+        // Если загрузка с сервера не удалась, загружаем из кэша
+        await loadFromCache();
       }
 
       debugPrint(
@@ -346,6 +334,24 @@ class ETFProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('ETFProvider: Ошибка при проверке данных: $e');
       _setError(e.toString());
+    }
+  }
+
+  // Принудительное обновление всех данных с сервера
+  Future<void> forceRefreshAllData() async {
+    try {
+      _setLoading(true);
+      _clearError();
+      debugPrint('ETFProvider: Принудительное обновление всех данных');
+
+      await _loadAllDataFromServer();
+
+      debugPrint('ETFProvider: Принудительное обновление завершено');
+    } catch (e) {
+      debugPrint('ETFProvider: Ошибка принудительного обновления: $e');
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
     }
   }
 }

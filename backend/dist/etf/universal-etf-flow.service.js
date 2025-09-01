@@ -157,12 +157,14 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                     rows.forEach((row, index) => {
                         const cells = row.querySelectorAll('td');
                         if (cells.length >= 11) {
+                            console.log(`Ethereum processing row ${index + 1} with ${cells.length} cells`);
                             const firstCellText = cells[0]
                                 .querySelector('span.tabletext')
                                 ?.textContent?.trim();
                             if (firstCellText === 'Seed') {
+                                console.log('Ethereum processing Seed data');
                                 const seedData = {
-                                    date: '2024-06-22',
+                                    date: '2024-07-22',
                                     blackrock: parseNumber(cells[1].querySelector('span.tabletext')?.textContent),
                                     fidelity: parseNumber(cells[2].querySelector('span.tabletext')?.textContent),
                                     bitwise: parseNumber(cells[3].querySelector('span.tabletext')?.textContent),
@@ -177,13 +179,19 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                 if (!seenDates.has(seedData.date)) {
                                     seenDates.add(seedData.date);
                                     data.push(seedData);
+                                    console.log('Ethereum Seed data saved:', seedData);
+                                }
+                                else {
+                                    console.log('Ethereum Seed data already exists for date:', seedData.date);
                                 }
                                 return;
                             }
                             if (firstCellText && firstCellText !== 'Seed') {
+                                console.log(`Ethereum Row ${index + 1}: processing date "${firstCellText}"`);
                                 try {
                                     const parsedDate = parseDate(firstCellText);
                                     if (parsedDate && !seenDates.has(parsedDate)) {
+                                        console.log(`Ethereum successfully parsed date: ${parsedDate}`);
                                         seenDates.add(parsedDate);
                                         const flowDataItem = {
                                             date: parsedDate,
@@ -212,12 +220,14 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         if (!text)
                             return 0;
                         try {
-                            const cleanText = text.replace(/[^\d.,-]/g, '');
+                            const cleanText = text.replace(/[^\d.,\-()]/g, '');
                             if (text.includes('(') && text.includes(')')) {
-                                const number = parseFloat(cleanText.replace(/[()]/g, ''));
+                                const numberText = cleanText.replace(/[()]/g, '');
+                                const number = parseFloat(numberText.replace(/,/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const number = parseFloat(cleanText.replace(',', '.'));
+                            const numberText = cleanText.replace(/,/g, '');
+                            const number = parseFloat(numberText);
                             return isNaN(number) ? 0 : number;
                         }
                         catch {
@@ -226,6 +236,7 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                     }
                 });
                 this.logger.log(`Успешно спарсено ${flowData.length} записей о потоках ${type.toUpperCase()} ETF`);
+                console.log('Ethereum total records parsed:', flowData.length);
                 return flowData;
             }
             else {
@@ -278,50 +289,35 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                             return null;
                         }
                     }
-                    if (rows.length > 0) {
-                        const firstRow = rows[0];
-                        const cells = firstRow.querySelectorAll('td');
-                        console.log(`Bitcoin: Найдено ${cells.length} колонок в таблице`);
-                        cells.forEach((cell, index) => {
-                            const text = cell
-                                .querySelector('span.tabletext')
-                                ?.textContent?.trim();
-                            console.log(`Bitcoin: Колонка ${index}: "${text}"`);
-                        });
-                    }
                     rows.forEach((row, index) => {
                         const cells = row.querySelectorAll('td');
                         if (cells.length >= 13) {
                             const firstCellText = cells[0]
                                 .querySelector('span.tabletext')
                                 ?.textContent?.trim();
+                            console.log(`Row ${index + 1}: processing date "${firstCellText}"`);
                             if (firstCellText && firstCellText !== 'Seed') {
                                 try {
                                     const parsedDate = parseDate(firstCellText);
                                     if (parsedDate) {
+                                        console.log(`Successfully parsed date: ${parsedDate}`);
                                         const flowDataItem = {
                                             date: parsedDate,
                                             blackrock: parseNumber(cells[1].querySelector('span.tabletext')?.textContent),
                                             fidelity: parseNumber(cells[2].querySelector('span.tabletext')?.textContent),
                                             bitwise: parseNumber(cells[3].querySelector('span.tabletext')?.textContent),
                                             twentyOneShares: parseNumber(cells[4].querySelector('span.tabletext')?.textContent),
-                                            vanEck: parseNumber(cells[5].querySelector('span.tabletext')?.textContent),
-                                            invesco: parseNumber(cells[6].querySelector('span.tabletext')?.textContent),
-                                            franklin: parseNumber(cells[7].querySelector('span.tabletext')?.textContent),
-                                            grayscale: parseNumber(cells[8].querySelector('span.tabletext')?.textContent),
-                                            grayscaleCrypto: parseNumber(cells[9].querySelector('span.tabletext')?.textContent),
-                                            valkyrie: parseNumber(cells[10].querySelector('span.tabletext')?.textContent),
-                                            wisdomTree: parseNumber(cells[11].querySelector('span.tabletext')?.textContent),
+                                            invesco: parseNumber(cells[5].querySelector('span.tabletext')?.textContent),
+                                            franklin: parseNumber(cells[6].querySelector('span.tabletext')?.textContent),
+                                            valkyrie: parseNumber(cells[7].querySelector('span.tabletext')?.textContent),
+                                            vanEck: parseNumber(cells[8].querySelector('span.tabletext')?.textContent),
+                                            wisdomTree: parseNumber(cells[9].querySelector('span.tabletext')?.textContent),
+                                            grayscale: parseNumber(cells[10].querySelector('span.tabletext')?.textContent),
+                                            grayscaleBtc: parseNumber(cells[11].querySelector('span.tabletext')?.textContent),
                                             total: parseNumber(cells[12].querySelector('span.tabletext')?.textContent),
                                         };
-                                        if (index < 3) {
-                                            console.log(`Bitcoin: Строка ${index + 1}:`, {
-                                                date: flowDataItem.date,
-                                                valkyrie: flowDataItem.valkyrie,
-                                                wisdomTree: flowDataItem.wisdomTree,
-                                                total: flowDataItem.total,
-                                            });
-                                        }
+                                        console.log('Bitcoin Grayscale BTC parsed value:', flowDataItem.grayscaleBtc);
+                                        console.log('Bitcoin data date:', flowDataItem.date);
                                         data.push(flowDataItem);
                                     }
                                 }
@@ -336,12 +332,14 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         if (!text)
                             return 0;
                         try {
-                            const cleanText = text.replace(/[^\d.,-]/g, '');
+                            const cleanText = text.replace(/[^\d.,\-()]/g, '');
                             if (text.includes('(') && text.includes(')')) {
-                                const number = parseFloat(cleanText.replace(/[()]/g, ''));
+                                const numberText = cleanText.replace(/[()]/g, '');
+                                const number = parseFloat(numberText.replace(/,/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const number = parseFloat(cleanText.replace(',', '.'));
+                            const numberText = cleanText.replace(/,/g, '');
+                            const number = parseFloat(numberText);
                             return isNaN(number) ? 0 : number;
                         }
                         catch {
@@ -403,11 +401,6 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                 }
                 else {
                     const btcData = data;
-                    console.log(`Bitcoin: Сохраняю данные для ${data.date}:`, {
-                        valkyrie: btcData.valkyrie,
-                        wisdomTree: btcData.wisdomTree,
-                        total: btcData.total,
-                    });
                     await this.prisma.bTCFlow.upsert({
                         where: { date },
                         update: {
@@ -415,13 +408,13 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                             fidelity: btcData.fidelity,
                             bitwise: btcData.bitwise,
                             twentyOneShares: btcData.twentyOneShares,
-                            vanEck: btcData.vanEck,
                             invesco: btcData.invesco,
                             franklin: btcData.franklin,
-                            grayscale: btcData.grayscale,
-                            grayscaleBtc: btcData.grayscaleCrypto,
                             valkyrie: btcData.valkyrie,
+                            vanEck: btcData.vanEck,
                             wisdomTree: btcData.wisdomTree,
+                            grayscale: btcData.grayscale,
+                            grayscaleBtc: btcData.grayscaleBtc,
                             total: btcData.total,
                             updatedAt: new Date(),
                         },
@@ -431,13 +424,13 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                             fidelity: btcData.fidelity,
                             bitwise: btcData.bitwise,
                             twentyOneShares: btcData.twentyOneShares,
-                            vanEck: btcData.vanEck,
                             invesco: btcData.invesco,
                             franklin: btcData.franklin,
-                            grayscale: btcData.grayscale,
-                            grayscaleBtc: btcData.grayscaleCrypto,
                             valkyrie: btcData.valkyrie,
+                            vanEck: btcData.vanEck,
                             wisdomTree: btcData.wisdomTree,
+                            grayscale: btcData.grayscale,
+                            grayscaleBtc: btcData.grayscaleBtc,
                             total: btcData.total,
                         },
                     });
@@ -480,13 +473,13 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                     fidelity: flow.fidelity || 0,
                     bitwise: flow.bitwise || 0,
                     twentyOneShares: flow.twentyOneShares || 0,
-                    vanEck: flow.vanEck || 0,
                     invesco: flow.invesco || 0,
                     franklin: flow.franklin || 0,
-                    grayscale: flow.grayscale || 0,
-                    grayscaleCrypto: flow.grayscaleBtc || 0,
                     valkyrie: flow.valkyrie || 0,
+                    vanEck: flow.vanEck || 0,
                     wisdomTree: flow.wisdomTree || 0,
+                    grayscale: flow.grayscale || 0,
+                    grayscaleBtc: flow.grayscaleBtc || 0,
                     total: flow.total || 0,
                 }));
             }

@@ -50,6 +50,9 @@ dependencies:
   # Local storage for settings
   shared_preferences: ^2.2.2
 
+  # Vibration feedback
+  vibration: ^1.8.4
+
   # App icons
   flutter_launcher_icons: ^0.13.1
 

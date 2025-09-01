@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vibration/vibration.dart';
 import 'etf_tabs_screen.dart';
 import 'fund_holdings_screen.dart';
 import 'ethereum_etf_screen.dart';
@@ -16,6 +17,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
+  late PageController _pageController;
 
   final List<Widget> _screens = [
     const ETFTabsScreen(),
@@ -23,6 +25,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const BitcoinETFScreen(),
     const FundHoldingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // Метод для вибрации при переключении страниц
+  void _vibrateOnPageChange() async {
+    if (await Vibration.hasVibrator() ?? false) {
+      Vibration.vibrate(duration: 50);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,38 +127,96 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           'MainNavigationScreen: Данные готовы, показываем основной интерфейс',
         );
         return Scaffold(
-          body: IndexedStack(index: _currentIndex, children: _screens),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Colors.grey,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.trending_up),
-                label: 'ETF Потоки',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.currency_exchange),
-                label: 'Ethereum ETF',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.currency_bitcoin),
-                label: 'Bitcoin ETF',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance),
-                label: 'Владение',
-              ),
-            ],
+          body: PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(), // Отключаем свайп
+            children: _screens,
           ),
+          bottomNavigationBar: _buildCustomBottomNavigationBar(),
         );
       },
+    );
+  }
+
+  // Кастомный BottomNavigationBar без анимаций
+  Widget _buildCustomBottomNavigationBar() {
+    final items = [
+      {'icon': Icons.trending_up, 'label': 'ETF Потоки'},
+      {'icon': Icons.currency_exchange, 'label': 'Ethereum ETF'},
+      {'icon': Icons.currency_bitcoin, 'label': 'Bitcoin ETF'},
+      {'icon': Icons.account_balance, 'label': 'Владение'},
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isSelected = _currentIndex == index;
+
+              return Expanded(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      // Добавляем вибрацию при переключении страниц
+                      _vibrateOnPageChange();
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                      // Переходим к странице без анимации
+                      _pageController.jumpToPage(index);
+                    },
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            item['icon'] as IconData,
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
+                            size: 24,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item['label'] as String,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
     );
   }
 }

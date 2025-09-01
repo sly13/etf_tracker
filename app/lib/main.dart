@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/etf_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/crypto_price_provider.dart';
 import 'screens/main_navigation_screen.dart';
 
 void main() {
@@ -21,6 +22,14 @@ class MyApp extends StatelessWidget {
             final provider = ETFProvider();
             // Инициализируем данные сразу при создании провайдера
             provider.initializeData();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = CryptoPriceProvider();
+            // Инициализируем цены криптовалют при создании провайдера
+            provider.initialize();
             return provider;
           },
         ),
