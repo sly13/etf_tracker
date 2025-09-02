@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 
 class DetailedInfoScreen extends StatefulWidget {
@@ -23,8 +24,10 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Детальная информация'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text('detailed_info.title'.tr()),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -54,7 +57,7 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
                       etfProvider.clearError();
                       etfProvider.loadAllData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -122,9 +125,9 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Выберите ETF для анализа',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Text(
+          'detailed_info.choose_etf'.tr(),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
 
@@ -133,8 +136,8 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
             Expanded(
               child: _buildNavigationCard(
                 context,
-                'Ethereum ETF',
-                'Подробная информация о потоках Ethereum ETF',
+                'etf.ethereum'.tr(),
+                'detailed_info.ethereum_etf_info'.tr(),
                 Icons.currency_exchange,
                 Colors.blue,
                 () => Navigator.pushNamed(context, '/ethereum-etf'),
@@ -144,8 +147,8 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
             Expanded(
               child: _buildNavigationCard(
                 context,
-                'Bitcoin ETF',
-                'Подробная информация о потоках Bitcoin ETF',
+                'etf.bitcoin'.tr(),
+                'detailed_info.bitcoin_etf_info'.tr(),
                 Icons.currency_bitcoin,
                 Colors.orange,
                 () => Navigator.pushNamed(context, '/bitcoin-etf'),
@@ -224,9 +227,9 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Открыть',
-                      style: TextStyle(
+                    Text(
+                      'common.open'.tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -248,32 +251,32 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Что вы найдете в детальной информации',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Text(
+          'detailed_info.what_you_find'.tr(),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
 
         _buildInfoItem(
           Icons.show_chart,
-          'Графики потоков',
-          'Визуализация изменения потоков ETF по времени',
+          'detailed_info.flow_charts'.tr(),
+          'detailed_info.flow_charts_desc'.tr(),
           Colors.green,
         ),
         const SizedBox(height: 12),
 
         _buildInfoItem(
           Icons.history,
-          'История данных',
-          'Детальная информация по каждому дню и компании',
+          'detailed_info.data_history'.tr(),
+          'detailed_info.data_history_desc'.tr(),
           Colors.blue,
         ),
         const SizedBox(height: 12),
 
         _buildInfoItem(
           Icons.analytics,
-          'Аналитика',
-          'Статистика и анализ потоков по фондам',
+          'detailed_info.analytics'.tr(),
+          'detailed_info.analytics_desc'.tr(),
           Colors.orange,
         ),
       ],

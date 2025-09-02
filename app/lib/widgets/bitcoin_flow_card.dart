@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import 'package:intl/intl.dart';
 
@@ -64,7 +65,7 @@ class BitcoinFlowCard extends StatelessWidget {
                   // Заголовок
                   Expanded(
                     child: Text(
-                      'Bitcoin ETF Flow',
+                      'etf.bitcoin_flow'.tr(),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -116,7 +117,7 @@ class BitcoinFlowCard extends StatelessWidget {
 
               // Подпись "Общий дневной поток"
               Text(
-                'Общий дневной поток',
+                'etf.total_daily_flow'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: isDark

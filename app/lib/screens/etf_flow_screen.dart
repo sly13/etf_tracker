@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +23,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ETF Потоки'),
+        title: Text('etf_flows.title'.tr()),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -53,7 +54,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
                       etfProvider.clearError();
                       etfProvider.loadETFFlowData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),

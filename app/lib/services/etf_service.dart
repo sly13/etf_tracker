@@ -11,6 +11,7 @@ class ETFService {
   Future<List<ETFFlowData>> getEthereumData() async {
     try {
       final url = AppConfig.getApiUrl('/etf-flow/eth');
+      print('🔧 ETFService: Запрос к URL: $url');
 
       final response = await http
           .get(Uri.parse(url))

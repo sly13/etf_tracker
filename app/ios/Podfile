@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+platform :ios, '15.6'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -31,6 +31,17 @@ target 'Runner' do
   use_frameworks!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  
+  # Исправление конфликта типов для RevenueCat
+  pod 'PurchasesHybridCommon', :modular_headers => true, :inhibit_warnings => true do |purchases|
+    purchases.pod_target_xcconfig = {
+      'SWIFT_VERSION' => '5.0',
+      'CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER' => 'NO',
+      'SWIFT_OBJC_INTERFACE_HEADER_NAME' => '$(SWIFT_MODULE_NAME)-Swift.h',
+      'DEFINES_MODULE' => 'YES'
+    }
+  end
+  
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -39,5 +50,29 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    
+    # Исправление конфликта типов для RevenueCat
+    if target.name == 'PurchasesHybridCommon'
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_VERSION'] = '5.0'
+        config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+        # Исправление конфликта типов
+        config.build_settings['SWIFT_OBJC_INTERFACE_HEADER_NAME'] = '$(SWIFT_MODULE_NAME)-Swift.h'
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        # Отключаем предупреждения о конфликтах типов
+        config.build_settings['CLANG_WARN_STRICT_PROTOTYPES'] = 'NO'
+      end
+    end
+    
+    # Исправление для основного target
+    if target.name == 'Runner'
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_VERSION'] = '5.0'
+        # Отключаем предупреждения о конфликтах типов
+        config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+      end
+    end
   end
+  
+
 end

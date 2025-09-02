@@ -220,14 +220,12 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         if (!text)
                             return 0;
                         try {
-                            const cleanText = text.replace(/[^\d.,\-()]/g, '');
+                            const cleanText = text.replace(/[^\d.,-]/g, '');
                             if (text.includes('(') && text.includes(')')) {
-                                const numberText = cleanText.replace(/[()]/g, '');
-                                const number = parseFloat(numberText.replace(/,/g, ''));
+                                const number = parseFloat(cleanText.replace(/[()]/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const numberText = cleanText.replace(/,/g, '');
-                            const number = parseFloat(numberText);
+                            const number = parseFloat(cleanText.replace(',', '.'));
                             return isNaN(number) ? 0 : number;
                         }
                         catch {
@@ -332,14 +330,12 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                         if (!text)
                             return 0;
                         try {
-                            const cleanText = text.replace(/[^\d.,\-()]/g, '');
+                            const cleanText = text.replace(/[^\d.,-]/g, '');
                             if (text.includes('(') && text.includes(')')) {
-                                const numberText = cleanText.replace(/[()]/g, '');
-                                const number = parseFloat(numberText.replace(/,/g, ''));
+                                const number = parseFloat(cleanText.replace(/[()]/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const numberText = cleanText.replace(/,/g, '');
-                            const number = parseFloat(numberText);
+                            const number = parseFloat(cleanText.replace(',', '.'));
                             return isNaN(number) ? 0 : number;
                         }
                         catch {

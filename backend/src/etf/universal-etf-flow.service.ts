@@ -307,21 +307,14 @@ export class UniversalETFFlowService {
             if (!text) return 0;
 
             try {
-              // Удаляем все символы кроме цифр, точек, запятых, минусов и скобок
-              const cleanText = text.replace(/[^\d.,\-()]/g, '');
+              const cleanText = text.replace(/[^\d.,-]/g, '');
 
               if (text.includes('(') && text.includes(')')) {
-                // Для отрицательных чисел в скобках
-                const numberText = cleanText.replace(/[()]/g, '');
-                const number = parseFloat(numberText.replace(/,/g, ''));
+                const number = parseFloat(cleanText.replace(/[()]/g, ''));
                 return isNaN(number) ? 0 : -number;
               }
 
-              // Для положительных чисел
-              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
-              // Оставляем точку как десятичный разделитель
-              const numberText = cleanText.replace(/,/g, '');
-              const number = parseFloat(numberText);
+              const number = parseFloat(cleanText.replace(',', '.'));
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;
@@ -478,21 +471,14 @@ export class UniversalETFFlowService {
             if (!text) return 0;
 
             try {
-              // Удаляем все символы кроме цифр, точек, запятых, минусов и скобок
-              const cleanText = text.replace(/[^\d.,\-()]/g, '');
+              const cleanText = text.replace(/[^\d.,-]/g, '');
 
               if (text.includes('(') && text.includes(')')) {
-                // Для отрицательных чисел в скобках
-                const numberText = cleanText.replace(/[()]/g, '');
-                const number = parseFloat(numberText.replace(/,/g, ''));
+                const number = parseFloat(cleanText.replace(/[()]/g, ''));
                 return isNaN(number) ? 0 : -number;
               }
 
-              // Для положительных чисел
-              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
-              // Оставляем точку как десятичный разделитель
-              const numberText = cleanText.replace(/,/g, '');
-              const number = parseFloat(numberText);
+              const number = parseFloat(cleanText.replace(',', '.'));
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;

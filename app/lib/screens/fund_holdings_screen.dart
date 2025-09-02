@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../services/fund_logo_service.dart';
 import 'settings_screen.dart';
@@ -26,8 +27,10 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Владение Фондами'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text('etf.holdings'.tr()),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+            ? const Color(0xFF0A0A0A) 
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -62,7 +65,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ошибка: ${etfProvider.error}',
+                    'common.error'.tr() + ': ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -72,7 +75,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                       etfProvider.clearError();
                       etfProvider.forceRefreshAllData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -80,8 +83,8 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
           }
 
           if (etfProvider.fundHoldings == null) {
-            return const Center(
-              child: Text('Данные не найдены', style: TextStyle(fontSize: 18)),
+            return Center(
+              child: Text('common.no_data'.tr(), style: const TextStyle(fontSize: 18)),
             );
           }
 
@@ -258,9 +261,9 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
       ),
       child: Row(
         children: [
-          _buildTabItem('Общее', 0, Icons.account_balance),
-          _buildTabItem('Эфир', 1, Icons.currency_exchange),
-          _buildTabItem('Биткоин', 2, Icons.currency_bitcoin),
+          _buildTabItem('holdings.general'.tr(), 0, Icons.account_balance),
+          _buildTabItem('holdings.ethereum'.tr(), 1, Icons.currency_exchange),
+          _buildTabItem('holdings.bitcoin'.tr(), 2, Icons.currency_bitcoin),
         ],
       ),
     );
@@ -317,13 +320,13 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   String _getTabTitle() {
     switch (_selectedTabIndex) {
       case 0:
-        return 'Общее Владение';
+        return 'holdings.general_holdings'.tr();
       case 1:
-        return 'Владение Ethereum';
+        return 'holdings.ethereum_holdings'.tr();
       case 2:
-        return 'Владение Bitcoin';
+        return 'holdings.bitcoin_holdings'.tr();
       default:
-        return 'Владение по Фондам';
+        return 'holdings.fund_holdings'.tr();
     }
   }
 
@@ -378,12 +381,12 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Сортировка'),
+          title: Text('sorting.title'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('По текущему табу (по умолчанию)'),
+                title: Text('sorting.by_current_tab'.tr()),
                 value: 'current',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -394,7 +397,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По общему владению'),
+                title: Text('sorting.by_total_holdings'.tr()),
                 value: 'total',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -405,7 +408,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Ethereum'),
+                title: Text('sorting.by_ethereum'.tr()),
                 value: 'eth',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -416,7 +419,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Bitcoin'),
+                title: Text('sorting.by_bitcoin'.tr()),
                 value: 'btc',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -427,7 +430,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По названию'),
+                title: Text('sorting.by_name'.tr()),
                 value: 'name',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -462,7 +465,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Отмена'),
+              child: Text('common.cancel'.tr()),
             ),
           ],
         );

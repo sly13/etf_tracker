@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import 'package:intl/intl.dart';
 
@@ -172,7 +173,7 @@ class _BTCFlowChartState extends State<BTCFlowChart> {
         children: [
           Expanded(
             child: _buildMetricCard(
-              'Общий ежедневный\nчистый приток',
+              'etf.total_daily_net_inflow'.tr(),
               _formatCurrency(totalInflow),
               totalInflow >= 0 ? Colors.green : Colors.red,
               Icons.trending_up,
@@ -245,10 +246,10 @@ class _BTCFlowChartState extends State<BTCFlowChart> {
 
   Widget _buildChart() {
     if (_filteredData.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Нет данных для отображения',
-          style: TextStyle(color: Colors.grey),
+          'common.no_data'.tr(),
+          style: const TextStyle(color: Colors.grey),
         ),
       );
     }

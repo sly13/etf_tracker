@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class FilterDropdown extends StatelessWidget {
   final List<String> assetClasses;
@@ -24,16 +25,13 @@ class FilterDropdown extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedAssetClass.isEmpty ? null : selectedAssetClass,
-          hint: const Text('Все классы активов'),
+          hint: Text('etf_portfolio.all_asset_classes'.tr()),
           isExpanded: true,
-          icon: Icon(
-            Icons.filter_list,
-            color: Colors.grey[500],
-          ),
+          icon: Icon(Icons.filter_list, color: Colors.grey[500]),
           items: [
-            const DropdownMenuItem<String>(
+            DropdownMenuItem<String>(
               value: '',
-              child: Text('Все классы активов'),
+              child: Text('etf_portfolio.all_asset_classes'.tr()),
             ),
             ...assetClasses.map((assetClass) {
               return DropdownMenuItem<String>(

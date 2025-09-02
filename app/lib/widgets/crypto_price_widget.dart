@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/crypto_price_provider.dart';
 
 class CryptoPriceWidget extends StatefulWidget {
@@ -48,9 +49,9 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Цены криптовалют',
-                      style: TextStyle(
+                    Text(
+                      'crypto.prices'.tr(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -69,7 +70,7 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
                                 ),
                               )
                             : const Icon(Icons.refresh),
-                        tooltip: 'Обновить цены',
+                        tooltip: 'etf.refresh'.tr(),
                       ),
                   ],
                 ),
@@ -108,13 +109,13 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              provider.error ?? 'Произошла ошибка',
+              provider.error ?? 'common.error'.tr(),
               style: const TextStyle(color: Colors.red),
             ),
           ),
           TextButton(
             onPressed: () => provider.loadPrices(),
-            child: const Text('Повторить'),
+            child: Text('common.retry'.tr()),
           ),
         ],
       ),

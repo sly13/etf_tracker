@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
 
@@ -132,7 +133,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Потоки Ethereum ETF',
+          'etf.ethereum_flows'.tr(),
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontSize: 16,
@@ -144,7 +145,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           children: [
             Expanded(
               child: _buildPeriodButton(
-                'День',
+                'etf.daily'.tr(),
                 ChartPeriod.daily,
                 _selectedPeriod == ChartPeriod.daily,
                 isDark,
@@ -153,7 +154,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             const SizedBox(width: 4),
             Expanded(
               child: _buildPeriodButton(
-                'Неделя',
+                'etf.weekly'.tr(),
                 ChartPeriod.weekly,
                 _selectedPeriod == ChartPeriod.weekly,
                 isDark,
@@ -162,7 +163,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             const SizedBox(width: 4),
             Expanded(
               child: _buildPeriodButton(
-                'Месяц',
+                'etf.monthly'.tr(),
                 ChartPeriod.monthly,
                 _selectedPeriod == ChartPeriod.monthly,
                 isDark,
@@ -222,7 +223,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
       children: [
         Expanded(
           child: _buildMetricCard(
-            'Приток',
+            'etf.inflow'.tr(),
             _formatCurrency(totalInflow),
             Icons.trending_up,
             Colors.green,
@@ -232,7 +233,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
-            'Активы',
+            'etf.assets'.tr(),
             _formatCurrency(totalAssets),
             Icons.account_balance_wallet,
             Colors.blue,
@@ -242,7 +243,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
-            'Цена ETH',
+            'etf.eth_price'.tr(),
             '\$${ethPrice.toStringAsFixed(0)}',
             Icons.attach_money,
             Colors.orange,
@@ -294,26 +295,26 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
 
   Widget _buildChart() {
     if (_filteredData.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Нет данных для отображения',
-          style: TextStyle(color: Colors.grey),
+          'common.no_data'.tr(),
+          style: const TextStyle(color: Colors.grey),
         ),
       );
     }
 
     return AspectRatio(
-      aspectRatio: 1.5,
+      aspectRatio: 1.8, // Увеличиваем соотношение для лучшего отображения
       child: Padding(
-        padding: const EdgeInsets.only(top: 18.0, right: 18.0),
+        padding: const EdgeInsets.only(top: 20.0, right: 20.0, bottom: 10.0),
         child: Row(
           children: [
             // Фиксированная шкала слева
             SizedBox(
-              width: 70,
+              width: 80, // Увеличиваем ширину для лучшей читаемости
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
                   Expanded(child: _buildFixedAxis()),
                 ],
               ),
@@ -346,17 +347,17 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     for (double value = maxY; value >= minY; value -= interval) {
       axisLabels.add(
         SizedBox(
-          height: 20,
+          height: 25, // Увеличиваем высоту для лучшего выравнивания
           child: Align(
             alignment: Alignment.centerRight,
             child: Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.only(right: 12.0), // Увеличиваем отступ
               child: Text(
                 _formatAxisValue(value),
                 style: TextStyle(
-                  color: isDark ? Colors.grey[500] : Colors.grey[600],
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  fontSize: 11, // Увеличиваем размер шрифта
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -417,7 +418,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 25,
+              reservedSize: 35, // Увеличиваем место для подписей
               interval: _getInterval(),
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&
@@ -443,7 +444,8 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
                       DateFormat(dateFormat).format(date),
                       style: TextStyle(
                         color: isDark ? Colors.grey[400] : Colors.grey,
-                        fontSize: 8,
+                        fontSize: 11, // Увеличиваем размер шрифта
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   );
@@ -457,6 +459,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           show: true,
           border: Border.all(
             color: isDark ? const Color(0xFF3A3A3A) : Colors.grey[800]!,
+            width: 1, // Делаем границу тоньше
           ),
         ),
         barGroups: _getBarGroups(),
@@ -473,7 +476,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             }
             return FlLine(
               color: isDark ? Colors.grey[700] : Colors.grey[600],
-              strokeWidth: 1,
+              strokeWidth: 0.5, // Делаем линии сетки тоньше
             );
           },
         ),
@@ -498,10 +501,15 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             color: color,
             width: _getBarWidth(),
             borderRadius: BorderRadius.only(
-              topLeft: total >= 0 ? const Radius.circular(2) : Radius.zero,
-              topRight: total >= 0 ? const Radius.circular(2) : Radius.zero,
-              bottomLeft: total < 0 ? const Radius.circular(2) : Radius.zero,
-              bottomRight: total < 0 ? const Radius.circular(2) : Radius.zero,
+              topLeft: total >= 0 ? const Radius.circular(4) : Radius.zero,
+              topRight: total >= 0 ? const Radius.circular(4) : Radius.zero,
+              bottomLeft: total < 0 ? const Radius.circular(4) : Radius.zero,
+              bottomRight: total < 0 ? const Radius.circular(4) : Radius.zero,
+            ),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: _getMaxY(),
+              color: Colors.grey.withOpacity(0.1),
             ),
           ),
         ],
@@ -556,11 +564,11 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
   double _getBarWidth() {
     switch (_selectedPeriod) {
       case ChartPeriod.daily:
-        return 6;
+        return 12; // Увеличиваем ширину баров для лучшей видимости
       case ChartPeriod.weekly:
-        return 8;
+        return 16;
       case ChartPeriod.monthly:
-        return 12;
+        return 20;
     }
   }
 
@@ -568,11 +576,11 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     final dataLength = _filteredData.length;
     switch (_selectedPeriod) {
       case ChartPeriod.daily:
-        return dataLength * 20.0;
+        return dataLength * 30.0; // Увеличиваем расстояние между барами
       case ChartPeriod.weekly:
-        return dataLength * 40.0;
+        return dataLength * 50.0;
       case ChartPeriod.monthly:
-        return dataLength * 60.0;
+        return dataLength * 70.0;
     }
   }
 

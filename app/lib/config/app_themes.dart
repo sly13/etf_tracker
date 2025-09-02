@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AppThemes {
   static const String _lightThemeKey = 'light';
@@ -30,6 +31,7 @@ class AppThemes {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
       ),
       textTheme: const TextTheme(
         bodyLarge: TextStyle(color: Colors.black87),
@@ -44,9 +46,10 @@ class AppThemes {
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        primary: Colors.grey[800]!,
+        primary: Colors.blue[300]!,
         surface: const Color(0xFF0A0A0A),
         onSurface: Colors.white,
+        outline: Colors.grey[800]!,
       ),
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
@@ -54,6 +57,7 @@ class AppThemes {
         elevation: 0,
         backgroundColor: Color(0xFF0A0A0A),
         foregroundColor: Colors.white,
+        surfaceTintColor: Color(0xFF0A0A0A), // Явно указываем цвет поверхности
       ),
       cardTheme: CardThemeData(
         elevation: 2,
@@ -62,8 +66,8 @@ class AppThemes {
       ),
       scaffoldBackgroundColor: const Color(0xFF0A0A0A),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.blue[300],
+        unselectedItemColor: Colors.grey[500],
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF1A1A1A),
       ),
@@ -100,11 +104,11 @@ class AppThemes {
   static String getThemeDisplayName(String themeKey) {
     switch (themeKey) {
       case _lightThemeKey:
-        return 'Светлая';
+        return 'settings.light_theme'.tr();
       case _darkThemeKey:
-        return 'Темная';
+        return 'settings.dark_theme'.tr();
       default:
-        return 'Светлая';
+        return 'settings.light_theme'.tr();
     }
   }
 }

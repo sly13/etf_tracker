@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/btc_flow_bar_chart.dart';
@@ -31,8 +32,10 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bitcoin ETF'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text('etf.bitcoin'.tr()),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -67,7 +70,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ошибка: ${etfProvider.error}',
+                    'common.error'.tr() + ': ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -77,7 +80,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                       etfProvider.clearError();
                       etfProvider.loadBitcoinData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -85,8 +88,11 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           }
 
           if (etfProvider.bitcoinData.isEmpty) {
-            return const Center(
-              child: Text('Данные не найдены', style: TextStyle(fontSize: 18)),
+            return Center(
+              child: Text(
+                'common.no_data'.tr(),
+                style: const TextStyle(fontSize: 18),
+              ),
             );
           }
 
@@ -152,7 +158,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'История потоков',
+              'etf.flow_history'.tr(),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -465,12 +471,12 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Сортировка'),
+          title: Text('sorting.title'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('По дате'),
+                title: Text('sorting.by_date'.tr()),
                 value: 'date',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -481,7 +487,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По общему потоку'),
+                title: Text('sorting.by_total_flow'.tr()),
                 value: 'total',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -492,7 +498,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По BlackRock'),
+                title: Text('sorting.by_blackrock'.tr()),
                 value: 'blackrock',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -503,7 +509,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Fidelity'),
+                title: Text('sorting.by_fidelity'.tr()),
                 value: 'fidelity',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -514,7 +520,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Grayscale'),
+                title: Text('sorting.by_grayscale'.tr()),
                 value: 'grayscale',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -525,7 +531,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Valkyrie'),
+                title: Text('sorting.by_valkyrie'.tr()),
                 value: 'valkyrie',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -564,7 +570,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Отмена'),
+              child: Text('common.cancel'.tr()),
             ),
           ],
         );

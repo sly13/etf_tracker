@@ -1,29 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/theme_provider.dart';
+import '../providers/language_provider.dart';
 import '../config/app_themes.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Настройки'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text('settings.title'.tr()),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      body: Consumer2<ThemeProvider, LanguageProvider>(
+        builder: (context, themeProvider, languageProvider, child) {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildSectionHeader('Внешний вид'),
+              _buildSectionHeader('settings.appearance'.tr()),
               const SizedBox(height: 8),
               _buildThemeSelector(context, themeProvider),
+              const SizedBox(height: 16),
+              _buildLanguageSelector(context, languageProvider),
               const SizedBox(height: 24),
-              _buildSectionHeader('О приложении'),
+              _buildSectionHeader('settings.about'.tr()),
               const SizedBox(height: 8),
               _buildAboutCard(context),
             ],
@@ -50,9 +61,9 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Тема приложения',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            Text(
+              'settings.theme'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             ...AppThemes.availableThemes.map((themeKey) {
@@ -75,6 +86,56 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLanguageSelector(
+    BuildContext context,
+    LanguageProvider languageProvider,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'settings.language'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            ...languageProvider.availableLanguages.map((language) {
+              return RadioListTile<String>(
+                title: Text(language['native']!),
+                subtitle: Text(language['name']!),
+                value: language['code']!,
+                groupValue: languageProvider.currentLocale.languageCode,
+                onChanged: (value) async {
+                  if (value != null) {
+                    print('🔧 Переключение языка на: $value');
+                    final locale = value == 'en'
+                        ? const Locale('en')
+                        : const Locale('ru');
+                    print('🔧 Создана локаль: ${locale.languageCode}');
+                    context.setLocale(locale);
+                    print('🔧 EasyLocalization обновлен');
+
+                    // Перезагружаем экран для применения изменений
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  }
+                },
+                activeColor: Theme.of(context).colorScheme.primary,
+                contentPadding: EdgeInsets.zero,
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAboutCard(BuildContext context) {
     return Card(
       child: Padding(
@@ -82,20 +143,17 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'ETF Tracker',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            Text(
+              'app.title'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Версия 1.0.0',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            Text(
+              'settings.version'.tr() + ' 1.0.0',
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Приложение для отслеживания потоков Bitcoin и Ethereum ETF в реальном времени.',
-              style: TextStyle(fontSize: 14),
-            ),
+            Text('app.description'.tr(), style: const TextStyle(fontSize: 14)),
           ],
         ),
       ),

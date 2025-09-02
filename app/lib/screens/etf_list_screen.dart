@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ETFListScreen extends StatefulWidget {
   const ETFListScreen({super.key});
@@ -12,7 +13,7 @@ class _ETFListScreenState extends State<ETFListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ETF Портфель'),
+        title: Text('etf_portfolio.title'.tr()),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),

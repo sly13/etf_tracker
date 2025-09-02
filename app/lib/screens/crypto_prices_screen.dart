@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/crypto_price_provider.dart';
 import '../widgets/crypto_price_widget.dart';
 
@@ -15,7 +16,7 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Цены криптовалют'),
+        title: Text('crypto.prices'.tr()),
         actions: [
           Consumer<CryptoPriceProvider>(
             builder: (context, cryptoProvider, child) {
@@ -77,14 +78,14 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Дополнительная информация',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                'crypto.additional_info'.tr(),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
 
               // Статистика
-              _buildInfoCard('Статистика', [
+              _buildInfoCard('crypto.statistics'.tr(), [
                 _buildInfoRow('Ethereum', cryptoProvider.ethereumPrice),
                 _buildInfoRow('Bitcoin', cryptoProvider.bitcoinPrice),
               ]),
@@ -92,17 +93,17 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
               const SizedBox(height: 16),
 
               // Информация об обновлениях
-              _buildInfoCard('Обновления', [
+              _buildInfoCard('crypto.updates'.tr(), [
                 _buildInfoRow(
-                  'Последнее обновление',
+                  'crypto.last_update'.tr(),
                   null,
                   value: Future.value(cryptoProvider.formatLastUpdateTime()),
                 ),
                 _buildInfoRow(
-                  'Нужно обновить',
+                  'crypto.needs_update'.tr(),
                   null,
                   value: cryptoProvider.shouldUpdatePrices().then(
-                    (value) => value ? 'Да' : 'Нет',
+                    (value) => value ? 'crypto.yes'.tr() : 'crypto.no'.tr(),
                   ),
                 ),
               ]),
@@ -149,7 +150,7 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
               future: value,
               builder: (context, snapshot) {
                 return Text(
-                  snapshot.data ?? 'Загрузка...',
+                  snapshot.data ?? 'crypto.loading'.tr(),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

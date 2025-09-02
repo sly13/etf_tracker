@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../providers/crypto_price_provider.dart';
 import '../config/app_config.dart';
@@ -29,7 +30,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('ETF Tracker'),
+            Text('app.title'.tr()),
             if (AppConfig.isDebugMode)
               Text(
                 'Dev Mode - ${AppConfig.backendBaseUrl}',
@@ -40,7 +41,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               ),
           ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
           // Кнопка обновления данных ETF
@@ -49,7 +52,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             onPressed: () {
               context.read<ETFProvider>().forceRefreshAllData();
             },
-            tooltip: 'Обновить данные ETF',
+            tooltip: 'etf.refresh'.tr(),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -59,7 +62,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
-            tooltip: 'Настройки',
+            tooltip: 'settings.title'.tr(),
           ),
         ],
       ),
@@ -72,7 +75,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ошибка: ${etfProvider.error}',
+                    'common.error'.tr() + ': ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -82,7 +85,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                       etfProvider.clearError();
                       etfProvider.forceRefreshAllData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -141,7 +144,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Общая сводка ETF',
+                  'etf.summary'.tr(),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -155,11 +158,11 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             // Сводка по Ethereum
             if (ethereumData != null) ...[
               _buildSummaryRow(
-                'Ethereum ETF',
+                'etf.ethereum'.tr(),
                 _calculateTotalAssets(etfProvider.ethereumData),
                 Icons.currency_exchange,
                 Colors.blue,
-                'Общая сумма активов',
+                'etf.total_assets'.tr(),
               ),
               const SizedBox(height: 16),
             ],
@@ -167,17 +170,18 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             // Сводка по Bitcoin
             if (bitcoinData != null) ...[
               _buildSummaryRow(
-                'Bitcoin ETF',
+                'etf.bitcoin'.tr(),
                 _calculateTotalAssetsBTC(etfProvider.bitcoinData),
                 Icons.currency_bitcoin,
                 Colors.orange,
-                'Общая сумма активов',
+                'etf.total_assets'.tr(),
               ),
             ],
 
             const SizedBox(height: 16),
             Text(
-              'Обновлено: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+              'common.updated'.tr() +
+                  ': ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
               style: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 12,
@@ -295,7 +299,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Последние обновления',
+          'etf.recent_updates'.tr(),
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -306,7 +310,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
         if (etfProvider.ethereumData.isNotEmpty)
           _buildUpdateCard(
-            'Ethereum ETF',
+            'etf.ethereum'.tr(),
             etfProvider.ethereumData.first.date,
             etfProvider.ethereumData.first.total ?? 0,
             Colors.blue,
@@ -315,7 +319,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         if (etfProvider.bitcoinData.isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildUpdateCard(
-            'Bitcoin ETF',
+            'etf.bitcoin'.tr(),
             etfProvider.bitcoinData.first.date,
             etfProvider.bitcoinData.first.total ?? 0,
             Colors.orange,
@@ -367,7 +371,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     ),
                   ),
                   Text(
-                    'Обновлено: ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
+                    'common.updated'.tr() +
+                        ': ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],

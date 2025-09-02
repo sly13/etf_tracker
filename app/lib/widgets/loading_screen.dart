@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 
 class LoadingScreen extends StatelessWidget {
@@ -130,7 +131,7 @@ class LoadingScreen extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Повторить'),
+                label: Text('common.retry'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
@@ -162,28 +163,28 @@ class LoadingScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         _buildLoadingItem(
-                          'Bitcoin ETF',
+                          'etf.bitcoin'.tr(),
                           Icons.currency_bitcoin,
                           Colors.orange,
                           etfProvider.isBitcoinLoaded,
                         ),
                         const SizedBox(height: 8),
                         _buildLoadingItem(
-                          'Ethereum ETF',
+                          'etf.ethereum'.tr(),
                           Icons.currency_exchange,
                           Colors.blue,
                           etfProvider.isEthereumLoaded,
                         ),
                         const SizedBox(height: 8),
                         _buildLoadingItem(
-                          'Сводные данные',
+                          'loading.summary_data'.tr(),
                           Icons.analytics,
                           Colors.green,
                           etfProvider.isSummaryLoaded,
                         ),
                         const SizedBox(height: 8),
                         _buildLoadingItem(
-                          'Данные фондов',
+                          'loading.fund_data'.tr(),
                           Icons.account_balance,
                           Colors.purple,
                           etfProvider.isFundHoldingsLoaded,

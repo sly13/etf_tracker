@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/etf_flow_bar_chart.dart';
@@ -31,8 +32,10 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ethereum ETF'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text('etf.ethereum'.tr()),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
+            : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -67,7 +70,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ошибка: ${etfProvider.error}',
+                    'common.error'.tr() + ': ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -77,7 +80,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                       etfProvider.clearError();
                       etfProvider.loadEthereumData();
                     },
-                    child: const Text('Повторить'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -85,8 +88,11 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
           }
 
           if (etfProvider.ethereumData.isEmpty) {
-            return const Center(
-              child: Text('Данные не найдены', style: TextStyle(fontSize: 18)),
+            return Center(
+              child: Text(
+                'common.no_data'.tr(),
+                style: const TextStyle(fontSize: 18),
+              ),
             );
           }
 
@@ -125,15 +131,13 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
     );
   }
 
-
-
   // Секция с графиком
   Widget _buildChartSection(List<ETFFlowData> data) {
     return Card(
       elevation: 2,
       child: Container(
-        height: 420,
-        padding: const EdgeInsets.all(8),
+        height: 450, // Увеличиваем высоту для лучшего отображения
+        padding: const EdgeInsets.all(12), // Увеличиваем отступы
         child: ETFFlowBarChart(flowData: data),
       ),
     );
@@ -154,7 +158,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'История потоков',
+              'etf.flow_history'.tr(),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -212,7 +216,10 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                   ),
                 ),
                 child: Text(
-                  'Загрузить еще (${data.length - _displayedItems} осталось)',
+                  'common.load_more'.tr() +
+                      ' (${data.length - _displayedItems} ' +
+                      'common.remaining'.tr() +
+                      ')',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -465,12 +472,12 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Сортировка'),
+          title: Text('sorting.title'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('По дате'),
+                title: Text('sorting.by_date'.tr()),
                 value: 'date',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -481,7 +488,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По общему потоку'),
+                title: Text('sorting.by_total_flow'.tr()),
                 value: 'total',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -492,7 +499,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По BlackRock'),
+                title: Text('sorting.by_blackrock'.tr()),
                 value: 'blackrock',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -503,7 +510,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Fidelity'),
+                title: Text('sorting.by_fidelity'.tr()),
                 value: 'fidelity',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -514,7 +521,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('По Grayscale'),
+                title: Text('sorting.by_grayscale'.tr()),
                 value: 'grayscale',
                 groupValue: _sortBy,
                 onChanged: (value) {
@@ -542,7 +549,11 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                               : Icons.arrow_downward,
                         ),
                         const SizedBox(width: 8),
-                        Text(_sortAscending ? 'По возрастанию' : 'По убыванию'),
+                        Text(
+                          _sortAscending
+                              ? 'sorting.ascending'.tr()
+                              : 'sorting.descending'.tr(),
+                        ),
                       ],
                     ),
                   ),
@@ -553,7 +564,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Отмена'),
+              child: Text('common.cancel'.tr()),
             ),
           ],
         );
@@ -599,22 +610,22 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
     String sortType = '';
     switch (_sortBy) {
       case 'date':
-        sortType = 'Дата';
+        sortType = 'sorting.date'.tr();
         break;
       case 'total':
-        sortType = 'Общий поток';
+        sortType = 'sorting.total_flow'.tr();
         break;
       case 'blackrock':
-        sortType = 'BlackRock';
+        sortType = 'sorting.blackrock'.tr();
         break;
       case 'fidelity':
-        sortType = 'Fidelity';
+        sortType = 'sorting.fidelity'.tr();
         break;
       case 'grayscale':
-        sortType = 'Grayscale';
+        sortType = 'sorting.grayscale'.tr();
         break;
       default:
-        sortType = 'Дата';
+        sortType = 'sorting.date'.tr();
     }
 
     return '${_sortAscending ? '↑' : '↓'} $sortType';

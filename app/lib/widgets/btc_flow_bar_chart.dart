@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
 
@@ -130,9 +131,9 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Потоки Bitcoin ETF',
-          style: TextStyle(
+        Text(
+          'etf.bitcoin_flows'.tr(),
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -143,7 +144,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           children: [
             Expanded(
               child: _buildPeriodButton(
-                'День',
+                'etf.daily'.tr(),
                 ChartPeriod.daily,
                 _selectedPeriod == ChartPeriod.daily,
               ),
@@ -151,7 +152,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
             const SizedBox(width: 4),
             Expanded(
               child: _buildPeriodButton(
-                'Неделя',
+                'etf.weekly'.tr(),
                 ChartPeriod.weekly,
                 _selectedPeriod == ChartPeriod.weekly,
               ),
@@ -159,7 +160,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
             const SizedBox(width: 4),
             Expanded(
               child: _buildPeriodButton(
-                'Месяц',
+                'etf.monthly'.tr(),
                 ChartPeriod.monthly,
                 _selectedPeriod == ChartPeriod.monthly,
               ),
@@ -208,7 +209,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
       children: [
         Expanded(
           child: _buildMetricCard(
-            'Приток',
+            'etf.inflow'.tr(),
             _formatCurrency(totalInflow),
             Icons.trending_up,
             Colors.green,
@@ -217,7 +218,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
-            'Активы',
+            'etf.assets'.tr(),
             _formatCurrency(totalAssets),
             Icons.account_balance_wallet,
             Colors.blue,
@@ -226,7 +227,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildMetricCard(
-            'Цена BTC',
+            'etf.btc_price'.tr(),
             '\$${btcPrice.toStringAsFixed(0)}',
             Icons.attach_money,
             Colors.orange,
@@ -276,10 +277,10 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
 
   Widget _buildChart() {
     if (_filteredData.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Нет данных для отображения',
-          style: TextStyle(color: Colors.grey),
+          'common.no_data'.tr(),
+          style: const TextStyle(color: Colors.grey),
         ),
       );
     }
