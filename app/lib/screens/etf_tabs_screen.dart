@@ -99,12 +99,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Цены криптовалют (компактный вид)
-                  const CompactCryptoPriceWidget(),
-                  const SizedBox(height: 16),
-
                   // Общая сводка
                   _buildSummaryCard(etfProvider),
+                  const SizedBox(height: 16),
+
+                  // Цены криптовалют (компактный вид)
+                  const CompactCryptoPriceWidget(),
                   const SizedBox(height: 24),
 
                   // Последние обновления
@@ -155,25 +155,25 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Сводка по Ethereum
-            if (ethereumData != null) ...[
-              _buildSummaryRow(
-                'etf.ethereum'.tr(),
-                _calculateTotalAssets(etfProvider.ethereumData),
-                Icons.currency_exchange,
-                Colors.blue,
-                'etf.total_assets'.tr(),
-              ),
-              const SizedBox(height: 16),
-            ],
-
             // Сводка по Bitcoin
             if (bitcoinData != null) ...[
               _buildSummaryRow(
                 'etf.bitcoin'.tr(),
                 _calculateTotalAssetsBTC(etfProvider.bitcoinData),
-                Icons.currency_bitcoin,
+                'assets/bitcoin.png',
                 Colors.orange,
+                'etf.total_assets'.tr(),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Сводка по Ethereum
+            if (ethereumData != null) ...[
+              _buildSummaryRow(
+                'etf.ethereum'.tr(),
+                _calculateTotalAssets(etfProvider.ethereumData),
+                'assets/ethereum.png',
+                Colors.blue,
                 'etf.total_assets'.tr(),
               ),
             ],
@@ -236,7 +236,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
   Widget _buildSummaryRow(
     String title,
     double value,
-    IconData icon,
+    String imageAsset,
     Color color,
     String subtitle,
   ) {
@@ -255,7 +255,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             color: adjustedColor.withOpacity(isDark ? 0.2 : 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: adjustedColor, size: 24),
+          child: Image.asset(
+            imageAsset,
+            width: 24,
+            height: 24,
+            color: adjustedColor,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -343,53 +348,84 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
         : color;
 
+    // Определяем индекс таба для навигации
+    int? targetTabIndex;
+    if (title.contains('Ethereum')) {
+      targetTabIndex = 1; // Ethereum ETF таб
+    } else if (title.contains('Bitcoin')) {
+      targetTabIndex = 2; // Bitcoin ETF таб
+    }
+
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 40,
-              decoration: BoxDecoration(
-                color: adjustedColor,
-                borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: targetTabIndex != null
+            ? () {
+                // Переключаем таб через Provider
+                context.read<ETFProvider>().switchNavigationTab(
+                  targetTabIndex!,
+                );
+              }
+            : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: adjustedColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'common.updated'.tr() +
+                          ': ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
                 children: [
                   Text(
-                    title,
+                    '\$${total.toStringAsFixed(1)}M',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: adjustedColor,
                     ),
                   ),
-                  Text(
-                    'common.updated'.tr() +
-                        ': ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
-                    style: TextStyle(
-                      fontSize: 12,
+                  if (targetTabIndex != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
-                  ),
+                  ],
                 ],
               ),
-            ),
-            Text(
-              '\$${total.toStringAsFixed(1)}M',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: adjustedColor,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

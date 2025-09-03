@@ -108,6 +108,14 @@ class SubscriptionService {
 
       final customerInfo = await Purchases.purchaseStoreProduct(product);
       print('✅ Подписка куплена: ${product.identifier}');
+
+      // Проверяем статус после покупки
+      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+      print('🔧 Статус после покупки: ${isPremium ? "Premium" : "Basic"}');
+      print(
+        '🔧 Активные entitlements после покупки: ${customerInfo.entitlements.active.keys}',
+      );
+
       return customerInfo;
     } catch (e) {
       print('❌ Ошибка покупки: $e');
@@ -122,7 +130,14 @@ class SubscriptionService {
       print('🔧 Debug режим: Проверяем реальный статус премиум');
 
       final customerInfo = await Purchases.getCustomerInfo();
-      return customerInfo.entitlements.active.containsKey('premium');
+      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+
+      print('🔧 Статус премиум: $isPremium');
+      print(
+        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      return isPremium;
     } catch (e) {
       print('❌ Ошибка проверки статуса: $e');
       return false;
@@ -135,10 +150,36 @@ class SubscriptionService {
       // В debug режиме используем реальный RevenueCat для тестирования
       print('🔧 Debug режим: Получаем реальную информацию о пользователе');
 
-      return await Purchases.getCustomerInfo();
+      final customerInfo = await Purchases.getCustomerInfo();
+      print('🔧 Получена информация о пользователе');
+      print(
+        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      return customerInfo;
     } catch (e) {
       print('❌ Ошибка получения информации: $e');
       rethrow;
+    }
+  }
+
+  // Принудительное обновление статуса подписки
+  static Future<bool> refreshSubscriptionStatus() async {
+    try {
+      print('🔧 Принудительное обновление статуса подписки');
+
+      final customerInfo = await Purchases.getCustomerInfo();
+      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+
+      print('🔧 Обновленный статус: ${isPremium ? "Premium" : "Basic"}');
+      print(
+        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      return isPremium;
+    } catch (e) {
+      print('❌ Ошибка обновления статуса: $e');
+      return false;
     }
   }
 

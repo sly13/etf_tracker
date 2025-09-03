@@ -8,7 +8,7 @@
 import WidgetKit
 import SwiftUI
 
-// Модель данных для ETF
+// Модель данных для ETF (потоки за день)
 struct ETFWidgetData {
     let totalFlow: Double
     let bitcoinFlow: Double
@@ -43,14 +43,15 @@ class ETFWidgetService {
             let bitcoinData = json?["bitcoin"] as? [String: Any]
             let ethereumData = json?["ethereum"] as? [String: Any]
             
+            // Получаем потоки (flows) для отображения
             let bitcoinFlow = bitcoinData?["total"] as? Double ?? 0.0
             let ethereumFlow = ethereumData?["total"] as? Double ?? 0.0
             let totalFlow = bitcoinFlow + ethereumFlow
             
             return ETFWidgetData(
                 totalFlow: totalFlow,
-                bitcoinFlow: bitcoinFlow,
-                ethereumFlow: ethereumFlow,
+                bitcoinFlow: bitcoinFlow, // Используем потоки за день
+                ethereumFlow: ethereumFlow, // Используем потоки за день
                 lastUpdated: Date(),
                 isPositive: totalFlow >= 0
             )
@@ -82,8 +83,8 @@ struct Provider: TimelineProvider {
                 let entry = SimpleEntry(date: currentDate, etfData: realData)
                 entries.append(entry)
                 
-                // Создаем timeline с обновлением каждые 4 часа
-                let timeline = Timeline(entries: entries, policy: .after(Calendar.current.date(byAdding: .hour, value: 4, to: currentDate)!))
+                // Создаем timeline с обновлением каждый час
+                let timeline = Timeline(entries: entries, policy: .after(Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!))
                 completion(timeline)
             } else {
                 // Если не удалось загрузить данные, используем placeholder

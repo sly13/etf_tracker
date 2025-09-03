@@ -20,6 +20,7 @@ class ETFProvider with ChangeNotifier {
   bool _isFundHoldingsLoaded = false;
   String? _error;
   String _currentTab = 'ethereum'; // 'ethereum' или 'bitcoin'
+  int _navigationTabIndex = 0; // Индекс текущего таба в навигации
 
   // Getters
   List<ETFFlowData> get ethereumData => _ethereumData;
@@ -37,6 +38,7 @@ class ETFProvider with ChangeNotifier {
   bool get isFundHoldingsLoaded => _isFundHoldingsLoaded;
   String? get error => _error;
   String get currentTab => _currentTab;
+  int get navigationTabIndex => _navigationTabIndex;
 
   // Проверка готовности основных данных
   bool get isDataReady => _isEthereumLoaded && _isBitcoinLoaded;
@@ -44,6 +46,12 @@ class ETFProvider with ChangeNotifier {
   // Переключить таб
   void switchTab(String tab) {
     _currentTab = tab;
+    notifyListeners();
+  }
+
+  // Переключить навигационный таб
+  void switchNavigationTab(int tabIndex) {
+    _navigationTabIndex = tabIndex;
     notifyListeners();
   }
 

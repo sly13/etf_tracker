@@ -176,6 +176,16 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                     grayscaleCrypto: parseNumber(cells[9].querySelector('span.tabletext')?.textContent),
                                     total: parseNumber(cells[10].querySelector('span.tabletext')?.textContent),
                                 };
+                                const today = new Date().toISOString().split('T')[0];
+                                const isToday = seedData.date === today;
+                                if (isToday) {
+                                    const { date, ...numericValues } = seedData;
+                                    const allValuesZero = Object.values(numericValues).every((value) => value === 0);
+                                    if (allValuesZero) {
+                                        console.log('Ethereum Seed data skipped for today - all values are zero');
+                                        return;
+                                    }
+                                }
                                 if (!seenDates.has(seedData.date)) {
                                     seenDates.add(seedData.date);
                                     data.push(seedData);
@@ -206,7 +216,18 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                             grayscaleCrypto: parseNumber(cells[9].querySelector('span.tabletext')?.textContent),
                                             total: parseNumber(cells[10].querySelector('span.tabletext')?.textContent),
                                         };
+                                        const today = new Date().toISOString().split('T')[0];
+                                        const isToday = parsedDate === today;
+                                        if (isToday) {
+                                            const { date, ...numericValues } = flowDataItem;
+                                            const allValuesZero = Object.values(numericValues).every((value) => value === 0);
+                                            if (allValuesZero) {
+                                                console.log(`Ethereum data skipped for today - all values are zero`);
+                                                return;
+                                            }
+                                        }
                                         data.push(flowDataItem);
+                                        console.log(`Ethereum data added for date: ${parsedDate}`);
                                     }
                                 }
                                 catch (error) {
@@ -225,7 +246,8 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                 const number = parseFloat(cleanText.replace(/[()]/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const number = parseFloat(cleanText.replace(',', '.'));
+                            const numberText = cleanText.replace(/,/g, '');
+                            const number = parseFloat(numberText);
                             return isNaN(number) ? 0 : number;
                         }
                         catch {
@@ -314,9 +336,20 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                             grayscaleBtc: parseNumber(cells[11].querySelector('span.tabletext')?.textContent),
                                             total: parseNumber(cells[12].querySelector('span.tabletext')?.textContent),
                                         };
+                                        const today = new Date().toISOString().split('T')[0];
+                                        const isToday = flowDataItem.date === today;
+                                        if (isToday) {
+                                            const { date, ...numericValues } = flowDataItem;
+                                            const allValuesZero = Object.values(numericValues).every((value) => value === 0);
+                                            if (allValuesZero) {
+                                                console.log(`Bitcoin data skipped for today - all values are zero`);
+                                                return;
+                                            }
+                                        }
+                                        data.push(flowDataItem);
                                         console.log('Bitcoin Grayscale BTC parsed value:', flowDataItem.grayscaleBtc);
                                         console.log('Bitcoin data date:', flowDataItem.date);
-                                        data.push(flowDataItem);
+                                        console.log(`Bitcoin data added for date: ${flowDataItem.date}`);
                                     }
                                 }
                                 catch (error) {
@@ -335,7 +368,8 @@ let UniversalETFFlowService = UniversalETFFlowService_1 = class UniversalETFFlow
                                 const number = parseFloat(cleanText.replace(/[()]/g, ''));
                                 return isNaN(number) ? 0 : -number;
                             }
-                            const number = parseFloat(cleanText.replace(',', '.'));
+                            const numberText = cleanText.replace(/,/g, '');
+                            const number = parseFloat(numberText);
                             return isNaN(number) ? 0 : number;
                         }
                         catch {

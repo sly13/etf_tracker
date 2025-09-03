@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
         child: Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
             return MaterialApp(
-              title: 'app.name'.tr(),
+              title: 'app.title'.tr(),
               theme: themeProvider.currentTheme,
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,

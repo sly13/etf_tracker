@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/etf_flow_bar_chart.dart';
-import '../widgets/crypto_price_widget.dart';
+
 import '../widgets/ethereum_flow_card.dart';
 import 'settings_screen.dart';
 import 'package:intl/intl.dart';
@@ -103,10 +103,6 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Компактный виджет с ценами криптовалют
-                  const CompactCryptoPriceWidget(),
-                  const SizedBox(height: 16),
-
                   // Заголовок и общая статистика
                   EthereumFlowCard(
                     flowData: etfProvider.ethereumData.first,

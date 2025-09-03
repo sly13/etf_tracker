@@ -223,9 +223,11 @@ class AuthProvider extends ChangeNotifier {
         subscription: updatedUser.subscription!,
       );
 
+      print('✅ Подписка успешно обновлена в AuthProvider');
       notifyListeners();
     } catch (e) {
       _setError('Ошибка покупки подписки: $e');
+      rethrow;
     } finally {
       _setLoading(false);
     }
@@ -255,6 +257,41 @@ class AuthProvider extends ChangeNotifier {
       _setError('Ошибка восстановления покупок: $e');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  // Принудительное обновление статуса подписки
+  Future<void> refreshSubscriptionStatus() async {
+    if (_currentUser == null) return;
+
+    try {
+      print(
+        '🔧 Обновляем статус подписки в AuthProvider для пользователя: ${_currentUser!.id}',
+      );
+
+      final customerInfo = await SubscriptionService.getCustomerInfo();
+      final updatedUser = SubscriptionService.updateUserWithSubscription(
+        _currentUser!,
+        customerInfo,
+      );
+      _setCurrentUser(updatedUser);
+
+      // Обновляем подписку на сервере
+      if (updatedUser.subscription != null) {
+        await _authService.updateSubscription(
+          userId: _currentUser!.id,
+          subscription: updatedUser.subscription!,
+        );
+        print('✅ Подписка обновлена на сервере');
+      } else {
+        print('⚠️ Подписка не найдена в RevenueCat');
+      }
+
+      print('✅ Статус подписки обновлен в AuthProvider');
+      notifyListeners();
+    } catch (e) {
+      print('❌ Ошибка обновления статуса подписки: $e');
+      rethrow;
     }
   }
 }

@@ -44,36 +44,4 @@ model BTCFlow {
   wisdomTree      Float?
 }
 
-model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email        String?         @unique
-  appleId      String?         @unique
-  subscription Subscription?
-  preferences  UserPreferences?
-  createdAt    DateTime        @default(now())
-  lastLoginAt  DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-}
 
-model Subscription {
-  id         String   @id @default(cuid())
-  plan       String   @default("free") // "free", "basic", "premium"
-  expiresAt  DateTime?
-  autoRenew  Boolean  @default(false)
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model UserPreferences {
-  id           String   @id @default(cuid())
-  notifications Boolean @default(true)
-  theme        String   @default("system")
-  favoriteETFs String[] @default([])
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}

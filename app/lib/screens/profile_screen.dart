@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/loading_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/subscription_test.dart';
 import '../config/app_config.dart';
 import 'subscription_selection_screen.dart';
 
@@ -19,6 +20,16 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isSigningIn = false;
   bool _isCheckingSubscription = false;
+  bool? _cachedSubscriptionStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    // Обновляем статус подписки при открытии экрана
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshSubscriptionStatus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,145 +68,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Заголовок профиля
-          _buildProfileHeader(user),
-          const SizedBox(height: 24),
-
-          // Информация о пользователе
-          _buildUserInfoCard(user),
-          const SizedBox(height: 16),
-
           // Подписка
           _buildSubscriptionCard(authProvider),
           const SizedBox(height: 16),
 
           // Настройки
           _buildSettingsCard(),
-          const SizedBox(height: 16),
-
-          // Кнопка выхода
-          _buildLogoutButton(authProvider),
         ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(dynamic user) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Icon(Icons.person, size: 40, color: Colors.white),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user?.name ?? 'profile.user'.tr(),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.email ?? 'email@example.com',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'profile.active_user'.tr(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-
-                  // Dev режим индикатор
-                  if (AppConfig.isDebugMode) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.orange),
-                      ),
-                      child: Text(
-                        '🔧 ' + 'common.dev'.tr(),
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserInfoCard(dynamic user) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'profile.user_info'.tr(),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              'profile.name'.tr(),
-              user?.name ?? 'common.not_specified'.tr(),
-            ),
-            _buildInfoRow(
-              'profile.email'.tr(),
-              user?.email ?? 'common.not_specified'.tr(),
-            ),
-            _buildInfoRow(
-              'profile.registration_date'.tr(),
-              user?.createdAt != null
-                  ? _formatDate(user.createdAt)
-                  : 'common.not_specified'.tr(),
-            ),
-            _buildInfoRow(
-              'profile.last_login'.tr(),
-              user?.lastLoginAt != null
-                  ? _formatDate(user.lastLoginAt)
-                  : 'common.not_specified'.tr(),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -227,27 +106,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: isPremium ? Colors.amber : Colors.grey,
                       ),
                     const SizedBox(width: 8),
-                    Text(
-                      'profile.subscription'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'profile.subscription'.tr(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                    ),
+                    IconButton(
+                      onPressed: _refreshSubscriptionStatus,
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'Обновить статус',
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildInfoRow(
-                  'subscription.current_plan'.tr(),
-                  isPremium
-                      ? 'subscription.premium'.tr()
-                      : 'subscription.basic'.tr(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'subscription.current_plan'.tr(),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    Text(
+                      isPremium
+                          ? 'subscription.premium'.tr()
+                          : 'subscription.basic'.tr(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                if (subscription?.expiresAt != null && isPremium)
-                  _buildInfoRow(
-                    'profile.expires_on'.tr(),
-                    _formatDate(subscription!.expiresAt!),
+                if (subscription?.expiresAt != null && isPremium) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'profile.expires_on'.tr(),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      Text(
+                        _formatDate(subscription!.expiresAt!),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
+                ],
                 const SizedBox(height: 16),
                 if (!isPremium) ...[
                   ElevatedButton(
@@ -329,21 +241,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton(AuthProvider authProvider) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _showLogoutDialog(authProvider),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-        child: Text('crypto.logout'.tr()),
-      ),
-    );
-  }
-
   Widget _buildLoginScreen(AuthProvider authProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -393,6 +290,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _runSubscriptionTest,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Тест подписки'),
+            ),
           ],
           const SizedBox(height: 32),
 
@@ -438,37 +344,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
   Future<bool> _checkSubscriptionStatus() async {
+    // Если статус уже кэширован и не идет проверка, возвращаем кэш
+    if (_cachedSubscriptionStatus != null && !_isCheckingSubscription) {
+      return _cachedSubscriptionStatus!;
+    }
+
     setState(() {
       _isCheckingSubscription = true;
     });
 
     try {
       final isPremium = await SubscriptionService.isPremium();
+      _cachedSubscriptionStatus = isPremium;
+      print('🔧 Статус подписки: ${isPremium ? "Premium" : "Basic"}');
       return isPremium;
     } catch (e) {
       print('❌ Ошибка проверки статуса подписки: $e');
       return false;
+    } finally {
+      setState(() {
+        _isCheckingSubscription = false;
+      });
+    }
+  }
+
+  // Обновление статуса подписки
+  Future<void> _refreshSubscriptionStatus() async {
+    setState(() {
+      _isCheckingSubscription = true;
+      _cachedSubscriptionStatus = null; // Сбрасываем кэш
+    });
+
+    try {
+      // Принудительно обновляем статус из RevenueCat
+      final isPremium = await SubscriptionService.refreshSubscriptionStatus();
+      _cachedSubscriptionStatus = isPremium;
+
+      // Обновляем статус в AuthProvider, если пользователь авторизован
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.isAuthenticated) {
+        await authProvider.refreshSubscriptionStatus();
+      }
+
+      // Обновляем UI
+      setState(() {});
+
+      // Показываем уведомление об успешном обновлении
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Статус подписки обновлен'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Ошибка обновления статуса подписки: $e');
+
+      // Показываем ошибку пользователю
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка обновления статуса: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isCheckingSubscription = false;
@@ -502,21 +450,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: isPremium ? Colors.amber : Colors.grey,
                       ),
                     const SizedBox(width: 8),
-                    Text(
-                      'subscription.status'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'subscription.status'.tr(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                    ),
+                    IconButton(
+                      onPressed: _refreshSubscriptionStatus,
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'Обновить статус',
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildInfoRow(
-                  'subscription.current_plan'.tr(),
-                  isPremium
-                      ? 'subscription.premium'.tr()
-                      : 'subscription.basic'.tr(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'subscription.current_plan'.tr(),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    Text(
+                      isPremium
+                          ? 'subscription.premium'.tr()
+                          : 'subscription.basic'.tr(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 if (!isPremium) ...[
@@ -621,12 +588,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showSubscriptionOptions() async {
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const SubscriptionSelectionScreen(),
       ),
     );
+
+    // Обновляем статус подписки после возврата с экрана покупки
+    if (result == true) {
+      _refreshSubscriptionStatus();
+    }
   }
 
   Future<void> _purchaseSubscription(StoreProduct product) async {
@@ -655,6 +627,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await authProvider.restorePurchases();
+
+      // Обновляем статус подписки после восстановления
+      await _refreshSubscriptionStatus();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('subscription.restored'.tr()),
@@ -671,30 +647,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _showLogoutDialog(AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('crypto.logout'.tr()),
-        content: Text('crypto.logout_confirm'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('common.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              authProvider.signOut();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('crypto.logout'.tr()),
-          ),
-        ],
-      ),
-    );
+  // Запуск теста подписки
+  Future<void> _runSubscriptionTest() async {
+    try {
+      await SubscriptionTest.runFullTest();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Тест завершен. Проверьте консоль.'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка теста: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

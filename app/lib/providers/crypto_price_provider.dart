@@ -160,3 +160,4 @@ class CryptoPriceProvider extends ChangeNotifier {
 }
 
 
+

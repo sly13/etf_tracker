@@ -229,6 +229,25 @@ export class UniversalETFFlowService {
                   ),
                 };
 
+                // Проверяем, что не все значения равны нулю только для сегодняшнего дня
+                const today = new Date().toISOString().split('T')[0];
+                const isToday = seedData.date === today;
+
+                if (isToday) {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { date, ...numericValues } = seedData;
+                  const allValuesZero = Object.values(numericValues).every(
+                    (value) => value === 0,
+                  );
+
+                  if (allValuesZero) {
+                    console.log(
+                      'Ethereum Seed data skipped for today - all values are zero',
+                    );
+                    return;
+                  }
+                }
+
                 if (!seenDates.has(seedData.date)) {
                   seenDates.add(seedData.date);
                   data.push(seedData);
@@ -289,7 +308,27 @@ export class UniversalETFFlowService {
                       ),
                     };
 
+                    // Проверяем, что не все значения равны нулю только для сегодняшнего дня
+                    const today = new Date().toISOString().split('T')[0];
+                    const isToday = parsedDate === today;
+
+                    if (isToday) {
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      const { date, ...numericValues } = flowDataItem;
+                      const allValuesZero = Object.values(numericValues).every(
+                        (value) => value === 0,
+                      );
+
+                      if (allValuesZero) {
+                        console.log(
+                          `Ethereum data skipped for today - all values are zero`,
+                        );
+                        return;
+                      }
+                    }
+
                     data.push(flowDataItem);
+                    console.log(`Ethereum data added for date: ${parsedDate}`);
                   }
                 } catch (error) {
                   console.log(
@@ -314,7 +353,10 @@ export class UniversalETFFlowService {
                 return isNaN(number) ? 0 : -number;
               }
 
-              const number = parseFloat(cleanText.replace(',', '.'));
+              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
+              // Оставляем точку как десятичный разделитель
+              const numberText = cleanText.replace(/,/g, '');
+              const number = parseFloat(numberText);
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;
@@ -448,12 +490,34 @@ export class UniversalETFFlowService {
                       ),
                     };
 
+                    // Проверяем, что не все значения равны нулю только для сегодняшнего дня
+                    const today = new Date().toISOString().split('T')[0];
+                    const isToday = flowDataItem.date === today;
+
+                    if (isToday) {
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      const { date, ...numericValues } = flowDataItem;
+                      const allValuesZero = Object.values(numericValues).every(
+                        (value) => value === 0,
+                      );
+
+                      if (allValuesZero) {
+                        console.log(
+                          `Bitcoin data skipped for today - all values are zero`,
+                        );
+                        return;
+                      }
+                    }
+
+                    data.push(flowDataItem);
                     console.log(
                       'Bitcoin Grayscale BTC parsed value:',
                       flowDataItem.grayscaleBtc,
                     );
                     console.log('Bitcoin data date:', flowDataItem.date);
-                    data.push(flowDataItem);
+                    console.log(
+                      `Bitcoin data added for date: ${flowDataItem.date}`,
+                    );
                   }
                 } catch (error) {
                   console.log(
@@ -478,7 +542,10 @@ export class UniversalETFFlowService {
                 return isNaN(number) ? 0 : -number;
               }
 
-              const number = parseFloat(cleanText.replace(',', '.'));
+              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
+              // Оставляем точку как десятичный разделитель
+              const numberText = cleanText.replace(/,/g, '');
+              const number = parseFloat(numberText);
               return isNaN(number) ? 0 : number;
             } catch {
               return 0;

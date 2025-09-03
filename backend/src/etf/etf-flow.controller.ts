@@ -86,9 +86,21 @@ export class ETFFlowController {
     // Считаем общий итог как сумму текущих потоков
     const overallTotal = ethereumTotal + bitcoinTotal;
 
+    // Вычисляем общие активы (total assets) - накопленная сумма всех положительных потоков
+    const ethereumTotalAssets =
+      ethereumData
+        .filter((item) => item.total && item.total > 0)
+        .reduce((sum, item) => sum + (item.total || 0), 0) + 12520; // Базовая сумма активов
+
+    const bitcoinTotalAssets =
+      bitcoinData
+        .filter((item) => item.total && item.total > 0)
+        .reduce((sum, item) => sum + (item.total || 0), 0) + 12520; // Базовая сумма активов
+
     return {
       ethereum: {
         total: ethereumTotal,
+        totalAssets: ethereumTotalAssets,
         count: ethereumData.length,
         average:
           ethereumData.length > 0
@@ -99,6 +111,7 @@ export class ETFFlowController {
       },
       bitcoin: {
         total: bitcoinTotal,
+        totalAssets: bitcoinTotalAssets,
         count: bitcoinData.length,
         average:
           bitcoinData.length > 0
@@ -109,6 +122,7 @@ export class ETFFlowController {
       },
       overall: {
         total: overallTotal,
+        totalAssets: ethereumTotalAssets + bitcoinTotalAssets,
         count: ethereumData.length + bitcoinData.length,
         latestDate: latestEthereum?.date || latestBitcoin?.date || null,
       },

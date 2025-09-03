@@ -76,3 +76,4 @@ console.log('Отрицательные числа:', negativeResults);
 // Проверяем большие числа с запятыми
 const largeNumbers = testCases.filter(testCase => testCase.includes(',')).map(testCase => parseNumber(testCase));
 console.log('Большие числа с запятыми:', largeNumbers);
+

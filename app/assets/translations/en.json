@@ -27,7 +27,12 @@
     "no": "No",
     "ok": "OK",
     "not_specified": "Not specified",
-    "open": "Open"
+    "open": "Open",
+    "updated": "Updated",
+    "no_data": "No data found",
+    "load_more": "Load more",
+    "remaining": "remaining",
+    "dev": "Dev"
   },
   "settings": {
     "title": "Settings",
@@ -59,7 +64,9 @@
     "restore_purchases": "Restore Purchases",
     "active_subscription": "Active Subscription",
     "notifications": "Notifications",
-    "dark_theme": "Dark Theme"
+    "dark_theme": "Dark Theme",
+    "user": "User",
+    "active_user": "Active User"
   },
   "subscription": {
     "title": "Choose Plan",
@@ -89,7 +96,22 @@
     "popular": "Popular",
     "selected": "Selected",
     "restored": "Purchases restored!",
-    "restore_error": "Restore error"
+    "restore_error": "Restore error",
+    "current_plan": "Current Plan",
+    "premium": "Premium",
+    "basic": "Basic",
+    "one_month": "1 month",
+    "one_year": "1 year",
+    "feature_analytics": "📊 Advanced ETF flow analytics",
+    "feature_statistics": "📈 Detailed fund statistics",
+    "feature_notifications": "🔔 Important event notifications",
+    "feature_settings": "📱 Personal settings",
+    "feature_favorites": "💾 Save favorite ETFs",
+    "feature_support": "🎯 Priority support",
+    "feature_insights": "💡 Exclusive insights",
+    "plan_not_found": "Plan not found",
+    "product_not_found": "Product not found in RevenueCat",
+    "status": "Subscription Status"
   },
   "etf": {
     "flows": "ETF Flows",
@@ -124,7 +146,8 @@
     "sign_in_message": "To purchase a subscription, you need to sign in to the app. Would you like to sign in now?",
     "sign_in": "Sign In",
     "secure_auth": "Apple Sign-In provides secure authentication and data synchronization",
-    "sign_in_error": "Sign in error"
+    "sign_in_error": "Sign in error",
+    "signing_in_apple": "Signing in with Apple..."
   },
   "sorting": {
     "title": "Sorting",
@@ -138,7 +161,15 @@
     "by_total_holdings": "By total holdings",
     "by_ethereum": "By Ethereum",
     "by_bitcoin": "By Bitcoin",
-    "by_name": "By name"
+    "by_name": "By name",
+    "date": "Date",
+    "total_flow": "Total Flow",
+    "blackrock": "BlackRock",
+    "fidelity": "Fidelity",
+    "grayscale": "Grayscale",
+    "valkyrie": "Valkyrie",
+    "ascending": "Ascending",
+    "descending": "Descending"
   },
   "crypto": {
     "prices": "Crypto Prices",
@@ -188,14 +219,6 @@
     "summary_data": "Summary Data",
     "fund_data": "Fund Data"
   },
-  "common": {
-    "updated": "Updated",
-    "no_data": "No data found",
-    "load_more": "Load more",
-    "remaining": "remaining",
-    "dev": "Dev"
-  },
-
   "holdings": {
     "general": "General",
     "ethereum": "Ethereum",
@@ -204,44 +227,5 @@
     "ethereum_holdings": "Ethereum Holdings",
     "bitcoin_holdings": "Bitcoin Holdings",
     "fund_holdings": "Fund Holdings"
-  },
-  "sorting": {
-    "date": "Date",
-    "total_flow": "Total Flow",
-    "blackrock": "BlackRock",
-    "fidelity": "Fidelity",
-    "grayscale": "Grayscale",
-    "valkyrie": "Valkyrie",
-    "ascending": "Ascending",
-    "descending": "Descending"
-  },
-  "auth": {
-    "signing_in_apple": "Signing in with Apple..."
-  },
-  "profile": {
-    "user": "User",
-    "active_user": "Active User"
-  },
-  "subscription": {
-    "current_plan": "Current Plan",
-    "premium": "Premium",
-    "basic": "Basic",
-    "monthly_plan": "Monthly ETF Flow Plan",
-    "yearly_plan": "Yearly ETF Flow Plan",
-    "monthly_description": "Monthly subscription for advanced ETF flow analytics",
-    "yearly_description": "Annual subscription with discount for advanced analytics",
-    "one_month": "1 month",
-    "one_year": "1 year",
-    "feature_analytics": "📊 Advanced ETF flow analytics",
-    "feature_statistics": "📈 Detailed fund statistics",
-    "feature_notifications": "🔔 Important event notifications",
-    "feature_settings": "📱 Personal settings",
-    "feature_favorites": "💾 Save favorite ETFs",
-    "feature_support": "🎯 Priority support",
-    "feature_insights": "💡 Exclusive insights",
-    "cancel_info": "You can cancel your subscription at any time in App Store settings",
-    "plan_not_found": "Plan not found",
-    "product_not_found": "Product not found in RevenueCat",
-    "status": "Subscription Status"
   }
 }

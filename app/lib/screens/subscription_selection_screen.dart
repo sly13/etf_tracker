@@ -379,6 +379,9 @@ class _SubscriptionSelectionScreenState
         );
       }
 
+      // Принудительно обновляем статус подписки
+      await SubscriptionService.refreshSubscriptionStatus();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('subscription.success'.tr()),
@@ -386,7 +389,10 @@ class _SubscriptionSelectionScreenState
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(
+        context,
+        true,
+      ); // Возвращаем true для индикации успешной покупки
     } catch (e) {
       print('❌ Ошибка покупки: $e');
       ScaffoldMessenger.of(context).showSnackBar(

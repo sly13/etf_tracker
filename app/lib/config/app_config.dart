@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
   static const String _defaultBackendUrl = 'https://etf-flow.vadimsemenko.ru';
-  static const String _defaultLocalBackendUrl = 'http://192.168.100.94:3066';
+  static const String _defaultLocalBackendUrl = 'http://172.20.10.9:3066';
 
   // Определяем, запущено ли приложение в режиме отладки
   static bool get isDebugMode => !kReleaseMode;
