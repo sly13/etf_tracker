@@ -13,13 +13,12 @@ const app_service_1 = require("./app.service");
 const prisma_module_1 = require("./prisma/prisma.module");
 const etf_module_1 = require("./etf/etf.module");
 const etf_flow_module_1 = require("./etf/etf-flow.module");
-const auth_module_1 = require("./auth/auth.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, etf_module_1.EtfModule, etf_flow_module_1.ETFFlowModule, auth_module_1.AuthModule],
+        imports: [prisma_module_1.PrismaModule, etf_module_1.EtfModule, etf_flow_module_1.ETFFlowModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })

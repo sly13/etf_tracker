@@ -51,9 +51,16 @@ let ETFFlowController = class ETFFlowController {
                 .reduce((sum, item) => sum + (item.total || 0), 0);
         }
         const overallTotal = ethereumTotal + bitcoinTotal;
+        const ethereumTotalAssets = ethereumData
+            .filter((item) => item.total && item.total > 0)
+            .reduce((sum, item) => sum + (item.total || 0), 0) + 12520;
+        const bitcoinTotalAssets = bitcoinData
+            .filter((item) => item.total && item.total > 0)
+            .reduce((sum, item) => sum + (item.total || 0), 0) + 12520;
         return {
             ethereum: {
                 total: ethereumTotal,
+                totalAssets: ethereumTotalAssets,
                 count: ethereumData.length,
                 average: ethereumData.length > 0
                     ? ethereumData.reduce((sum, item) => sum + (item.total || 0), 0) /
@@ -63,6 +70,7 @@ let ETFFlowController = class ETFFlowController {
             },
             bitcoin: {
                 total: bitcoinTotal,
+                totalAssets: bitcoinTotalAssets,
                 count: bitcoinData.length,
                 average: bitcoinData.length > 0
                     ? bitcoinData.reduce((sum, item) => sum + (item.total || 0), 0) /
@@ -72,6 +80,7 @@ let ETFFlowController = class ETFFlowController {
             },
             overall: {
                 total: overallTotal,
+                totalAssets: ethereumTotalAssets + bitcoinTotalAssets,
                 count: ethereumData.length + bitcoinData.length,
                 latestDate: latestEthereum?.date || latestBitcoin?.date || null,
             },

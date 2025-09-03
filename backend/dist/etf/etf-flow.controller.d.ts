@@ -10,18 +10,21 @@ export declare class ETFFlowController {
     getETFFlowSummary(): Promise<{
         ethereum: {
             total: number;
+            totalAssets: number;
             count: number;
             average: number;
             latestDate: string | null;
         };
         bitcoin: {
             total: number;
+            totalAssets: number;
             count: number;
             average: number;
             latestDate: string | null;
         };
         overall: {
             total: number;
+            totalAssets: number;
             count: number;
             latestDate: string | null;
         };
