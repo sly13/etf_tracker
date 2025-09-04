@@ -207,9 +207,10 @@ class SubscriptionService {
 
       // Временная логика: если entitlements не настроены, проверяем активные покупки
       var isPremium = customerInfo.entitlements.active.containsKey('premium');
-      
+
       // Если entitlements не настроены, проверяем активные покупки
-      if (customerInfo.entitlements.all.isEmpty && customerInfo.activeSubscriptions.isNotEmpty) {
+      if (customerInfo.entitlements.all.isEmpty &&
+          customerInfo.activeSubscriptions.isNotEmpty) {
         print('🔧 Entitlements не настроены, но есть активные покупки');
         isPremium = true;
       }
@@ -217,7 +218,9 @@ class SubscriptionService {
       if (kDebugMode) {
         print('🔧 Статус премиум: $isPremium');
         print('🔧 Проверяем entitlement "premium"');
-        print('🔧 Активные покупки: ${customerInfo.activeSubscriptions.length}');
+        print(
+          '🔧 Активные покупки: ${customerInfo.activeSubscriptions.length}',
+        );
       }
 
       return isPremium;
