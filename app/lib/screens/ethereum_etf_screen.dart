@@ -4,10 +4,13 @@ import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/etf_flow_bar_chart.dart';
+import '../widgets/premium_chart_overlay.dart';
 
 import '../widgets/ethereum_flow_card.dart';
 import 'settings_screen.dart';
+import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
+import '../widgets/pro_button.dart';
 
 class EthereumETFScreen extends StatefulWidget {
   const EthereumETFScreen({super.key});
@@ -25,7 +28,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
   @override
   void initState() {
     super.initState();
-    // Данные загружаются только при инициализации приложения, не здесь
+    // Data is loaded only during app initialization, not here
   }
 
   @override
@@ -38,27 +41,8 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: () {
-              _showSortDialog(context);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<ETFProvider>().forceRefreshAllData();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-          ),
+          // Блок Pro
+          const ProButton(),
         ],
       ),
       body: Consumer<ETFProvider>(
@@ -129,12 +113,16 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
 
   // Секция с графиком
   Widget _buildChartSection(List<ETFFlowData> data) {
-    return Card(
-      elevation: 2,
-      child: Container(
-        height: 450, // Увеличиваем высоту для лучшего отображения
-        padding: const EdgeInsets.all(12), // Увеличиваем отступы
-        child: ETFFlowBarChart(flowData: data),
+    return PremiumChartOverlay(
+      title: 'premium.ethereum_charts_title'.tr(),
+      description: 'premium.ethereum_charts_desc'.tr(),
+      child: Card(
+        elevation: 2,
+        child: Container(
+          height: 450, // Увеличиваем высоту для лучшего отображения
+          padding: const EdgeInsets.all(12), // Увеличиваем отступы
+          child: ETFFlowBarChart(flowData: data),
+        ),
       ),
     );
   }
@@ -161,11 +149,41 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            Text(
-              _getSortDescription(),
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+            // Кнопка сортировки
+            GestureDetector(
+              onTap: () {
+                _showSortDialog(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sort,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getSortDescription(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -268,15 +286,16 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.blue.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.calendar_today,
-                          color: Colors.blue,
                           size: 20,
+                          color: Colors.blue,
                         ),
                       ),
                       const SizedBox(width: 12),

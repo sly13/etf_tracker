@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../utils/haptic_feedback.dart';
 import 'etf_tabs_screen.dart';
 import 'fund_holdings_screen.dart';
 import 'ethereum_etf_screen.dart';
 import 'bitcoin_etf_screen.dart';
-import 'profile_screen.dart';
+import 'settings_screen.dart';
 import '../providers/etf_provider.dart';
 import '../widgets/loading_screen.dart';
 
@@ -22,10 +23,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const ETFTabsScreen(),
-    const EthereumETFScreen(),
     const BitcoinETFScreen(),
+    const EthereumETFScreen(),
     const FundHoldingsScreen(),
-    const ProfileScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -41,15 +42,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   // Метод для вибрации при переключении страниц
-  void _vibrateOnPageChange() async {
-    try {
-      if (await Vibration.hasVibrator() ?? false) {
-        Vibration.vibrate(duration: 15); // Очень короткая вибрация
-      }
-    } catch (e) {
-      // Игнорируем ошибки вибрации
-      debugPrint('Ошибка вибрации: $e');
-    }
+  void _vibrateOnPageChange() {
+    HapticUtils.lightImpact();
   }
 
   @override
@@ -171,13 +165,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             'type': 'icon',
           },
           {
-            'icon': 'assets/ethereum.png',
-            'label': 'navigation.ethereum_etf'.tr(),
+            'icon': 'assets/bitcoin.png',
+            'label': 'navigation.bitcoin_etf'.tr(),
             'type': 'image',
           },
           {
-            'icon': 'assets/bitcoin.png',
-            'label': 'navigation.bitcoin_etf'.tr(),
+            'icon': 'assets/ethereum.png',
+            'label': 'navigation.ethereum_etf'.tr(),
             'type': 'image',
           },
           {
@@ -186,8 +180,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             'type': 'icon',
           },
           {
-            'icon': Icons.person,
-            'label': 'navigation.profile'.tr(),
+            'icon': Icons.settings,
+            'label': 'settings.title'.tr(),
             'type': 'icon',
           },
         ];

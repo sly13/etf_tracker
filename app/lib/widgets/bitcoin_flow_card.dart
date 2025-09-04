@@ -43,20 +43,27 @@ class BitcoinFlowCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Иконка с долларом и стрелками
+                  // Иконка Bitcoin
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.orange.shade400
                           : Colors.orange.shade600,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
-                      Icons.currency_exchange,
-                      color: Colors.white,
-                      size: 24,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/bitcoin.png',
+                          width: 32,
+                          height: 32,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
 

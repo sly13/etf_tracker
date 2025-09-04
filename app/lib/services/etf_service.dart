@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import '../config/app_config.dart';
 
@@ -11,16 +12,14 @@ class ETFService {
   Future<List<ETFFlowData>> getEthereumData() async {
     try {
       final url = AppConfig.getApiUrl('/etf-flow/eth');
-      print('🔧 ETFService: Запрос к URL: $url');
+      print('🔧 ETFService: Request to URL: $url');
 
       final response = await http
           .get(Uri.parse(url))
           .timeout(
             _timeout,
             onTimeout: () {
-              throw TimeoutException(
-                'Превышено время ожидания ответа от сервера',
-              );
+              throw TimeoutException('errors.timeout'.tr());
             },
           );
 
@@ -29,14 +28,14 @@ class ETFService {
         return jsonData.map((json) => ETFFlowData.fromJson(json)).toList();
       } else {
         throw Exception(
-          'Ошибка загрузки Ethereum данных: ${response.statusCode}',
+          'errors.ethereum_load_error'.tr() + ': ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
-        throw Exception('Сервер не отвечает. Проверьте, запущен ли бэкенд.');
+        throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('Ошибка сети: $e');
+      throw Exception('errors.network_error'.tr() + ': $e');
     }
   }
 
@@ -50,9 +49,7 @@ class ETFService {
           .timeout(
             _timeout,
             onTimeout: () {
-              throw TimeoutException(
-                'Превышено время ожидания ответа от сервера',
-              );
+              throw TimeoutException('errors.timeout'.tr());
             },
           );
 
@@ -61,14 +58,14 @@ class ETFService {
         return jsonData.map((json) => BTCFlowData.fromJson(json)).toList();
       } else {
         throw Exception(
-          'Ошибка загрузки Bitcoin данных: ${response.statusCode}',
+          'errors.bitcoin_load_error'.tr() + ': ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
-        throw Exception('Сервер не отвечает. Проверьте, запущен ли бэкенд.');
+        throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('Ошибка сети: $e');
+      throw Exception('errors.network_error'.tr() + ': $e');
     }
   }
 
@@ -82,9 +79,7 @@ class ETFService {
           .timeout(
             _timeout,
             onTimeout: () {
-              throw TimeoutException(
-                'Превышено время ожидания ответа от сервера',
-              );
+              throw TimeoutException('errors.timeout'.tr());
             },
           );
 
@@ -93,14 +88,14 @@ class ETFService {
         return data;
       } else {
         throw Exception(
-          'Ошибка загрузки суммарных данных: ${response.statusCode}',
+          'errors.summary_load_error'.tr() + ': ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
-        throw Exception('Сервер не отвечает. Проверьте, запущен ли бэкенд.');
+        throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('Ошибка сети: $e');
+      throw Exception('errors.network_error'.tr() + ': $e');
     }
   }
 

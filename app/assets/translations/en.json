@@ -8,7 +8,7 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Holdings",
-    "profile": "Profile"
+    "settings": "Settings"
   },
   "common": {
     "loading": "Loading...",
@@ -48,13 +48,7 @@
   },
   "profile": {
     "title": "Profile",
-    "sign_in": "Sign In",
-    "sign_out": "Sign Out",
-    "user_info": "User Information",
-    "name": "Name",
-    "email": "Email",
-    "registration_date": "Registration Date",
-    "last_login": "Last Login",
+    "subscription_description": "Manage subscription and app settings",
     "subscription": "Subscription",
     "current_plan": "Current Plan",
     "basic": "Basic",
@@ -63,19 +57,28 @@
     "upgrade_to_premium": "Upgrade to Premium",
     "restore_purchases": "Restore Purchases",
     "active_subscription": "Active Subscription",
+    "no_registration_required": "No registration required",
     "notifications": "Notifications",
-    "dark_theme": "Dark Theme",
-    "user": "User",
-    "active_user": "Active User"
+    "dark_theme": "Dark Theme"
   },
   "subscription": {
     "title": "Choose Plan",
     "header": "Upgrade to Premium",
     "description": "Get access to advanced ETF flow analytics and personalized settings",
+    "unlock_premium": "Unlock Premium Features",
+    "benefits_title": "What's included in subscription:",
+    "benefit_analytics": "Advanced ETF flow analytics",
+    "benefit_statistics": "Detailed fund statistics",
+    "benefit_notifications": "Important event notifications",
+    "benefit_insights": "Exclusive insights and forecasts",
+    "benefit_support": "Priority support",
+    "choose_plan": "Choose plan:",
+    "try_free_and_subscribe": "Try Free and Subscribe",
+    "restore_purchases": "Restore purchases",
+    "restore_success": "Purchases restored successfully!",
+    "restore_error": "Error restoring purchases",
     "monthly_plan": "Monthly ETF Flow Plan",
     "yearly_plan": "Yearly ETF Flow Plan",
-    "monthly_description": "Monthly subscription for advanced ETF flow analytics",
-    "yearly_description": "Yearly subscription with discount for advanced analytics",
     "features": {
       "title": "What's included in subscription:",
       "analytics": "Advanced ETF flow analytics",
@@ -111,7 +114,22 @@
     "feature_insights": "💡 Exclusive insights",
     "plan_not_found": "Plan not found",
     "product_not_found": "Product not found in RevenueCat",
-    "status": "Subscription Status"
+    "status": "Subscription Status",
+    "refresh_status": "Refresh Status"
+  },
+  "premium": {
+    "unlock": "Unlock",
+    "upgrade_title": "Upgrade to Premium",
+    "upgrade_message": "Get access to advanced features:",
+    "feature_charts": "📊 Detailed flow charts",
+    "feature_analytics": "📈 Advanced analytics",
+    "feature_history": "📅 Full data history",
+    "feature_export": "💾 Data export",
+    "subscribe": "Subscribe",
+    "bitcoin_charts_title": "Detailed Bitcoin ETF Charts",
+    "bitcoin_charts_desc": "Get access to advanced analytics of Bitcoin ETF flows",
+    "ethereum_charts_title": "Detailed Ethereum ETF Charts",
+    "ethereum_charts_desc": "Get access to advanced analytics of Ethereum ETF flows"
   },
   "etf": {
     "flows": "ETF Flows",
@@ -227,5 +245,33 @@
     "ethereum_holdings": "Ethereum Holdings",
     "bitcoin_holdings": "Bitcoin Holdings",
     "fund_holdings": "Fund Holdings"
+  },
+  "errors": {
+    "timeout": "Request timeout exceeded",
+    "ethereum_load_error": "Error loading Ethereum data",
+    "bitcoin_load_error": "Error loading Bitcoin data",
+    "summary_load_error": "Error loading summary data",
+    "server_unavailable": "Server is not responding. Check if backend is running.",
+    "network_error": "Network error",
+    "revenuecat_unavailable": "RevenueCat unavailable",
+    "subscription_status_updated": "Subscription status updated",
+    "subscription_status_error": "Error updating subscription status",
+    "price_load_error": "Error loading prices",
+    "price_refresh_error": "Error refreshing prices",
+    "ethereum_price_error": "Error getting Ethereum price",
+    "bitcoin_price_error": "Error getting Bitcoin price"
+  },
+  "companies": {
+    "blackrock": "BlackRock",
+    "fidelity": "Fidelity",
+    "bitwise": "Bitwise",
+    "grayscale": "Grayscale",
+    "valkyrie": "Valkyrie",
+    "wisdom_tree": "WisdomTree",
+    "van_eck": "VanEck",
+    "invesco": "Invesco",
+    "franklin": "Franklin",
+    "twenty_one_shares": "21Shares",
+    "grayscale_crypto": "Grayscale Crypto"
   }
 }

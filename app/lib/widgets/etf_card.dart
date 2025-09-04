@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/etf.dart';
 import '../services/fund_logo_service.dart';
 import 'package:intl/intl.dart';
+import '../utils/haptic_feedback.dart';
 
 class ETFCard extends StatelessWidget {
   final ETF etf;
@@ -22,7 +23,10 @@ class ETFCard extends StatelessWidget {
       elevation: 4,
       margin: EdgeInsets.zero,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticUtils.lightImpact();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),

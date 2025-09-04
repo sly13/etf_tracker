@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../services/fund_logo_service.dart';
 import 'settings_screen.dart';
+import 'subscription_selection_screen.dart';
+import '../widgets/pro_button.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -14,13 +16,13 @@ class FundHoldingsScreen extends StatefulWidget {
 
 class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   String _sortBy = 'current'; // 'current', 'total', 'eth', 'btc', 'name'
-  bool _sortAscending = false; // false = по убыванию (большие значения сверху)
-  int _selectedTabIndex = 0; // 0 - Общее, 1 - Эфир, 2 - Биткоин
+  bool _sortAscending = false; // false = descending (larger values on top)
+  int _selectedTabIndex = 0; // 0 - General, 1 - Ethereum, 2 - Bitcoin
 
   @override
   void initState() {
     super.initState();
-    // Данные загружаются только при инициализации приложения, не здесь
+    // Data is loaded only during app initialization, not here
   }
 
   @override
@@ -28,32 +30,13 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('etf.holdings'.tr()),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark 
-            ? const Color(0xFF0A0A0A) 
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0A0A0A)
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: () {
-              _showSortDialog(context);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<ETFProvider>().forceRefreshAllData();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-          ),
+          // Блок Pro
+          const ProButton(),
         ],
       ),
       body: Consumer<ETFProvider>(
@@ -84,37 +67,27 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
 
           if (etfProvider.fundHoldings == null) {
             return Center(
-              child: Text('common.no_data'.tr(), style: const TextStyle(fontSize: 18)),
+              child: Text(
+                'common.no_data'.tr(),
+                style: const TextStyle(fontSize: 18),
+              ),
             );
           }
 
-                      return RefreshIndicator(
-              onRefresh: () => etfProvider.forceRefreshAllData(),
-            child: Column(
-              children: [
-                // Табы
-                _buildTabBar(),
-                // Контент
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFundHoldingsList(etfProvider.fundHoldings!),
-                    ],
-                  ),
-                  ),
-                ),
-              ],
+          return RefreshIndicator(
+            onRefresh: () => etfProvider.forceRefreshAllData(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [_buildFundHoldingsList(etfProvider.fundHoldings!)],
+              ),
             ),
           );
         },
       ),
     );
   }
-
-
 
   Widget _buildFundHoldingsList(Map<String, dynamic> holdings) {
     final fundHoldings = holdings['fundHoldings'] as Map<String, dynamic>;
@@ -128,22 +101,60 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Заголовок, сортировка и табы в одной строке
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              _getTabTitle(),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                _getTabTitle(),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            Text(
-              _getSortDescription(),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+            // Кнопка сортировки
+            GestureDetector(
+              onTap: () {
+                _showSortDialog(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sort,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getSortDescription(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        // Табы фильтрации
+        _buildCompactTabBar(),
         const SizedBox(height: 16),
         ...sortedEntries.map((entry) {
           final fundName = _getFundDisplayName(entry.key);
@@ -195,7 +206,12 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     );
   }
 
-  Widget _buildFundItem(String label, String value, Color color, {bool isFullWidth = false}) {
+  Widget _buildFundItem(
+    String label,
+    String value,
+    Color color, {
+    bool isFullWidth = false,
+  }) {
     return Container(
       width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(12),
@@ -248,7 +264,80 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     return FundLogoService.getFundName(fundKey);
   }
 
-  // Построить табы
+  // Построить компактные табы рядом с заголовком
+  Widget _buildCompactTabBar() {
+    return Row(
+      children: [
+        _buildCompactTabItem('holdings.general'.tr(), 0, Icons.account_balance),
+        const SizedBox(width: 8),
+        _buildCompactTabItem(
+          'holdings.ethereum'.tr(),
+          1,
+          Icons.currency_exchange,
+        ),
+        const SizedBox(width: 8),
+        _buildCompactTabItem(
+          'holdings.bitcoin'.tr(),
+          2,
+          Icons.currency_bitcoin,
+        ),
+      ],
+    );
+  }
+
+  // Построить компактный элемент таба
+  Widget _buildCompactTabItem(String title, int index, IconData icon) {
+    final isSelected = _selectedTabIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTabIndex = index;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.grey[400] : Colors.grey[600]),
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.grey[400] : Colors.grey[600]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Построить табы (старый метод, оставляем для совместимости)
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -334,7 +423,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   Widget _buildTabContent(Map<String, dynamic> fundData) {
     switch (_selectedTabIndex) {
       case 0:
-        // Общее владение - показываем оба значения
+        // General holdings - show both values
         return Row(
           children: [
             Expanded(
@@ -452,9 +541,17 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                     },
                     child: Row(
                       children: [
-                        Icon(_sortAscending ? Icons.arrow_upward : Icons.arrow_downward),
+                        Icon(
+                          _sortAscending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                        ),
                         const SizedBox(width: 8),
-                        Text(_sortAscending ? 'По возрастанию' : 'По убыванию'),
+                        Text(
+                          _sortAscending
+                              ? 'sorting.ascending'.tr()
+                              : 'sorting.descending'.tr(),
+                        ),
                       ],
                     ),
                   ),
@@ -474,7 +571,9 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   }
 
   // Фильтрация фондов в зависимости от выбранного таба
-  List<MapEntry<String, dynamic>> _filterFundHoldings(List<MapEntry<String, dynamic>> entries) {
+  List<MapEntry<String, dynamic>> _filterFundHoldings(
+    List<MapEntry<String, dynamic>> entries,
+  ) {
     switch (_selectedTabIndex) {
       case 0: // Общее - показываем все фонды
         return entries;
@@ -482,13 +581,35 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
         return entries.where((entry) {
           final fundKey = entry.key;
           // Ethereum фонды: blackrock, fidelity, bitwise, twentyOneShares, vanEck, invesco, franklin, grayscale, grayscaleCrypto
-          return ['blackrock', 'fidelity', 'bitwise', 'twentyOneShares', 'vanEck', 'invesco', 'franklin', 'grayscale', 'grayscaleCrypto'].contains(fundKey);
+          return [
+            'blackrock',
+            'fidelity',
+            'bitwise',
+            'twentyOneShares',
+            'vanEck',
+            'invesco',
+            'franklin',
+            'grayscale',
+            'grayscaleCrypto',
+          ].contains(fundKey);
         }).toList();
       case 2: // Bitcoin - показываем только Bitcoin фонды
         return entries.where((entry) {
           final fundKey = entry.key;
           // Bitcoin фонды: все Ethereum + valkyrie, wisdomTree
-          return ['blackrock', 'fidelity', 'bitwise', 'twentyOneShares', 'vanEck', 'invesco', 'franklin', 'grayscale', 'grayscaleCrypto', 'valkyrie', 'wisdomTree'].contains(fundKey);
+          return [
+            'blackrock',
+            'fidelity',
+            'bitwise',
+            'twentyOneShares',
+            'vanEck',
+            'invesco',
+            'franklin',
+            'grayscale',
+            'grayscaleCrypto',
+            'valkyrie',
+            'wisdomTree',
+          ].contains(fundKey);
         }).toList();
       default:
         return entries;
@@ -496,13 +617,15 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   }
 
   // Сортировка фондов
-  List<MapEntry<String, dynamic>> _sortFundHoldings(List<MapEntry<String, dynamic>> entries) {
+  List<MapEntry<String, dynamic>> _sortFundHoldings(
+    List<MapEntry<String, dynamic>> entries,
+  ) {
     entries.sort((a, b) {
       final aData = a.value as Map<String, dynamic>;
       final bData = b.value as Map<String, dynamic>;
-      
+
       int comparison = 0;
-      
+
       switch (_sortBy) {
         case 'total':
           final aTotal = (aData['eth'] ?? 0) + (aData['btc'] ?? 0);
@@ -539,10 +662,10 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
           }
           break;
       }
-      
+
       return _sortAscending ? comparison : -comparison;
     });
-    
+
     return entries;
   }
 
@@ -553,32 +676,34 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
       case 'current':
         switch (_selectedTabIndex) {
           case 0:
-            sortType = 'Общее владение';
+            sortType = 'holdings.general_holdings'.tr();
             break;
           case 1:
-            sortType = 'Ethereum';
+            sortType = 'holdings.ethereum_holdings'.tr();
             break;
           case 2:
-            sortType = 'Bitcoin';
+            sortType = 'holdings.bitcoin_holdings'.tr();
             break;
           default:
-            sortType = 'Текущий таб';
+            sortType = 'sorting.by_current_tab'.tr();
         }
         break;
       case 'total':
-        sortType = 'Общее владение';
+        sortType = 'holdings.general_holdings'.tr();
         break;
       case 'eth':
-        sortType = 'Ethereum';
+        sortType = 'holdings.ethereum_holdings'.tr();
         break;
       case 'btc':
-        sortType = 'Bitcoin';
+        sortType = 'holdings.bitcoin_holdings'.tr();
         break;
       case 'name':
-        sortType = 'Название';
+        sortType = 'sorting.by_name'.tr();
         break;
     }
-    
+
     return '${_sortAscending ? '↑' : '↓'} $sortType';
   }
+
+
 }

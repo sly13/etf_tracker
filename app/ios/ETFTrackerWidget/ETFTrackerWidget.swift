@@ -14,6 +14,7 @@ struct ETFWidgetData {
     let bitcoinFlow: Double
     let ethereumFlow: Double
     let lastUpdated: Date
+    let dataDate: Date
     let isPositive: Bool
     
     static let placeholder = ETFWidgetData(
@@ -21,6 +22,7 @@ struct ETFWidgetData {
         bitcoinFlow: 850.2,
         ethereumFlow: 400.3,
         lastUpdated: Date(),
+        dataDate: Date(),
         isPositive: true
     )
 }
@@ -48,11 +50,28 @@ class ETFWidgetService {
             let ethereumFlow = ethereumData?["total"] as? Double ?? 0.0
             let totalFlow = bitcoinFlow + ethereumFlow
             
+            // Пытаемся получить дату данных из API
+            var dataDate = Date()
+            if let bitcoinDateString = bitcoinData?["date"] as? String {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                if let parsedDate = formatter.date(from: bitcoinDateString) {
+                    dataDate = parsedDate
+                }
+            } else if let ethereumDateString = ethereumData?["date"] as? String {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                if let parsedDate = formatter.date(from: ethereumDateString) {
+                    dataDate = parsedDate
+                }
+            }
+            
             return ETFWidgetData(
                 totalFlow: totalFlow,
                 bitcoinFlow: bitcoinFlow, // Используем потоки за день
                 ethereumFlow: ethereumFlow, // Используем потоки за день
                 lastUpdated: Date(),
+                dataDate: dataDate,
                 isPositive: totalFlow >= 0
             )
         } catch {
@@ -258,6 +277,11 @@ struct MediumWidgetView: View {
                         .foregroundColor(.purple)
                 }
                 
+                // Дата данных
+                Text("Data: \(entry.etfData.dataDate, style: .date)")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                
                 // Время обновления
                 Text("Updated: \(entry.etfData.lastUpdated, style: .time)")
                     .font(.system(size: 10))
@@ -297,6 +321,7 @@ struct ETFTrackerWidget: Widget {
         bitcoinFlow: 650.1,
         ethereumFlow: 330.1,
         lastUpdated: .now,
+        dataDate: .now,
         isPositive: false
     ))
 }

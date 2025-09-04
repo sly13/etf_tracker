@@ -55,39 +55,21 @@ class SubscriptionTest {
     }
   }
 
-  // Тест восстановления покупок
-  static Future<void> testRestorePurchases() async {
-    try {
-      print('🧪 Тестируем восстановление покупок...');
-      final customerInfo = await SubscriptionService.restorePurchases();
-      print('✅ Покупки восстановлены');
-      print(
-        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
-      );
-    } catch (e) {
-      print('❌ Ошибка восстановления: $e');
-    }
-  }
-
   // Полный тест всех функций
-  static Future<void> runFullTest() async {
-    print('🚀 Запускаем полный тест подписки...\n');
+  static Future<void> runAllTests() async {
+    print('🚀 Запускаем полный тест RevenueCat...');
 
     await testInitialization();
-    print('');
+    await Future.delayed(Duration(seconds: 1));
 
     await testGetCustomerInfo();
-    print('');
+    await Future.delayed(Duration(seconds: 1));
 
     await testIsPremium();
-    print('');
+    await Future.delayed(Duration(seconds: 1));
 
     await testGetAvailablePackages();
-    print('');
 
-    await testRestorePurchases();
-    print('');
-
-    print('✅ Полный тест завершен');
+    print('✅ Все тесты завершены!');
   }
 }

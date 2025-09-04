@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../services/crypto_price_service.dart';
 
 class CryptoPriceProvider extends ChangeNotifier {
@@ -9,7 +10,7 @@ class CryptoPriceProvider extends ChangeNotifier {
   String? _error;
   DateTime? _lastUpdateTime;
 
-  // Геттеры
+  // Getters
   Map<String, double> get prices => _prices;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -18,12 +19,12 @@ class CryptoPriceProvider extends ChangeNotifier {
   double? get ethereumPrice => _prices['ETH'];
   double? get bitcoinPrice => _prices['BTC'];
 
-  // Инициализация - загрузка цен при создании провайдера
+  // Initialization - load prices when provider is created
   Future<void> initialize() async {
     await loadPrices();
   }
 
-  // Загрузить цены криптовалют
+  // Load cryptocurrency prices
   Future<void> loadPrices() async {
     if (_isLoading) return;
 
@@ -36,7 +37,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       _lastUpdateTime = await _cryptoPriceService.getLastPriceUpdateTime();
       notifyListeners();
     } catch (e) {
-      _setError('Ошибка загрузки цен: $e');
+      _setError('errors.price_load_error'.tr() + ': $e');
     } finally {
       _setLoading(false);
     }
@@ -55,7 +56,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       _lastUpdateTime = DateTime.now();
       notifyListeners();
     } catch (e) {
-      _setError('Ошибка обновления цен: $e');
+      _setError('errors.price_refresh_error'.tr() + ': $e');
     } finally {
       _setLoading(false);
     }
@@ -83,7 +84,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       notifyListeners();
       return price;
     } catch (e) {
-      _setError('Ошибка получения цены Ethereum: $e');
+      _setError('errors.ethereum_price_error'.tr() + ': $e');
       rethrow;
     }
   }
@@ -97,7 +98,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       notifyListeners();
       return price;
     } catch (e) {
-      _setError('Ошибка получения цены Bitcoin: $e');
+      _setError('errors.bitcoin_price_error'.tr() + ': $e');
       rethrow;
     }
   }
@@ -158,6 +159,3 @@ class CryptoPriceProvider extends ChangeNotifier {
   // Проверить, есть ли ошибка
   bool get hasError => _error != null;
 }
-
-
-

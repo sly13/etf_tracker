@@ -327,23 +327,23 @@ class CompactCryptoPriceWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Ethereum
-              Expanded(
-                child: _buildCompactPriceItem(
-                  'ETH',
-                  cryptoProvider.ethereumPrice,
-                  Colors.blue,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
               // Bitcoin
               Expanded(
                 child: _buildCompactPriceItem(
                   'BTC',
                   cryptoProvider.bitcoinPrice,
                   Colors.orange,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // Ethereum
+              Expanded(
+                child: _buildCompactPriceItem(
+                  'ETH',
+                  cryptoProvider.ethereumPrice,
+                  Colors.blue,
                 ),
               ),
             ],
@@ -354,12 +354,12 @@ class CompactCryptoPriceWidget extends StatelessWidget {
   }
 
   Widget _buildCompactPriceItem(String symbol, double? price, Color color) {
-    // Выбираем иконку в зависимости от символа
-    IconData icon;
+    // Выбираем изображение в зависимости от символа
+    String imageAsset;
     if (symbol == 'ETH') {
-      icon = Icons.currency_exchange; // Иконка для Ethereum
+      imageAsset = 'assets/ethereum.png';
     } else {
-      icon = Icons.currency_bitcoin; // Иконка для Bitcoin
+      imageAsset = 'assets/bitcoin.png';
     }
 
     // Форматируем цену красиво с разделителями тысяч
@@ -394,7 +394,10 @@ class CompactCryptoPriceWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 18),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.asset(imageAsset, width: 16, height: 16, color: color),
+          ),
           const SizedBox(width: 8),
           Text(
             formattedPrice,

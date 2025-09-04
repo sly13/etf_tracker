@@ -43,20 +43,27 @@ class EthereumFlowCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Иконка с долларом и стрелками
+                  // Иконка Ethereum
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.blue.shade400
                           : Colors.blue.shade600,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
-                      Icons.currency_exchange,
-                      color: Colors.white,
-                      size: 24,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/ethereum.png',
+                          width: 32,
+                          height: 32,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
 

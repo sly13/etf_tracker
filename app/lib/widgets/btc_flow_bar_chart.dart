@@ -109,11 +109,24 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: isDark ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(8),
+        border: isDark ? null : Border.all(
+          color: Colors.grey.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: isDark ? null : [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -128,13 +141,15 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'etf.bitcoin_flows'.tr(),
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -172,6 +187,8 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
   }
 
   Widget _buildPeriodButton(String text, ChartPeriod period, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -182,14 +199,18 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey[800],
+          color: isSelected 
+              ? Colors.blue 
+              : (isDark ? Colors.grey[800] : Colors.grey[200]),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[400],
+            color: isSelected 
+                ? Colors.white 
+                : (isDark ? Colors.grey[400] : Colors.grey[700]),
             fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
@@ -243,11 +264,17 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
     IconData icon,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.grey[800],
+        color: isDark ? Colors.grey[800] : Colors.grey[100],
         borderRadius: BorderRadius.circular(6),
+        border: isDark ? null : Border.all(
+          color: Colors.grey.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [

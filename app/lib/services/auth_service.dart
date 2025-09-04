@@ -1,57 +1,11 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../models/user.dart';
 import '../config/app_config.dart';
 
 class AuthService {
   static const Duration _timeout = Duration(seconds: 10);
-
-  // Вход через Apple
-  Future<User> signInWithApple() async {
-    try {
-      print('🔧 Начинаем Apple Sign-In...');
-      print('🔧 Bundle ID: com.sly13.etfTracker');
-      print('🔧 Режим: ${AppConfig.isDebugMode ? "Debug" : "Release"}');
-
-      // Получаем учетные данные от Apple
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      // Отправляем данные на сервер для аутентификации
-      final response = await http
-          .post(
-            Uri.parse(AppConfig.getApiUrl('/auth/apple')),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'identityToken': credential.identityToken,
-              'authorizationCode': credential.authorizationCode,
-              'userIdentifier': credential.userIdentifier,
-              'givenName': credential.givenName,
-              'familyName': credential.familyName,
-              'email': credential.email,
-            }),
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return User.fromJson(data['user']);
-      } else {
-        throw Exception('Ошибка аутентификации: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (e is TimeoutException) {
-        throw Exception('Превышено время ожидания ответа от сервера');
-      }
-      throw Exception('Ошибка входа через Apple: $e');
-    }
-  }
 
   // Mock пользователь для dev режима
   User _getMockUser() {

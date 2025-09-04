@@ -7,7 +7,10 @@ import '../config/app_config.dart';
 import '../widgets/crypto_price_widget.dart';
 import '../models/etf_flow_data.dart';
 import 'settings_screen.dart';
+import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
+import '../widgets/pro_button.dart';
+import '../widgets/subscription_status_widget.dart';
 
 class ETFTabsScreen extends StatefulWidget {
   const ETFTabsScreen({super.key});
@@ -17,53 +20,26 @@ class ETFTabsScreen extends StatefulWidget {
 }
 
 class _ETFTabsScreenState extends State<ETFTabsScreen> {
+  DateTime? _lastManualRefresh;
+
   @override
   void initState() {
     super.initState();
-    // Данные загружаются только при инициализации приложения, не здесь
+    // Data is loaded only during app initialization, not here
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('app.title'.tr()),
-            if (AppConfig.isDebugMode)
-              Text(
-                'Dev Mode - ${AppConfig.backendBaseUrl}',
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-          ],
-        ),
+        title: Text('app.title'.tr()),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF0A0A0A)
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          // Кнопка обновления данных ETF
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<ETFProvider>().forceRefreshAllData();
-            },
-            tooltip: 'etf.refresh'.tr(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-            tooltip: 'settings.title'.tr(),
-          ),
+          // Кнопка Pro
+          const ProButton(),
         ],
       ),
       body: Consumer<ETFProvider>(
@@ -250,16 +226,23 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             color: adjustedColor.withOpacity(isDark ? 0.2 : 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Image.asset(
-            imageAsset,
-            width: 24,
-            height: 24,
-            color: adjustedColor,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Image.asset(
+                imageAsset,
+                width: 32,
+                height: 32,
+                color: adjustedColor,
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 16),
@@ -303,31 +286,47 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'etf.recent_updates'.tr(),
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'etf.recent_updates'.tr(),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            // Кнопка обновления (показывается только если прошло больше часа)
+            if (_shouldShowRefreshButton(etfProvider))
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  _lastManualRefresh = DateTime.now();
+                  context.read<ETFProvider>().forceRefreshAllData();
+                },
+                tooltip: 'etf.refresh'.tr(),
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+          ],
         ),
         const SizedBox(height: 16),
 
-        if (etfProvider.ethereumData.isNotEmpty)
-          _buildUpdateCard(
-            'etf.ethereum'.tr(),
-            etfProvider.ethereumData.first.date,
-            etfProvider.ethereumData.first.total ?? 0,
-            Colors.blue,
-          ),
-
-        if (etfProvider.bitcoinData.isNotEmpty) ...[
-          const SizedBox(height: 12),
+        if (etfProvider.bitcoinData.isNotEmpty)
           _buildUpdateCard(
             'etf.bitcoin'.tr(),
             etfProvider.bitcoinData.first.date,
             etfProvider.bitcoinData.first.total ?? 0,
             Colors.orange,
+          ),
+
+        if (etfProvider.ethereumData.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildUpdateCard(
+            'etf.ethereum'.tr(),
+            etfProvider.ethereumData.first.date,
+            etfProvider.ethereumData.first.total ?? 0,
+            Colors.blue,
           ),
         ],
       ],
@@ -350,10 +349,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
     // Определяем индекс таба для навигации
     int? targetTabIndex;
-    if (title.contains('Ethereum')) {
-      targetTabIndex = 1; // Ethereum ETF таб
-    } else if (title.contains('Bitcoin')) {
-      targetTabIndex = 2; // Bitcoin ETF таб
+    if (title.contains('Bitcoin')) {
+      targetTabIndex = 1; // Bitcoin ETF таб
+    } else if (title.contains('Ethereum')) {
+      targetTabIndex = 2; // Ethereum ETF таб
     }
 
     return Card(
@@ -429,5 +428,34 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         ),
       ),
     );
+  }
+
+  // Проверяем, нужно ли показывать кнопку обновления
+  bool _shouldShowRefreshButton(ETFProvider etfProvider) {
+    // Если данные еще не загружены, не показываем кнопку
+    if (etfProvider.ethereumData.isEmpty && etfProvider.bitcoinData.isEmpty) {
+      return false;
+    }
+
+    // Если было ручное обновление менее часа назад, не показываем кнопку
+    if (_lastManualRefresh != null) {
+      final now = DateTime.now();
+      final timeSinceManualRefresh = now.difference(_lastManualRefresh!);
+      if (timeSinceManualRefresh.inHours < 1) {
+        return false;
+      }
+    }
+
+    // Используем время последнего обновления из провайдера
+    final lastDataUpdate = etfProvider.lastDataUpdate;
+    if (lastDataUpdate == null) {
+      return false;
+    }
+
+    // Проверяем, прошло ли больше часа с последнего обновления данных
+    final now = DateTime.now();
+    final difference = now.difference(lastDataUpdate);
+
+    return difference.inHours >= 1;
   }
 }

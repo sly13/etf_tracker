@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 class LanguageProvider with ChangeNotifier {
   static const String _languageKey = 'selected_language';
 
-  Locale _currentLocale = const Locale('en');
+  Locale _currentLocale = const Locale('ru');
 
   Locale get currentLocale => _currentLocale;
 
@@ -23,7 +23,7 @@ class LanguageProvider with ChangeNotifier {
       }
     } catch (e) {
       // Используем язык по умолчанию при ошибке
-      _currentLocale = const Locale('en');
+      _currentLocale = const Locale('ru');
     }
   }
 
@@ -36,6 +36,15 @@ class LanguageProvider with ChangeNotifier {
       await prefs.setString(_languageKey, locale.languageCode);
     } catch (e) {
       // Игнорируем ошибки сохранения
+    }
+  }
+
+  // Синхронизация с EasyLocalization
+  void syncWithEasyLocalization(BuildContext context) {
+    final currentLocale = context.locale;
+    if (_currentLocale != currentLocale) {
+      _currentLocale = currentLocale;
+      notifyListeners();
     }
   }
 

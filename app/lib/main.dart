@@ -7,7 +7,10 @@ import 'providers/theme_provider.dart';
 import 'providers/crypto_price_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
+import 'providers/subscription_provider.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/subscription_service.dart';
+import 'utils/revenuecat_checker.dart';
 
 void main() async {
   // Инициализируем Flutter
@@ -18,12 +21,30 @@ void main() async {
   print('🔧 EasyLocalization инициализирован');
 
   // Загружаем переменные окружения
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+    print('✅ Файл .env загружен успешно');
+  } catch (e) {
+    print('⚠️ Ошибка загрузки .env файла: $e');
+    print('🔧 Используем значения по умолчанию');
+  }
 
   // Отладочная информация
   print('🔧 Загружены переменные окружения:');
   print('BACKEND_URL: ${dotenv.env['BACKEND_URL']}');
   print('REVENUECAT_IOS_API_KEY: ${dotenv.env['REVENUECAT_IOS_API_KEY']}');
+
+  // Инициализируем RevenueCat
+  try {
+    await SubscriptionService.initialize();
+    print('✅ RevenueCat инициализирован');
+
+    // Запускаем диагностику в debug режиме
+    await RevenueCatChecker.printDiagnostics();
+  } catch (e) {
+    print('❌ Ошибка инициализации RevenueCat: $e');
+    print('🔧 Приложение будет работать без функций подписки');
+  }
 
   runApp(const MyApp());
 }
@@ -61,11 +82,20 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = SubscriptionProvider();
+            // Инициализируем подписку при создании провайдера
+            provider.initialize();
+            return provider;
+          },
+        ),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('ru')],
         path: 'assets/translations',
         fallbackLocale: const Locale('en'),
+        startLocale: const Locale('ru'),
         useOnlyLangCode: true,
         child: Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {

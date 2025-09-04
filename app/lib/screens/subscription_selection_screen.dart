@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:provider/provider.dart';
 import '../models/subscription_plan.dart';
-import '../providers/auth_provider.dart';
 import '../services/subscription_service.dart';
+import '../providers/subscription_provider.dart';
 import '../widgets/loading_screen.dart';
 
 class SubscriptionSelectionScreen extends StatefulWidget {
@@ -15,83 +15,356 @@ class SubscriptionSelectionScreen extends StatefulWidget {
 }
 
 class _SubscriptionSelectionScreenState
-    extends State<SubscriptionSelectionScreen> {
+    extends State<SubscriptionSelectionScreen>
+    with TickerProviderStateMixin {
   bool _isLoading = false;
-  String? _selectedPlanId;
+  bool _isCloseButtonLoading = true; // Лоадер для кнопки закрытия
+  bool _isLoadingPrices = true;
+  String? _selectedPlanId = 'yearly'; // По умолчанию выбираем годовую подписку
+  List<SubscriptionPlan> _plans = [];
+  late AnimationController _closeButtonAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Создаем контроллер анимации для одного оборота за 5 секунд
+    _closeButtonAnimationController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    );
+
+    // Запускаем анимацию
+    _closeButtonAnimationController.forward();
+
+    // По окончании анимации активируем кнопку
+    _closeButtonAnimationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() {
+          _isCloseButtonLoading = false;
+        });
+      }
+    });
+
+    // Загружаем цены из RevenueCat
+    _loadPrices();
+  }
+
+  Future<void> _loadPrices() async {
+    try {
+      final storeProducts = await SubscriptionService.getAvailablePackages();
+      final plans = SubscriptionPlan.createPlansWithStoreProducts(
+        storeProducts,
+      );
+
+      if (mounted) {
+        setState(() {
+          _plans = plans;
+          _isLoadingPrices = false;
+        });
+      }
+    } catch (e) {
+      print('Ошибка загрузки цен: $e');
+      // Используем планы по умолчанию
+      if (mounted) {
+        setState(() {
+          _plans = SubscriptionPlan.availablePlans;
+          _isLoadingPrices = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _closeButtonAnimationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('subscription.title'.tr()),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0A0A0A)
-            : Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
       body: _isLoading
           ? LoadingScreen(
               message: 'subscription.processing'.tr(),
               showProgress: true,
             )
-          : _buildContent(),
+          : Stack(
+              children: [
+                _buildContent(),
+                // Кнопка закрытия в правом верхнем углу
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: _isCloseButtonLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: AnimatedBuilder(
+                              animation: _closeButtonAnimationController,
+                              builder: (context, child) {
+                                return CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.grey[400]!,
+                                  ),
+                                  value: _closeButtonAnimationController.value,
+                                );
+                              },
+                            ),
+                          )
+                        : const Icon(Icons.close, color: Colors.white),
+                    onPressed: _isCloseButtonLoading
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
   Widget _buildContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
+    return Column(
+      children: [
+        // Изображение сверху
+        _buildHeroImage(),
+
+        // Основной контент
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Заголовок
+                _buildHeader(),
+                SizedBox(height: isSmallScreen ? 12 : 20),
+
+                // Преимущества
+                Expanded(flex: isSmallScreen ? 2 : 3, child: _buildBenefits()),
+                SizedBox(height: isSmallScreen ? 12 : 20),
+
+                // Планы подписок
+                _buildSubscriptionPlans(),
+                SizedBox(height: isSmallScreen ? 12 : 20),
+
+                // Кнопка покупки
+                _buildPurchaseButton(),
+                SizedBox(height: isSmallScreen ? 8 : 12),
+
+                // Восстановление покупок
+                _buildRestorePurchases(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroImage() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Адаптивная высота: больше на больших экранах, меньше на маленьких
+    final heroHeight = screenHeight > 800
+        ? 220.0
+        : (screenHeight > 600 ? 180.0 : 140.0);
+
+    return Container(
+      height: heroHeight,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            Theme.of(context).colorScheme.secondary,
+          ],
+        ),
+      ),
+      child: Stack(
         children: [
-          // Заголовок
-          _buildHeader(),
-          const SizedBox(height: 24),
-
-          // Планы подписок
-          _buildSubscriptionPlans(),
-          const SizedBox(height: 24),
-
-          // Кнопка покупки
-          _buildPurchaseButton(),
-          const SizedBox(height: 16),
-
-          // Дополнительная информация
-          _buildAdditionalInfo(),
+          // Фоновые элементы
+          Positioned(
+            top: 20,
+            left: 20,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Icon(Icons.trending_up, color: Colors.white, size: 30),
+            ),
+          ),
+          Positioned(
+            top: 40,
+            right: 30,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(Icons.analytics, color: Colors.white, size: 20),
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 40,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Icon(Icons.insights, color: Colors.white, size: 25),
+            ),
+          ),
+          // Центральный текст
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.workspace_premium, color: Colors.white, size: 48),
+                const SizedBox(height: 8),
+                Text(
+                  'Unlock Premium Today',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'subscription.header'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          'Unlock Premium Today',
+          style: TextStyle(
+            fontSize: isSmallScreen ? 20 : 24,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: isSmallScreen ? 4 : 6),
         Text(
-          'subscription.description'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+          'Get access to all subscriber benefits',
+          style: TextStyle(
+            fontSize: isSmallScreen ? 14 : 16,
+            color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildSubscriptionPlans() {
+  Widget _buildBenefits() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Column(
-      children: SubscriptionPlan.availablePlans.map((plan) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildPlanCard(plan),
-        );
-      }).toList(),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What\'s included:',
+          style: TextStyle(
+            fontSize: isSmallScreen ? 16 : 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        SizedBox(height: isSmallScreen ? 12 : 16),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildBenefitItem('Advanced ETF flow analytics'),
+              _buildBenefitItem('Detailed fund statistics'),
+              _buildBenefitItem('Real-time notifications'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBenefitItem(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 8 : 12),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check,
+            color: isDark ? Colors.white : Colors.black,
+            size: isSmallScreen ? 18 : 20,
+          ),
+          SizedBox(width: isSmallScreen ? 10 : 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: isSmallScreen ? 14 : 16,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionPlans() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Choose Plan',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_isLoadingPrices)
+          const Center(child: CircularProgressIndicator())
+        else
+          ..._plans.map((plan) {
+            return _buildPlanCard(plan);
+          }).toList(),
+      ],
     );
   }
 
@@ -99,13 +372,15 @@ class _SubscriptionSelectionScreenState
     final isSelected = _selectedPlanId == plan.id;
     final isPopular = plan.isPopular;
 
-    return Card(
-      elevation: isSelected ? 8 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: isSelected
-            ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
-            : BorderSide.none,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? Colors.white : Colors.transparent,
+          width: 2,
+        ),
       ),
       child: InkWell(
         onTap: () {
@@ -113,123 +388,98 @@ class _SubscriptionSelectionScreenState
             _selectedPlanId = plan.id;
           });
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              // Заголовок и популярный бейдж
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      plan.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  if (isPopular)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'subscription.popular'.tr(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
+              // Радио кнопка
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey[400]!, width: 1),
+                  color: isSelected ? Colors.white : Colors.transparent,
+                ),
+                child: isSelected
+                    ? Icon(Icons.check, color: Colors.black, size: 16)
+                    : null,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(width: 16),
 
-              // Описание
-              Text(
-                plan.description,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 16),
-
-              // Цена и длительность
-              Row(
-                children: [
-                  Text(
-                    plan.price,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '/ ${plan.duration}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Функции
-              Column(
-                children: plan.features.map((feature) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
+              // Контент плана
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            feature,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            plan.id == 'yearly' ? 'Year' : 'Week',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
+                        if (isPopular)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _getDiscountText(plan),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                  );
-                }).toList(),
-              ),
-
-              // Индикатор выбора
-              if (isSelected)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
+                    const SizedBox(height: 8),
+                    if (plan.id == 'yearly')
+                      Row(
+                        children: [
+                          Text(
+                            _getOriginalPrice(plan),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[400],
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            plan.price,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
                       Text(
-                        'subscription.selected'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                        '3 Days free then ${plan.price}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
@@ -237,174 +487,285 @@ class _SubscriptionSelectionScreenState
     );
   }
 
+  Widget _buildRestorePurchases() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: TextButton(
+        onPressed: () async {
+          try {
+            await SubscriptionService.restorePurchases();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('subscription.restore_success'.tr()),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('subscription.restore_error'.tr()),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+        child: Text(
+          'Restore purchases',
+          style: TextStyle(
+            color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
+            decoration: TextDecoration.underline,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPurchaseButton() {
-    final selectedPlan = SubscriptionPlan.getById(_selectedPlanId ?? '');
-    final isPlanSelected = selectedPlan != null;
+    if (_plans.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedPlan = _plans.firstWhere(
+      (plan) => plan.id == _selectedPlanId,
+      orElse: () => _plans.first,
+    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return SizedBox(
       width: double.infinity,
-      height: 56,
       child: ElevatedButton(
-        onPressed: isPlanSelected ? _purchaseSubscription : null,
+        onPressed: _isLoading ? null : _handlePurchase,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: isDark ? Colors.white : Colors.black,
+          foregroundColor: isDark ? Colors.black : Colors.white,
+          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 0,
         ),
-        child: Text(
-          isPlanSelected
-              ? 'subscription.purchase'.tr()
-              : 'subscription.select_plan'.tr(),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        child: _isLoading
+            ? SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isDark ? Colors.black : Colors.white,
+                  ),
+                ),
+              )
+            : Text(
+                _selectedPlanId == 'yearly' ? 'Continue' : 'Try for Free',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
       ),
     );
   }
 
   Widget _buildAdditionalInfo() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(),
-        const SizedBox(height: 16),
         Text(
-          'subscription.features.title'.tr(),
+          'subscription.additional_info'.tr(),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
-        _buildFeatureItem('subscription.feature_analytics'.tr()),
-        _buildFeatureItem('subscription.feature_statistics'.tr()),
-        _buildFeatureItem('subscription.feature_notifications'.tr()),
-        _buildFeatureItem('subscription.feature_settings'.tr()),
-        _buildFeatureItem('subscription.feature_favorites'.tr()),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         Text(
-          'subscription.cancel_info'.tr(),
+          'subscription.additional_info_text'.tr(),
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-          textAlign: TextAlign.center,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
         ),
       ],
     );
   }
 
-  Widget _buildFeatureItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(
-            Icons.check,
-            color: Theme.of(context).colorScheme.primary,
-            size: 16,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
-      ),
-    );
+  String _getDiscountText(SubscriptionPlan plan) {
+    if (plan.id == 'yearly' && _plans.length >= 2) {
+      try {
+        final monthlyPlan = _plans.firstWhere((p) => p.id == 'monthly');
+
+        if (plan.storeProduct != null && monthlyPlan.storeProduct != null) {
+          final yearlyPrice = _extractPriceValue(plan.price);
+          final monthlyPrice = _extractPriceValue(monthlyPlan.price);
+
+          if (yearlyPrice != null && monthlyPrice != null) {
+            final originalPrice = monthlyPrice * 12;
+            final discount =
+                ((originalPrice - yearlyPrice) / originalPrice * 100).round();
+            return 'SAVE ${discount}%';
+          }
+        }
+      } catch (e) {
+        print('Ошибка расчета скидки: $e');
+      }
+    }
+    return 'SAVE 91%'; // Fallback
   }
 
-  Future<void> _purchaseSubscription() async {
-    if (_selectedPlanId == null) return;
+  String _getOriginalPrice(SubscriptionPlan plan) {
+    if (plan.id == 'yearly' && _plans.length >= 2) {
+      try {
+        final monthlyPlan = _plans.firstWhere((p) => p.id == 'monthly');
+
+        if (monthlyPlan.storeProduct != null) {
+          final monthlyPrice = _extractPriceValue(monthlyPlan.price);
+
+          if (monthlyPrice != null) {
+            final originalValue = monthlyPrice * 12;
+            return _formatPrice(originalValue, monthlyPlan.price);
+          }
+        }
+      } catch (e) {
+        print('Ошибка расчета оригинальной цены: $e');
+      }
+    }
+    return 'Rp 4.640.714'; // Fallback для примера
+  }
+
+  String _formatPrice(double value, String originalPriceString) {
+    // Определяем валюту из оригинальной строки
+    final currencyMatch = RegExp(
+      r'[A-Z]{3}|\$|€|£|¥|₽|Rp',
+    ).firstMatch(originalPriceString);
+    final currency = currencyMatch?.group(0) ?? '\$';
+
+    // Форматируем число в зависимости от валюты
+    if (currency == 'Rp') {
+      return 'Rp ${value.toStringAsFixed(0)}';
+    } else if (currency == '\$') {
+      return '\$${value.toStringAsFixed(2)}';
+    } else {
+      return '${value.toStringAsFixed(2)} $currency';
+    }
+  }
+
+  double? _extractPriceValue(String priceString) {
+    try {
+      // Убираем все символы кроме цифр и точки
+      final cleanString = priceString.replaceAll(RegExp(r'[^\d.,]'), '');
+      // Заменяем запятую на точку для корректного парсинга
+      final normalizedString = cleanString.replaceAll(',', '.');
+      return double.tryParse(normalizedString);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> _handlePurchase() async {
+    if (_selectedPlanId == null || _plans.isEmpty) return;
+
+    print('🔧 Начинаем процесс покупки подписки...');
+    print('🔧 Выбранный план: $_selectedPlanId');
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final selectedPlan = SubscriptionPlan.getById(_selectedPlanId!);
+      final plan = _plans.firstWhere((plan) => plan.id == _selectedPlanId);
+      print('🔧 Найден план: ${plan.title} (${plan.productId})');
 
-      if (selectedPlan == null) {
-        throw Exception('subscription.plan_not_found'.tr());
+      // Проверяем, есть ли StoreProduct
+      if (plan.storeProduct == null) {
+        print('❌ StoreProduct недоступен для плана: ${plan.productId}');
+        throw Exception(
+          'StoreProduct not available for plan: ${plan.productId}',
+        );
       }
 
-      // Проверяем, что пользователь залогинен в App Store
-      print('🔧 Проверяем статус входа в App Store...');
-      try {
-        final customerInfo = await SubscriptionService.getCustomerInfo();
-        print('✅ Пользователь залогинен в App Store');
-      } catch (e) {
-        print('⚠️ Пользователь не залогинен в App Store: $e');
+      print('🔧 StoreProduct доступен: ${plan.storeProduct!.identifier}');
+      print('🔧 Цена: ${plan.storeProduct!.priceString}');
+
+      // Покупаем подписку
+      print('🔧 Вызываем SubscriptionService.purchasePackage...');
+      final customerInfo = await SubscriptionService.purchasePackage(
+        plan.storeProduct!,
+      );
+      print('✅ Покупка завершена успешно!');
+
+      // Проверяем entitlements
+      print('🔧 Проверяем entitlements после покупки...');
+      print('🔧 Все entitlements: ${customerInfo.entitlements.all.keys}');
+      print(
+        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      // Обновляем статус в провайдере
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(
+        context,
+        listen: false,
+      );
+
+      // Временная логика: если entitlements не настроены, проверяем активные покупки
+      var isPremium = customerInfo.entitlements.active.containsKey('premium');
+
+      // Если entitlements не настроены, но покупка прошла успешно
+      if (customerInfo.entitlements.all.isEmpty &&
+          customerInfo.activeSubscriptions.isNotEmpty) {
+        print('🔧 Entitlements не настроены, но покупка прошла успешно');
+        isPremium = true;
+      }
+
+      print('🔧 Статус премиум после покупки: $isPremium');
+      print('🔧 Проверяем entitlement "premium"');
+      print(
+        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+      print('🔧 Активные покупки: ${customerInfo.activeSubscriptions.length}');
+      print('🔧 Обновляем статус в SubscriptionProvider...');
+
+      subscriptionProvider.setPremiumStatus(isPremium);
+
+      print('🔧 Статус обновлен в провайдере');
+
+      // Принудительно обновляем статус из RevenueCat
+      await subscriptionProvider.refreshSubscriptionStatus();
+      print('🔧 Статус принудительно обновлен из RevenueCat');
+
+      if (mounted) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('subscription.app_store_required'.tr()),
-            backgroundColor: Colors.orange,
+            content: Text('subscription.success'.tr()),
+            backgroundColor: Colors.green,
           ),
         );
+        print('✅ Экран закрыт, показано уведомление об успехе');
+      }
+    } catch (e) {
+      print('❌ Ошибка покупки: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('subscription.purchase_error'.tr()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        return;
+        print('🔧 Состояние загрузки сброшено');
       }
-
-      print('🔧 Покупка подписки: ${selectedPlan.productId}');
-
-      // Получаем доступные подписки из RevenueCat
-      final availableProducts =
-          await SubscriptionService.getAvailablePackages();
-
-      // Ищем нужный продукт
-      final product = availableProducts.firstWhere(
-        (product) => product.identifier == selectedPlan.productId,
-        orElse: () => throw Exception(
-          'subscription.product_not_found'.tr() + ': ${selectedPlan.productId}',
-        ),
-      );
-
-      print(
-        '🔧 Найден продукт: ${product.identifier} - ${product.title} (${product.priceString})',
-      );
-
-      // Выполняем реальную покупку через RevenueCat
-      final customerInfo = await SubscriptionService.purchasePackage(product);
-
-      print('✅ Покупка успешно завершена!');
-      print('🔧 Entitlements: ${customerInfo.entitlements.active.keys}');
-
-      // Обновляем пользователя с новой подпиской через AuthProvider (если залогинен)
-      if (authProvider.currentUser != null) {
-        await authProvider.purchaseSubscription(product);
-      } else {
-        // Если пользователь не залогинен, просто сохраняем покупку локально
-        print(
-          'ℹ️ Пользователь не залогинен в приложении, покупка сохранена только в RevenueCat',
-        );
-      }
-
-      // Принудительно обновляем статус подписки
-      await SubscriptionService.refreshSubscriptionStatus();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('subscription.success'.tr()),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      Navigator.pop(
-        context,
-        true,
-      ); // Возвращаем true для индикации успешной покупки
-    } catch (e) {
-      print('❌ Ошибка покупки: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('subscription.error'.tr() + ': $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 }

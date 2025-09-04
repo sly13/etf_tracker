@@ -4,10 +4,13 @@ import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
 import '../widgets/btc_flow_bar_chart.dart';
+import '../widgets/premium_chart_overlay.dart';
 
 import '../widgets/bitcoin_flow_card.dart';
 import 'settings_screen.dart';
+import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
+import '../widgets/pro_button.dart';
 
 class BitcoinETFScreen extends StatefulWidget {
   const BitcoinETFScreen({super.key});
@@ -25,7 +28,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
   @override
   void initState() {
     super.initState();
-    // Данные загружаются только при инициализации приложения, не здесь
+    // Data is loaded only during app initialization, not here
   }
 
   @override
@@ -38,27 +41,8 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: () {
-              _showSortDialog(context);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<ETFProvider>().forceRefreshAllData();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-          ),
+          // Блок Pro
+          const ProButton(),
         ],
       ),
       body: Consumer<ETFProvider>(
@@ -129,12 +113,16 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
   // Секция с графиком
   Widget _buildChartSection(List<BTCFlowData> data) {
-    return Card(
-      elevation: 2,
-      child: Container(
-        height: 420,
-        padding: const EdgeInsets.all(8),
-        child: BTCFlowBarChart(flowData: data),
+    return PremiumChartOverlay(
+      title: 'premium.bitcoin_charts_title'.tr(),
+      description: 'premium.bitcoin_charts_desc'.tr(),
+      child: Card(
+        elevation: 2,
+        child: Container(
+          height: 420,
+          padding: const EdgeInsets.all(8),
+          child: BTCFlowBarChart(flowData: data),
+        ),
       ),
     );
   }
@@ -161,11 +149,41 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            Text(
-              _getSortDescription(),
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+            // Кнопка сортировки
+            GestureDetector(
+              onTap: () {
+                _showSortDialog(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sort,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getSortDescription(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -214,7 +232,10 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   ),
                 ),
                 child: Text(
-                  'Загрузить еще (${data.length - _displayedItems} осталось)',
+                  'common.load_more'.tr() +
+                      ' (${data.length - _displayedItems} ' +
+                      'common.remaining'.tr() +
+                      ')',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -267,15 +288,16 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.calendar_today,
-                          color: Colors.orange,
                           size: 20,
+                          color: Colors.orange,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -555,7 +577,11 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                               : Icons.arrow_downward,
                         ),
                         const SizedBox(width: 8),
-                        Text(_sortAscending ? 'По возрастанию' : 'По убыванию'),
+                        Text(
+                          _sortAscending
+                              ? 'sorting.ascending'.tr()
+                              : 'sorting.descending'.tr(),
+                        ),
                       ],
                     ),
                   ),
@@ -615,25 +641,25 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
     String sortType = '';
     switch (_sortBy) {
       case 'date':
-        sortType = 'Дата';
+        sortType = 'sorting.date'.tr();
         break;
       case 'total':
-        sortType = 'Общий поток';
+        sortType = 'sorting.total_flow'.tr();
         break;
       case 'blackrock':
-        sortType = 'BlackRock';
+        sortType = 'sorting.blackrock'.tr();
         break;
       case 'fidelity':
-        sortType = 'Fidelity';
+        sortType = 'sorting.fidelity'.tr();
         break;
       case 'grayscale':
-        sortType = 'Grayscale';
+        sortType = 'sorting.grayscale'.tr();
         break;
       case 'valkyrie':
-        sortType = 'Valkyrie';
+        sortType = 'sorting.valkyrie'.tr();
         break;
       default:
-        sortType = 'Дата';
+        sortType = 'sorting.date'.tr();
     }
 
     return '${_sortAscending ? '↑' : '↓'} $sortType';

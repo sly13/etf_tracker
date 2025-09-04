@@ -21,6 +21,7 @@ class ETFProvider with ChangeNotifier {
   String? _error;
   String _currentTab = 'ethereum'; // 'ethereum' или 'bitcoin'
   int _navigationTabIndex = 0; // Индекс текущего таба в навигации
+  DateTime? _lastDataUpdate; // Время последнего обновления данных
 
   // Getters
   List<ETFFlowData> get ethereumData => _ethereumData;
@@ -39,6 +40,7 @@ class ETFProvider with ChangeNotifier {
   String? get error => _error;
   String get currentTab => _currentTab;
   int get navigationTabIndex => _navigationTabIndex;
+  DateTime? get lastDataUpdate => _lastDataUpdate;
 
   // Проверка готовности основных данных
   bool get isDataReady => _isEthereumLoaded && _isBitcoinLoaded;
@@ -225,6 +227,9 @@ class ETFProvider with ChangeNotifier {
       _isBitcoinLoaded = _bitcoinData.isNotEmpty;
       _isSummaryLoaded = _summaryData != null;
       _isFundHoldingsLoaded = _fundHoldings != null;
+
+      // Обновляем время последнего обновления данных
+      _lastDataUpdate = DateTime.now();
 
       debugPrint(
         'ETFProvider: Флаги установлены - Ethereum: $_isEthereumLoaded, Bitcoin: $_isBitcoinLoaded',

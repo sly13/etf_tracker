@@ -11,8 +11,6 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - sign_in_with_apple (0.0.1):
-    - Flutter
   - vibration (1.7.5):
     - Flutter
 
@@ -22,7 +20,6 @@ DEPENDENCIES:
   - purchases_flutter (from `.symlinks/plugins/purchases_flutter/ios`)
   - PurchasesHybridCommon
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - vibration (from `.symlinks/plugins/vibration/ios`)
 
 SPEC REPOS:
@@ -39,8 +36,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/purchases_flutter/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
-  sign_in_with_apple:
-    :path: ".symlinks/plugins/sign_in_with_apple/ios"
   vibration:
     :path: ".symlinks/plugins/vibration/ios"
 
@@ -51,7 +46,6 @@ SPEC CHECKSUMS:
   PurchasesHybridCommon: f1650b33e9a1dd04d5e8a40dfe757f39e63f935c
   RevenueCat: 7e1d0768fb287c9983173c9b28e39ccbeeb828a9
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   vibration: 8e2f50fc35bb736f9eecb7dd9f7047fbb6a6e888
 
 PODFILE CHECKSUM: 91d0fd5dda9578488f98a2e5a69a73811650fd39
