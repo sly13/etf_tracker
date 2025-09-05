@@ -10,6 +10,7 @@ exports.ETFFlowModule = void 0;
 const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
 const prisma_module_1 = require("../prisma/prisma.module");
+const notification_module_1 = require("../notifications/notification.module");
 const universal_etf_flow_service_1 = require("./universal-etf-flow.service");
 const etf_flow_controller_1 = require("./etf-flow.controller");
 const etf_scheduler_service_1 = require("./etf-scheduler.service");
@@ -18,7 +19,7 @@ let ETFFlowModule = class ETFFlowModule {
 exports.ETFFlowModule = ETFFlowModule;
 exports.ETFFlowModule = ETFFlowModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, schedule_1.ScheduleModule.forRoot()],
+        imports: [prisma_module_1.PrismaModule, schedule_1.ScheduleModule.forRoot(), notification_module_1.NotificationModule],
         providers: [universal_etf_flow_service_1.UniversalETFFlowService, etf_scheduler_service_1.ETFSchedulerService],
         controllers: [etf_flow_controller_1.ETFFlowController],
         exports: [universal_etf_flow_service_1.UniversalETFFlowService],

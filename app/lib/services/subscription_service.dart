@@ -42,6 +42,17 @@ class SubscriptionService {
       } else if (Platform.isAndroid) {
         print('⚠️ Android пока не поддерживается');
         throw Exception('Android пока не поддерживается');
+      } else if (Platform.isMacOS) {
+        print('🔧 Настройка RevenueCat для macOS');
+        // Для macOS используем тот же ключ, что и для iOS
+        final apiKey = _iosApiKey;
+        if (apiKey.isEmpty) {
+          print('⚠️ REVENUECAT_IOS_API_KEY не найден в .env файле');
+          print('🔧 Используем тестовый ключ для разработки');
+          configuration = PurchasesConfiguration('app42ff7d937d');
+        } else {
+          configuration = PurchasesConfiguration(apiKey);
+        }
       } else {
         print('⚠️ Неподдерживаемая платформа');
         throw Exception('Неподдерживаемая платформа');

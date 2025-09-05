@@ -8,8 +8,10 @@ import 'providers/crypto_price_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
 import 'providers/subscription_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/subscription_service.dart';
+import 'services/notification_service.dart';
 import 'utils/revenuecat_checker.dart';
 
 void main() async {
@@ -44,6 +46,15 @@ void main() async {
   } catch (e) {
     print('❌ Ошибка инициализации RevenueCat: $e');
     print('🔧 Приложение будет работать без функций подписки');
+  }
+
+  // Инициализируем Firebase и уведомления
+  try {
+    await NotificationService.initialize();
+    print('✅ NotificationService инициализирован');
+  } catch (e) {
+    print('❌ Ошибка инициализации NotificationService: $e');
+    print('🔧 Приложение будет работать без пуш-уведомлений');
   }
 
   runApp(const MyApp());
@@ -86,6 +97,14 @@ class MyApp extends StatelessWidget {
           create: (context) {
             final provider = SubscriptionProvider();
             // Инициализируем подписку при создании провайдера
+            provider.initialize();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = NotificationProvider();
+            // Инициализируем уведомления при создании провайдера
             provider.initialize();
             return provider;
           },

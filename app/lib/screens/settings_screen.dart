@@ -8,6 +8,7 @@ import '../services/subscription_service.dart';
 import '../utils/haptic_feedback.dart';
 import '../widgets/pro_button.dart';
 import 'subscription_selection_screen.dart';
+import 'notification_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -63,6 +64,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Подписка
             _buildSubscriptionSection(),
+            const SizedBox(height: 24),
+
+            // Уведомления
+            _buildNotificationSection(),
             const SizedBox(height: 24),
 
             // О приложении
@@ -714,5 +719,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isCheckingSubscription = false;
       });
     }
+  }
+
+  Widget _buildNotificationSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Уведомления',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.notifications,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            title: Text(
+              'Настройки уведомлений',
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            subtitle: Text(
+              'Управление пуш-уведомлениями ETF',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+            onTap: () {
+              HapticUtils.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
