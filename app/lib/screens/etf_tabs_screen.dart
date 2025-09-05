@@ -11,6 +11,7 @@ import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
 import '../widgets/pro_button.dart';
 import '../widgets/subscription_status_widget.dart';
+import '../services/screenshot_service.dart';
 
 class ETFTabsScreen extends StatefulWidget {
   const ETFTabsScreen({super.key});
@@ -28,6 +29,11 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     // Data is loaded only during app initialization, not here
   }
 
+  /// Создать скриншот с данными за последнюю доступную дату
+  Future<void> _createScreenshot() async {
+    await ScreenshotService.createDailyETFScreenshot(context: context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,6 +44,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          // Кнопка скриншота
+          IconButton(
+            icon: const Icon(Icons.camera_alt),
+            onPressed: () => _createScreenshot(),
+            tooltip: 'Создать скриншот',
+          ),
           // Кнопка Pro
           const ProButton(),
         ],

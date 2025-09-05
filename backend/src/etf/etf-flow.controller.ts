@@ -1,16 +1,18 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Param } from '@nestjs/common';
 import {
   UniversalETFFlowService,
   ETFFlowData,
   BTCFlowData,
 } from './universal-etf-flow.service';
 import { ETFSchedulerService } from './etf-scheduler.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('etf-flow')
 export class ETFFlowController {
   constructor(
     private readonly etfFlowService: UniversalETFFlowService,
     private readonly etfSchedulerService: ETFSchedulerService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get()
@@ -51,6 +53,55 @@ export class ETFFlowController {
   @Get('bitcoin')
   async getBitcoinETFFlowData() {
     return await this.etfFlowService.getETFFlowData('bitcoin');
+  }
+
+  @Get('daily/:date')
+  async getDailyETFFlowData(@Param('date') date: string) {
+    const targetDate = new Date(date);
+
+    // Получаем данные Ethereum за день
+    const ethereumData = await this.prisma.eTFFlow.findUnique({
+      where: { date: targetDate },
+    });
+
+    // Получаем данные Bitcoin за день
+    const bitcoinData = await this.prisma.bTCFlow.findUnique({
+      where: { date: targetDate },
+    });
+
+    return {
+      date: date,
+      ethereum: ethereumData
+        ? {
+            blackrock: ethereumData.blackrock || 0,
+            fidelity: ethereumData.fidelity || 0,
+            bitwise: ethereumData.bitwise || 0,
+            twentyOneShares: ethereumData.twentyOneShares || 0,
+            vanEck: ethereumData.vanEck || 0,
+            invesco: ethereumData.invesco || 0,
+            franklin: ethereumData.franklin || 0,
+            grayscale: ethereumData.grayscale || 0,
+            grayscaleEth: ethereumData.grayscaleEth || 0,
+            total: ethereumData.total || 0,
+          }
+        : null,
+      bitcoin: bitcoinData
+        ? {
+            blackrock: bitcoinData.blackrock || 0,
+            fidelity: bitcoinData.fidelity || 0,
+            bitwise: bitcoinData.bitwise || 0,
+            twentyOneShares: bitcoinData.twentyOneShares || 0,
+            vanEck: bitcoinData.vanEck || 0,
+            invesco: bitcoinData.invesco || 0,
+            franklin: bitcoinData.franklin || 0,
+            grayscale: bitcoinData.grayscale || 0,
+            grayscaleBtc: bitcoinData.grayscaleBtc || 0,
+            valkyrie: bitcoinData.valkyrie || 0,
+            wisdomTree: bitcoinData.wisdomTree || 0,
+            total: bitcoinData.total || 0,
+          }
+        : null,
+    };
   }
 
   @Get('summary')

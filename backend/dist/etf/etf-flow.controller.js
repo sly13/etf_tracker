@@ -8,15 +8,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ETFFlowController = void 0;
 const common_1 = require("@nestjs/common");
 const universal_etf_flow_service_1 = require("./universal-etf-flow.service");
 const etf_scheduler_service_1 = require("./etf-scheduler.service");
+const prisma_service_1 = require("../prisma/prisma.service");
 let ETFFlowController = class ETFFlowController {
-    constructor(etfFlowService, etfSchedulerService) {
+    constructor(etfFlowService, etfSchedulerService, prisma) {
         this.etfFlowService = etfFlowService;
         this.etfSchedulerService = etfSchedulerService;
+        this.prisma = prisma;
     }
     async getETFFlowData() {
         const ethereumData = (await this.etfFlowService.getETFFlowData('ethereum'));
@@ -32,6 +37,48 @@ let ETFFlowController = class ETFFlowController {
     }
     async getBitcoinETFFlowData() {
         return await this.etfFlowService.getETFFlowData('bitcoin');
+    }
+    async getDailyETFFlowData(date) {
+        const targetDate = new Date(date);
+        const ethereumData = await this.prisma.eTFFlow.findUnique({
+            where: { date: targetDate },
+        });
+        const bitcoinData = await this.prisma.bTCFlow.findUnique({
+            where: { date: targetDate },
+        });
+        return {
+            date: date,
+            ethereum: ethereumData
+                ? {
+                    blackrock: ethereumData.blackrock || 0,
+                    fidelity: ethereumData.fidelity || 0,
+                    bitwise: ethereumData.bitwise || 0,
+                    twentyOneShares: ethereumData.twentyOneShares || 0,
+                    vanEck: ethereumData.vanEck || 0,
+                    invesco: ethereumData.invesco || 0,
+                    franklin: ethereumData.franklin || 0,
+                    grayscale: ethereumData.grayscale || 0,
+                    grayscaleEth: ethereumData.grayscaleEth || 0,
+                    total: ethereumData.total || 0,
+                }
+                : null,
+            bitcoin: bitcoinData
+                ? {
+                    blackrock: bitcoinData.blackrock || 0,
+                    fidelity: bitcoinData.fidelity || 0,
+                    bitwise: bitcoinData.bitwise || 0,
+                    twentyOneShares: bitcoinData.twentyOneShares || 0,
+                    vanEck: bitcoinData.vanEck || 0,
+                    invesco: bitcoinData.invesco || 0,
+                    franklin: bitcoinData.franklin || 0,
+                    grayscale: bitcoinData.grayscale || 0,
+                    grayscaleBtc: bitcoinData.grayscaleBtc || 0,
+                    valkyrie: bitcoinData.valkyrie || 0,
+                    wisdomTree: bitcoinData.wisdomTree || 0,
+                    total: bitcoinData.total || 0,
+                }
+                : null,
+        };
     }
     async getETFFlowSummary() {
         const ethereumData = (await this.etfFlowService.getETFFlowData('ethereum'));
@@ -188,6 +235,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ETFFlowController.prototype, "getBitcoinETFFlowData", null);
 __decorate([
+    (0, common_1.Get)('daily/:date'),
+    __param(0, (0, common_1.Param)('date')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ETFFlowController.prototype, "getDailyETFFlowData", null);
+__decorate([
     (0, common_1.Get)('summary'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -226,6 +280,7 @@ __decorate([
 exports.ETFFlowController = ETFFlowController = __decorate([
     (0, common_1.Controller)('etf-flow'),
     __metadata("design:paramtypes", [universal_etf_flow_service_1.UniversalETFFlowService,
-        etf_scheduler_service_1.ETFSchedulerService])
+        etf_scheduler_service_1.ETFSchedulerService,
+        prisma_service_1.PrismaService])
 ], ETFFlowController);
 //# sourceMappingURL=etf-flow.controller.js.map

@@ -14,12 +14,19 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const etf_module_1 = require("./etf/etf.module");
 const etf_flow_module_1 = require("./etf/etf-flow.module");
 const notification_module_1 = require("./notifications/notification.module");
+const image_generator_module_1 = require("./services/image-generator.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, etf_module_1.EtfModule, etf_flow_module_1.ETFFlowModule, notification_module_1.NotificationModule],
+        imports: [
+            prisma_module_1.PrismaModule,
+            etf_module_1.EtfModule,
+            etf_flow_module_1.ETFFlowModule,
+            notification_module_1.NotificationModule,
+            image_generator_module_1.ImageGeneratorModule,
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
