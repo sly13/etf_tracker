@@ -15,11 +15,12 @@ export class FirebaseAdminService {
     try {
       // Проверяем, не инициализирован ли уже Firebase
       if (admin.apps.length === 0) {
-        // Путь к сервисному ключу
-        const serviceAccountPath = path.join(
-          process.cwd(),
-          'etf-flow-firebase.json',
-        );
+        // Путь к сервисному ключу из переменной окружения или по умолчанию
+        const serviceAccountPath =
+          process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+          path.join(process.cwd(), 'etf-flow-firebase.json');
+
+        this.logger.log(`🔍 Ищем файл Firebase по пути: ${serviceAccountPath}`);
 
         // Инициализируем Firebase Admin SDK
         this.app = admin.initializeApp({
@@ -219,7 +220,7 @@ export class FirebaseAdminService {
 
       await admin.messaging().send(message);
       return true;
-    } catch (error) {
+    } catch {
       this.logger.warn(`⚠️ Токен невалиден: ${token}`);
       return false;
     }
