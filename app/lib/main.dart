@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'providers/etf_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/crypto_price_provider.dart';
@@ -48,7 +50,23 @@ void main() async {
     print('🔧 Приложение будет работать без функций подписки');
   }
 
-  // Инициализируем Firebase и уведомления
+  // Инициализируем Firebase
+  try {
+    await Firebase.initializeApp();
+    print('✅ Firebase Core инициализирован');
+  } catch (e) {
+    print('❌ Ошибка инициализации Firebase Core: $e');
+  }
+
+  // Инициализируем Firebase Analytics
+  try {
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+    print('✅ Firebase Analytics инициализирован');
+  } catch (e) {
+    print('❌ Ошибка инициализации Firebase Analytics: $e');
+  }
+
+  // Инициализируем уведомления
   try {
     await NotificationService.initialize();
     print('✅ NotificationService инициализирован');

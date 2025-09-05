@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/etf_flow_data.dart';
 import '../services/etf_service.dart';
 import '../services/local_storage_service.dart';
+import '../services/analytics_service.dart';
 
 class ETFProvider with ChangeNotifier {
   final ETFService _etfService = ETFService();
@@ -102,12 +103,27 @@ class ETFProvider with ChangeNotifier {
       _ethereumData = await _etfService.getEthereumData();
       await _storageService.saveEthereumData(_ethereumData);
       _isEthereumLoaded = true;
+      
+      // Логируем успешную загрузку данных
+      AnalyticsService.logDataRefresh(
+        dataType: 'ethereum_etf_flows',
+        success: true,
+      );
+      
       debugPrint(
         'ETFProvider: Ethereum данные загружены: ${_ethereumData.length} записей',
       );
       notifyListeners();
     } catch (e) {
       debugPrint('ETFProvider: Ошибка загрузки Ethereum: $e');
+      
+      // Логируем ошибку загрузки данных
+      AnalyticsService.logDataRefresh(
+        dataType: 'ethereum_etf_flows',
+        success: false,
+        errorMessage: e.toString(),
+      );
+      
       _setError(e.toString());
     } finally {
       _setLoading(false);
@@ -124,12 +140,27 @@ class ETFProvider with ChangeNotifier {
       _bitcoinData = await _etfService.getBitcoinData();
       await _storageService.saveBitcoinData(_bitcoinData);
       _isBitcoinLoaded = true;
+      
+      // Логируем успешную загрузку данных
+      AnalyticsService.logDataRefresh(
+        dataType: 'bitcoin_etf_flows',
+        success: true,
+      );
+      
       debugPrint(
         'ETFProvider: Bitcoin данные загружены: ${_bitcoinData.length} записей',
       );
       notifyListeners();
     } catch (e) {
       debugPrint('ETFProvider: Ошибка загрузки Bitcoin: $e');
+      
+      // Логируем ошибку загрузки данных
+      AnalyticsService.logDataRefresh(
+        dataType: 'bitcoin_etf_flows',
+        success: false,
+        errorMessage: e.toString(),
+      );
+      
       _setError(e.toString());
     } finally {
       _setLoading(false);

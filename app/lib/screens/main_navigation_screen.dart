@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../utils/haptic_feedback.dart';
+import '../services/analytics_service.dart';
 import 'etf_tabs_screen.dart';
 import 'fund_holdings_screen.dart';
 import 'ethereum_etf_screen.dart';
@@ -220,6 +221,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         onTap: () {
                           // Добавляем вибрацию при переключении страниц
                           _vibrateOnPageChange();
+                          
+                          // Логируем событие переключения страницы
+                          final screenNames = ['ETF Tabs', 'Bitcoin ETF', 'Ethereum ETF', 'Fund Holdings', 'Settings'];
+                          AnalyticsService.logButtonClick(
+                            buttonName: 'navigation_tab',
+                            screenName: 'main_navigation',
+                            parameters: {
+                              'tab_index': index,
+                              'tab_name': screenNames[index],
+                            },
+                          );
+                          
                           // Обновляем индекс в Provider
                           etfProvider.switchNavigationTab(index);
                           // Переходим к странице без анимации

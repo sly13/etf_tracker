@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../services/subscription_service.dart';
+import '../services/analytics_service.dart';
 import '../utils/haptic_feedback.dart';
 import '../widgets/pro_button.dart';
 import 'subscription_selection_screen.dart';
@@ -24,6 +25,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Логируем просмотр экрана настроек
+    AnalyticsService.logScreenView(screenName: 'settings');
+    
     // Обновляем статус подписки при открытии экрана
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 1), () {
@@ -197,6 +202,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () {
         HapticUtils.selectionChanged();
+        
+        // Логируем изменение темы
+        AnalyticsService.logThemeChange(themeMode: value.toString());
+        
         themeProvider.setTheme(value);
       },
       child: Container(
@@ -506,6 +515,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () {
         HapticUtils.selectionChanged();
+        
+        // Логируем изменение языка
+        AnalyticsService.logLanguageChange(languageCode: value);
+        
         final locale = Locale(value);
         languageProvider.setLanguage(locale);
         context.setLocale(locale);
