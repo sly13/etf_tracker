@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import * as path from 'path';
 
 @Injectable()
 export class FirebaseAdminService {
@@ -14,12 +15,16 @@ export class FirebaseAdminService {
     try {
       // Проверяем, не инициализирован ли уже Firebase
       if (admin.apps.length === 0) {
+        // Путь к сервисному ключу
+        const serviceAccountPath = path.join(
+          process.cwd(),
+          'etf-flow-firebase.json',
+        );
+
         // Инициализируем Firebase Admin SDK
         this.app = admin.initializeApp({
-          // В production используйте переменные окружения
-          projectId: process.env.FIREBASE_PROJECT_ID || 'etf-tracker-app',
-          // Для разработки можно использовать service account key
-          // credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert(serviceAccountPath),
+          projectId: 'etf-flow',
         });
 
         this.logger.log('✅ Firebase Admin SDK инициализирован');
