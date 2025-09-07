@@ -77,6 +77,12 @@ dependencies:
   # Для поделиться файлами
   share_plus: ^10.0.2
 
+  # Для открытия URL
+  url_launcher: ^6.2.5
+
+  # Для получения информации об устройстве
+  device_info_plus: ^10.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

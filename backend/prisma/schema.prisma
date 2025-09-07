@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model ETFFlow {
@@ -44,56 +43,55 @@ model BTCFlow {
   wisdomTree      Float?
 }
 
-model Device {
-  id                    String   @id @default(cuid())
-  token                 String   @unique
-  isValid               Boolean  @default(true)
-  isActive              Boolean  @default(true) // активен ли пользователь
-  deviceType            String?  // 'android', 'ios', 'web'
-  appVersion            String?  // версия приложения
-  osVersion             String?  // версия ОС
-  language              String?  // язык устройства
-  timezone              String?  // часовой пояс
-  deviceName            String?  // название устройства
-  // Настройки уведомлений
-  enableETFUpdates      Boolean  @default(true)
-  enableSignificantFlow Boolean  @default(true)
-  enableTestNotifications Boolean @default(false)
-  minFlowThreshold      Float    @default(0.1) // минимальный порог для уведомлений
-  significantChangePercent Float @default(20.0) // процент значительного изменения
-  quietHoursStart       String?  // время начала тихих часов (HH:MM)
-  quietHoursEnd         String?  // время окончания тихих часов (HH:MM)
-  // Метаданные
-  lastUsed              DateTime @default(now())
-  lastNotificationSent  DateTime? // время последнего отправленного уведомления
-  notificationCount     Int      @default(0) // количество отправленных уведомлений
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
 model NotificationLog {
-  id              String   @id @default(cuid())
-  type            String   // 'etf_update', 'significant_flow', 'test'
-  title           String
-  body            String
-  data            Json?    // дополнительные данные
-  sentToTokens    Int      @default(0) // количество токенов
-  successCount    Int      @default(0) // успешно отправлено
-  failureCount    Int      @default(0) // неудачно отправлено
-  createdAt       DateTime @default(now())
+  id           String   @id @default(cuid())
+  type         String
+  title        String
+  body         String
+  data         Json?
+  sentToTokens Int      @default(0)
+  successCount Int      @default(0)
+  failureCount Int      @default(0)
+  createdAt    DateTime @default(now())
 }
 
-model NotificationSettings {
-  id                    String   @id @default(cuid())
-  enableETFUpdates      Boolean  @default(true)
-  enableSignificantFlow Boolean  @default(true)
-  enableTestNotifications Boolean @default(false)
-  minFlowThreshold      Float    @default(0.1) // минимальный порог для уведомлений
-  significantChangePercent Float @default(20.0) // процент значительного изменения
-  quietHoursStart       String?  // время начала тихих часов (HH:MM)
-  quietHoursEnd         String?  // время окончания тихих часов (HH:MM)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+model Application {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
 }
 
+model User {
+  id             String      @id @default(cuid())
+  applicationId  String
+  deviceId       String?     @unique
+  deviceToken    String      @unique
+  telegramChatId String?     @unique
+  os             String?     // Тип ОС: ios, android, web, etc.
+  settings       Json?
+  isActive       Boolean     @default(true)
+  lastUsed       DateTime    @default(now())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  application    Application @relation(fields: [applicationId], references: [id])
 
+  @@index([settings], map: "idx_user_settings", type: Gin)
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  username  String    @unique
+  password  String
+  email     String?   @unique
+  firstName String?
+  lastName  String?
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}

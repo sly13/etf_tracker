@@ -159,7 +159,7 @@ class AuthService {
           )
           .timeout(_timeout);
 
-      if (response.statusCode != 200) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
           'Ошибка регистрации устройства: ${response.statusCode}',
         );

@@ -1,0 +1,440 @@
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { FirebaseAdminService } from './firebase-admin.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
+import { TelegramBotService } from '../telegram/telegram-bot.service';
+
+export interface ETFNotificationData {
+  bitcoinFlow: number;
+  ethereumFlow: number;
+  bitcoinTotal: number;
+  ethereumTotal: number;
+  date: string;
+  bitcoinData?: any;
+  ethereumData?: any;
+}
+
+export interface UserSettings {
+  notifications: {
+    enableETFUpdates: boolean;
+    enableSignificantFlow: boolean;
+    enableTestNotifications: boolean;
+    enableTelegramNotifications: boolean;
+    minFlowThreshold: number;
+    significantChangePercent: number;
+  };
+  preferences: {
+    language?: string;
+    timezone?: string;
+    deviceType?: string;
+    appVersion?: string;
+    osVersion?: string;
+    deviceName?: string;
+  };
+  profile: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  };
+  [key: string]: any; // Добавляем индексную сигнатуру для совместимости с Prisma
+}
+
+@Injectable()
+export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
+  constructor(
+    private readonly firebaseAdminService: FirebaseAdminService,
+    private readonly prismaService: PrismaService,
+    private readonly telegramService: TelegramService,
+    @Optional() private readonly telegramBotService?: TelegramBotService,
+  ) {}
+
+  /**
+   * Регистрация устройства пользователя
+   */
+  async registerDevice(
+    token: string,
+    appName: string,
+    userId?: string,
+    deviceId?: string,
+    deviceInfo?: {
+      deviceType?: string;
+      appVersion?: string;
+      osVersion?: string;
+      language?: string;
+      timezone?: string;
+      deviceName?: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+    },
+  ): Promise<boolean> {
+    try {
+      // Логируем входящие данные
+      this.logger.log('📥 === ВХОДЯЩИЕ ДАННЫЕ РЕГИСТРАЦИИ ===');
+      this.logger.log(`   Token: ${token}`);
+      this.logger.log(`   App Name: ${appName}`);
+      this.logger.log(`   User ID: ${userId || 'НЕ ПЕРЕДАН'}`);
+      this.logger.log(`   Device ID: ${deviceId || 'НЕ ПЕРЕДАН'}`);
+      this.logger.log(`   Device Info:`, JSON.stringify(deviceInfo, null, 2));
+      this.logger.log('=====================================');
+
+      // Проверяем валидность токена
+      const isValid = await this.firebaseAdminService.validateToken(token);
+      if (!isValid) {
+        this.logger.warn(`⚠️ Невалидный FCM токен: ${token}`);
+        return false;
+      }
+
+      // Получаем или создаем приложение
+      const application = await this.prismaService.application.upsert({
+        where: { name: appName },
+        update: {},
+        create: {
+          name: appName,
+          displayName: this.getAppDisplayName(appName),
+          description: this.getAppDescription(appName),
+        },
+      });
+
+      // Извлекаем OS из deviceId и очищаем deviceId от префикса
+      let os: string | undefined;
+      let cleanDeviceId: string | undefined;
+
+      this.logger.log('🔍 === ОБРАБОТКА DEVICE ID ===');
+      this.logger.log(`   Исходный deviceId: ${deviceId}`);
+
+      if (deviceId) {
+        if (deviceId.startsWith('ios_')) {
+          os = 'ios';
+          cleanDeviceId = deviceId.substring(4); // Убираем 'ios_'
+          this.logger.log(`   Обнаружен iOS префикс, убираем 'ios_'`);
+        } else if (deviceId.startsWith('android_')) {
+          os = 'android';
+          cleanDeviceId = deviceId.substring(8); // Убираем 'android_'
+          this.logger.log(`   Обнаружен Android префикс, убираем 'android_'`);
+        } else {
+          // Если нет префикса, определяем OS из deviceInfo
+          os = deviceInfo?.deviceType?.toLowerCase() || 'unknown';
+          cleanDeviceId = deviceId;
+          this.logger.log(
+            `   Префикс не найден, используем deviceType: ${deviceInfo?.deviceType}`,
+          );
+        }
+      } else {
+        this.logger.log(`   DeviceId не передан!`);
+      }
+
+      this.logger.log(
+        `   Результат - OS: ${os}, Clean Device ID: ${cleanDeviceId}`,
+      );
+      this.logger.log('===============================');
+
+      // Создаем настройки пользователя в JSON формате
+      const userSettings: UserSettings = {
+        notifications: {
+          enableETFUpdates: this.getDefaultETFUpdates(appName),
+          enableSignificantFlow: this.getDefaultSignificantFlow(appName),
+          enableTestNotifications: false,
+          enableTelegramNotifications: false,
+          minFlowThreshold: 0.1,
+          significantChangePercent: 20.0,
+        },
+        preferences: {
+          language: deviceInfo?.language || 'en',
+          timezone: deviceInfo?.timezone || 'UTC',
+          deviceType: deviceInfo?.deviceType,
+          appVersion: deviceInfo?.appVersion,
+          osVersion: deviceInfo?.osVersion,
+          deviceName: deviceInfo?.deviceName,
+        },
+        profile: {
+          firstName: deviceInfo?.firstName,
+          lastName: deviceInfo?.lastName,
+          email: deviceInfo?.email,
+          phone: deviceInfo?.phone,
+        },
+      };
+
+      this.logger.log('💾 === СОХРАНЕНИЕ В БД ===');
+      this.logger.log(`   Application ID: ${application.id}`);
+      this.logger.log(`   Clean Device ID: ${cleanDeviceId}`);
+      this.logger.log(`   OS: ${os}`);
+      this.logger.log(`   Settings:`, JSON.stringify(userSettings, null, 2));
+      this.logger.log('========================');
+
+      // Сохраняем пользователя в базе данных
+      await this.prismaService.user.upsert({
+        where: { deviceToken: token },
+        update: {
+          applicationId: application.id,
+          deviceId: cleanDeviceId,
+          os: os,
+          lastUsed: new Date(),
+          isActive: true,
+          settings: userSettings,
+        },
+        create: {
+          applicationId: application.id,
+          deviceId: cleanDeviceId,
+          deviceToken: token,
+          os: os,
+          lastUsed: new Date(),
+          isActive: true,
+          settings: userSettings,
+        },
+      });
+
+      this.logger.log(
+        `✅ Устройство зарегистрировано для приложения ${appName}: ${cleanDeviceId || 'unknown'} (OS: ${os || 'unknown'})`,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error('Ошибка регистрации устройства:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Получение пользователей с включенными ETF уведомлениями
+   */
+  async getUsersWithETFNotifications(appName: string): Promise<any[]> {
+    try {
+      const users = await this.prismaService.user.findMany({
+        where: {
+          application: { name: appName },
+          isActive: true,
+          settings: {
+            path: ['notifications', 'enableETFUpdates'],
+            equals: true,
+          },
+        },
+        include: { application: true },
+      });
+
+      return users;
+    } catch (error) {
+      this.logger.error(
+        'Ошибка получения пользователей с ETF уведомлениями:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Получение пользователей с включенными Telegram уведомлениями
+   */
+  async getUsersWithTelegramNotifications(appName: string): Promise<any[]> {
+    try {
+      const users = await this.prismaService.user.findMany({
+        where: {
+          application: { name: appName },
+          isActive: true,
+          telegramChatId: { not: null },
+          settings: {
+            path: ['notifications', 'enableTelegramNotifications'],
+            equals: true,
+          },
+        },
+        include: { application: true },
+      });
+
+      return users;
+    } catch (error) {
+      this.logger.error(
+        'Ошибка получения пользователей с Telegram уведомлениями:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Отправка ETF уведомлений
+   */
+  async sendETFNotifications(
+    data: ETFNotificationData,
+    appName: string,
+  ): Promise<void> {
+    try {
+      const users = await this.getUsersWithETFNotifications(appName);
+
+      // Отправляем push уведомления
+      for (const user of users) {
+        await this.firebaseAdminService.sendNotificationToToken(
+          user.deviceToken,
+          '📊 ETF Flow Update',
+          `Bitcoin: ${data.bitcoinFlow.toFixed(2)}M, Ethereum: ${data.ethereumFlow.toFixed(2)}M`,
+          {
+            type: 'etf_update',
+            bitcoinFlow: data.bitcoinFlow.toString(),
+            ethereumFlow: data.ethereumFlow.toString(),
+            date: data.date,
+          },
+        );
+      }
+
+      // Отправляем Telegram уведомления
+      if (this.telegramBotService) {
+        const telegramUsers =
+          await this.getUsersWithTelegramNotifications(appName);
+        for (let i = 0; i < telegramUsers.length; i++) {
+          await this.telegramBotService.sendETFUpdateNotification(data);
+        }
+      }
+
+      this.logger.log(
+        `✅ ETF уведомления отправлены для ${appName}: ${users.length} пользователей`,
+      );
+    } catch (error) {
+      this.logger.error('Ошибка отправки ETF уведомлений:', error);
+    }
+  }
+
+  /**
+   * Получение пользователя по deviceId
+   */
+  async getUserByDeviceId(appName: string, deviceId: string): Promise<any> {
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          deviceId: deviceId,
+          application: { name: appName },
+        },
+        include: { application: true },
+      });
+
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `Ошибка получения пользователя по deviceId ${deviceId}:`,
+        error,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Получение отображаемого имени приложения
+   */
+  private getAppDisplayName(appName: string): string {
+    const appNames: Record<string, string> = {
+      'etf.flow': 'ETF Flow Tracker',
+      'crypto.tracker': 'Crypto Tracker',
+      'portfolio.manager': 'Portfolio Manager',
+      'trading.bot': 'Trading Bot',
+    };
+    return appNames[appName] || appName;
+  }
+
+  /**
+   * Получение описания приложения
+   */
+  private getAppDescription(appName: string): string {
+    const descriptions: Record<string, string> = {
+      'etf.flow': 'Приложение для отслеживания потоков ETF',
+      'crypto.tracker': 'Приложение для отслеживания криптовалют',
+      'portfolio.manager': 'Менеджер инвестиционного портфеля',
+      'trading.bot': 'Автоматический торговый бот',
+    };
+    return descriptions[appName] || `Приложение ${appName}`;
+  }
+
+  /**
+   * Получение настроек ETF уведомлений по умолчанию для приложения
+   */
+  private getDefaultETFUpdates(appName: string): boolean {
+    const etfApps = ['etf.flow', 'portfolio.manager'];
+    return etfApps.includes(appName);
+  }
+
+  /**
+   * Получение настроек значительных изменений по умолчанию для приложения
+   */
+  private getDefaultSignificantFlow(appName: string): boolean {
+    const significantFlowApps = ['etf.flow', 'crypto.tracker'];
+    return significantFlowApps.includes(appName);
+  }
+
+  /**
+   * Отправка тестового уведомления всем пользователям с включенными тестовыми уведомлениями
+   */
+  async sendTestNotificationToAll(): Promise<boolean> {
+    try {
+      const users = await this.prismaService.user.findMany({
+        where: {
+          isActive: true,
+          settings: {
+            path: ['notifications', 'enableTestNotifications'],
+            equals: true,
+          },
+        },
+        select: { deviceToken: true },
+      });
+
+      for (const user of users) {
+        await this.firebaseAdminService.sendNotificationToToken(
+          user.deviceToken,
+          '🧪 Test Notification',
+          'This is a test notification from ETF Flow Tracker',
+          { type: 'test' },
+        );
+      }
+
+      this.logger.log(
+        `✅ Тестовые уведомления отправлены: ${users.length} пользователей`,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error('Ошибка отправки тестовых уведомлений:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Отправка тестового уведомления на устройство
+   */
+  async sendTestNotification(
+    deviceToken: string,
+    message: string,
+  ): Promise<boolean> {
+    try {
+      this.logger.log(
+        `📱 Отправка тестового уведомления на устройство ${deviceToken.substring(0, 10)}...`,
+      );
+
+      const notification = {
+        title: '🧪 Тестовое уведомление',
+        body: message,
+        data: {
+          type: 'test',
+          timestamp: new Date().toISOString(),
+        },
+      };
+
+      const success = await this.firebaseAdminService.sendNotification(
+        deviceToken,
+        notification,
+      );
+
+      if (success) {
+        this.logger.log(
+          `✅ Тестовое уведомление отправлено на устройство ${deviceToken.substring(0, 10)}...`,
+        );
+      } else {
+        this.logger.error(
+          `❌ Ошибка отправки тестового уведомления на устройство ${deviceToken.substring(0, 10)}...`,
+        );
+      }
+
+      return success;
+    } catch (error) {
+      this.logger.error('❌ Ошибка отправки тестового уведомления:', error);
+      return false;
+    }
+  }
+}

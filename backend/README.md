@@ -23,7 +23,17 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+ETF Flow Tracker Backend - серверная часть приложения для отслеживания ETF потоков.
+
+### Архитектура
+
+Проект разделен на три основные части:
+
+- **`admin-panel/`** - Админская панель для управления администраторами и приложениями
+- **`api/`** - API для мобильных приложений (ETF данные, уведомления, Telegram)
+- **`shared/`** - Общие компоненты (база данных, конфигурация)
+
+Подробное описание архитектуры см. в [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Project setup
 

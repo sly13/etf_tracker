@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../providers/auth_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'dart:io' show HttpClient, ContentType;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../services/subscription_service.dart';
 import '../services/analytics_service.dart';
 import '../utils/haptic_feedback.dart';
 import '../widgets/pro_button.dart';
-import 'subscription_selection_screen.dart';
+import '../config/app_config.dart';
 import 'notification_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -25,10 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Логируем просмотр экрана настроек
     AnalyticsService.logScreenView(screenName: 'settings');
-    
+
     // Обновляем статус подписки при открытии экрана
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 1), () {
@@ -202,10 +207,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () {
         HapticUtils.selectionChanged();
-        
+
         // Логируем изменение темы
         AnalyticsService.logThemeChange(themeMode: value.toString());
-        
+
         themeProvider.setTheme(value);
       },
       child: Container(
@@ -383,6 +388,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
+              // Telegram Settings
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.telegram,
+                          color: const Color(0xFF0088cc),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Получать уведомления в Telegram',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Получайте обновления ETF прямо в Telegram',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? Colors.grey.withOpacity(0.6)
+                                      : Colors.grey.withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          HapticUtils.lightImpact();
+                          _openTelegramBot();
+                        },
+                        icon: const Icon(Icons.telegram, color: Colors.white),
+                        label: const Text(
+                          'Открыть Telegram бота',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0088cc),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -515,10 +597,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () {
         HapticUtils.selectionChanged();
-        
+
         // Логируем изменение языка
         AnalyticsService.logLanguageChange(languageCode: value);
-        
+
         final locale = Locale(value);
         languageProvider.setLanguage(locale);
         context.setLocale(locale);
@@ -684,29 +766,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<bool> _checkSubscriptionStatus() async {
-    if (_cachedSubscriptionStatus != null && !_isCheckingSubscription) {
-      return _cachedSubscriptionStatus!;
-    }
-
-    setState(() {
-      _isCheckingSubscription = true;
-    });
-
-    try {
-      await SubscriptionService.initialize();
-      final isPremium = await SubscriptionService.isPremium();
-      _cachedSubscriptionStatus = isPremium;
-      return isPremium;
-    } catch (e) {
-      return false;
-    } finally {
-      setState(() {
-        _isCheckingSubscription = false;
-      });
-    }
-  }
-
   Future<void> _refreshSubscriptionStatus() async {
     setState(() {
       _isCheckingSubscription = true;
@@ -731,6 +790,140 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _isCheckingSubscription = false;
       });
+    }
+  }
+
+  Future<void> _openTelegramBot() async {
+    try {
+      // Получаем или создаем deviceId
+      final prefs = await SharedPreferences.getInstance();
+      String? deviceId = prefs.getString('deviceId');
+
+      print('🔍 === ОТЛАДКА DEVICE ID ===');
+      print('   Текущий deviceId из prefs: $deviceId');
+
+      if (deviceId == null) {
+        print('   deviceId = null, генерируем новый...');
+        // Генерируем новый deviceId
+        final deviceInfo = DeviceInfoPlugin();
+        String deviceIdentifier;
+
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceIdentifier = androidInfo.id;
+          print('   Android ID: $deviceIdentifier');
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfo.iosInfo;
+          deviceIdentifier = iosInfo.identifierForVendor ?? 'unknown';
+          print('   iOS identifierForVendor: $deviceIdentifier');
+        } else {
+          deviceIdentifier = 'unknown';
+          print('   Unknown platform, deviceIdentifier: $deviceIdentifier');
+        }
+
+        deviceId =
+            '${Platform.operatingSystem}_${deviceIdentifier}_${DateTime.now().millisecondsSinceEpoch}';
+        print('   Сгенерированный deviceId: $deviceId');
+        await prefs.setString('deviceId', deviceId);
+        print('   deviceId сохранен в prefs');
+      } else {
+        print('   Используем существующий deviceId: $deviceId');
+      }
+
+      print('   Финальный deviceId для регистрации: $deviceId');
+      print('===============================');
+
+      // ВСЕГДА регистрируем устройство перед генерацией ссылки
+      print('🔄 Регистрируем устройство перед генерацией ссылки Telegram...');
+      await _registerDevice(deviceId);
+
+      // Определяем платформу для ссылки
+      final platform = Platform.isAndroid ? 'android' : 'ios';
+
+      // Создаем ссылку на Telegram бота с appName, deviceId и платформой
+      final botUrl =
+          'https://t.me/etf_flows_bot?start=etf_flow_${deviceId}_$platform';
+
+      // Открываем URL через url_launcher
+      try {
+        final uri = Uri.parse(botUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Telegram откроется автоматически. Отправьте команду /start боту для привязки аккаунта.',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Не удалось открыть Telegram. Убедитесь, что приложение установлено.',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _registerDevice(String deviceId) async {
+    try {
+      print('📱 === ОТЛАДКА РЕГИСТРАЦИИ УСТРОЙСТВА ===');
+      print('   Device ID для регистрации: $deviceId');
+      print(
+        '   Backend URL: ${AppConfig.backendBaseUrl}/notifications/register-device',
+      );
+
+      final response = await HttpClient().postUrl(
+        Uri.parse('${AppConfig.backendBaseUrl}/notifications/register-device'),
+      );
+      response.headers.contentType = ContentType.json;
+
+      final requestBody = jsonEncode({
+        'token': 'test_telegram_token', // Тестовый токен для Telegram
+        'appName': AppConfig.appName, // Используем константу из конфигурации
+        'userId':
+            'user_${DateTime.now().millisecondsSinceEpoch}', // Генерируем уникальный userId
+        'deviceId': deviceId,
+        'deviceType': Platform.operatingSystem,
+        'appVersion': '1.0.0',
+        'firstName': 'Тест',
+        'lastName': 'Пользователь',
+        'email': 'test@example.com',
+      });
+
+      print('   Тело запроса:');
+      print('   ${requestBody}');
+      print('=====================================');
+
+      response.write(requestBody);
+      await response.close();
+
+      print('✅ Устройство зарегистрировано: $deviceId');
+    } catch (e) {
+      print('❌ Ошибка регистрации устройства: $e');
     }
   }
 

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../config/app_config.dart';
 import '../firebase_options.dart';
 import 'package:http/http.dart' as http;
@@ -54,6 +56,9 @@ class NotificationService {
         initSettings,
         onDidReceiveNotificationResponse: _onNotificationTap,
       );
+
+      // Создаем канал уведомлений для Android
+      await _createNotificationChannel();
 
       // Настраиваем обработчики Firebase Messaging
       await _setupFirebaseHandlers();
@@ -127,6 +132,8 @@ class NotificationService {
       // Собираем информацию об устройстве
       final deviceInfo = {
         'token': token,
+        'appName': AppConfig.appName, // Добавляем название приложения
+        'deviceId': await _getDeviceId(), // Добавляем deviceId
         'deviceType': _getDeviceType(),
         'appVersion': await _getAppVersion(),
         'osVersion': await _getOSVersion(),
@@ -141,7 +148,7 @@ class NotificationService {
         body: json.encode(deviceInfo),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         debugPrint('✅ Устройство зарегистрировано на сервере');
       } else {
         debugPrint('❌ Ошибка регистрации устройства: ${response.statusCode}');
@@ -156,6 +163,39 @@ class NotificationService {
     if (kIsWeb) return 'web';
     // В реальном приложении можно использовать device_info_plus
     return 'mobile';
+  }
+
+  /// Получение deviceId устройства
+  static Future<String> _getDeviceId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? deviceId = prefs.getString('deviceId');
+
+      if (deviceId == null) {
+        // Генерируем новый deviceId
+        final deviceInfo = DeviceInfoPlugin();
+        String deviceIdentifier;
+
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceIdentifier = androidInfo.id;
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfo.iosInfo;
+          deviceIdentifier = iosInfo.identifierForVendor ?? 'unknown';
+        } else {
+          deviceIdentifier = 'unknown';
+        }
+
+        deviceId =
+            '${Platform.operatingSystem}_${deviceIdentifier}_${DateTime.now().millisecondsSinceEpoch}';
+        await prefs.setString('deviceId', deviceId);
+      }
+
+      return deviceId;
+    } catch (e) {
+      // В случае ошибки возвращаем fallback deviceId
+      return '${Platform.operatingSystem}_fallback_${DateTime.now().millisecondsSinceEpoch}';
+    }
   }
 
   /// Получение версии приложения
@@ -186,6 +226,32 @@ class NotificationService {
     return 'ETF Tracker Device';
   }
 
+  /// Создание канала уведомлений для Android
+  static Future<void> _createNotificationChannel() async {
+    if (_localNotifications == null) return;
+
+    try {
+      const androidChannel = AndroidNotificationChannel(
+        'etf_notifications',
+        'ETF Flow Notifications',
+        description: 'Уведомления о потоках ETF',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      await _localNotifications!
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(androidChannel);
+
+      debugPrint('✅ Канал уведомлений создан');
+    } catch (e) {
+      debugPrint('❌ Ошибка создания канала: $e');
+    }
+  }
+
   /// Запрос разрешений на уведомления
   static Future<void> _requestPermissions() async {
     try {
@@ -212,21 +278,35 @@ class NotificationService {
 
   /// Показ локального уведомления
   static Future<void> _showLocalNotification(RemoteMessage message) async {
-    if (_localNotifications == null) return;
+    if (_localNotifications == null) {
+      debugPrint('❌ _localNotifications is null');
+      return;
+    }
+
+    debugPrint(
+      '🔔 Показываем локальное уведомление: ${message.notification?.title}',
+    );
 
     const androidDetails = AndroidNotificationDetails(
       'etf_notifications',
       'ETF Flow Notifications',
       channelDescription: 'Уведомления о потоках ETF',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
       icon: '@mipmap/ic_launcher',
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
     );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: 'default',
+      badgeNumber: 1,
+      interruptionLevel: InterruptionLevel.active,
+      criticalAlert: false,
     );
 
     const notificationDetails = NotificationDetails(
@@ -241,6 +321,8 @@ class NotificationService {
       notificationDetails,
       payload: json.encode(message.data),
     );
+
+    debugPrint('✅ Локальное уведомление показано успешно');
   }
 
   /// Обработка нажатия на уведомление

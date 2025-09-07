@@ -1,19 +1,24 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
-import { EtfModule } from './etf/etf.module';
-import { ETFFlowModule } from './etf/etf-flow.module';
-import { NotificationModule } from './notifications/notification.module';
-import { ImageGeneratorModule } from './services/image-generator.module';
+import { SharedModule } from './shared/shared.module';
+import { AdminPanelModule } from './admin-panel/admin-panel.module';
+import { ApiModule } from './api/api.module';
 
 @Module({
   imports: [
-    PrismaModule,
-    EtfModule,
-    ETFFlowModule,
-    NotificationModule,
-    ImageGeneratorModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+      signOptions: { expiresIn: '24h' },
+    }),
+    SharedModule,
+    AdminPanelModule,
+    ApiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

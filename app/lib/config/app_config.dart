@@ -5,6 +5,9 @@ class AppConfig {
   static const String _defaultBackendUrl = 'https://etf-flow.vadimsemenko.ru';
   static const String _defaultLocalBackendUrl = 'http://localhost:3066';
 
+  // Название приложения для регистрации в бэкенде
+  static const String appName = 'etf.flow';
+
   // Определяем, запущено ли приложение в режиме отладки
   static bool get isDebugMode => !kReleaseMode;
 
@@ -32,7 +35,7 @@ class AppConfig {
 
   // Получаем полный URL для API
   static String getApiUrl(String endpoint) {
-    return '$backendBaseUrl$endpoint';
+    return '$backendBaseUrl/api$endpoint';
   }
 
   // Метод для принудительного переключения на локальный бэкенд
