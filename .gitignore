@@ -5,3 +5,4 @@
 *.ipa
 *.apk
 .DS_Store
+admin/etf-flow-firebase.json
