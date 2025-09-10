@@ -49,7 +49,13 @@ export class UsersService {
   async getAllUsers() {
     try {
       const users = await this.prismaService.user.findMany({
-        include: { application: true },
+        include: {
+          application: true,
+          subscriptions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1, // Берем только последнюю подписку
+          },
+        },
         orderBy: { createdAt: 'desc' },
       });
 
@@ -59,6 +65,14 @@ export class UsersService {
         const telegram = settings.telegram || {};
         const notifications = settings.notifications || {};
         const preferences = settings.preferences || {};
+
+        // Проверяем статус подписки
+        const latestSubscription = user.subscriptions?.[0];
+        const hasActiveSubscription =
+          latestSubscription &&
+          latestSubscription.isActive &&
+          (!latestSubscription.expirationDate ||
+            latestSubscription.expirationDate > new Date());
 
         return {
           id: user.id,
@@ -71,6 +85,15 @@ export class UsersService {
           lastUsed: user.lastUsed,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
+          // Информация о подписке
+          hasSubscription: !!latestSubscription,
+          hasActiveSubscription: hasActiveSubscription,
+          subscriptionStatus: latestSubscription
+            ? hasActiveSubscription
+              ? 'Активна'
+              : 'Неактивна'
+            : 'Нет подписки',
+          subscriptionExpirationDate: latestSubscription?.expirationDate,
           // Данные из JSON settings
           firstName: profile.firstName || telegram.firstName,
           lastName: profile.lastName || telegram.lastName,

@@ -2,7 +2,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
-import { TelegramBotService } from '../telegram/telegram-bot.service';
+import { TelegramBotService } from '../telegram-bot/telegram-bot.service';
 
 export interface ETFNotificationData {
   bitcoinFlow: number;
@@ -191,6 +191,12 @@ export class NotificationService {
       this.logger.log(
         `✅ Устройство зарегистрировано для приложения ${appName}: ${cleanDeviceId || 'unknown'} (OS: ${os || 'unknown'})`,
       );
+
+      // Проверяем, есть ли ожидающие Telegram аккаунты для этого deviceId
+      if (cleanDeviceId) {
+        await this.checkPendingTelegramAccounts(cleanDeviceId, application.id);
+      }
+
       return true;
     } catch (error) {
       this.logger.error('Ошибка регистрации устройства:', error);
@@ -435,6 +441,32 @@ export class NotificationService {
     } catch (error) {
       this.logger.error('❌ Ошибка отправки тестового уведомления:', error);
       return false;
+    }
+  }
+
+  /**
+   * Проверяет, есть ли ожидающие Telegram аккаунты для данного deviceId
+   */
+  private async checkPendingTelegramAccounts(
+    deviceId: string,
+    applicationId: string,
+  ): Promise<void> {
+    try {
+      // Здесь можно добавить логику для поиска ожидающих Telegram аккаунтов
+      // Например, можно создать отдельную таблицу для ожидающих привязок
+      // или использовать другой механизм для отслеживания ожидающих аккаунтов
+
+      this.logger.log(
+        `🔍 Проверка ожидающих Telegram аккаунтов для deviceId: ${deviceId}`,
+      );
+
+      // Пока что просто логируем, что проверка выполнена
+      // В будущем здесь можно добавить более сложную логику
+    } catch (error) {
+      this.logger.error(
+        `❌ Ошибка проверки ожидающих Telegram аккаунтов для deviceId ${deviceId}:`,
+        error,
+      );
     }
   }
 }

@@ -87,7 +87,7 @@ export class ApplicationsController {
    */
   @Get(':appName')
   async getApplication(@Param('appName') appName: string) {
-    return await this.applicationsService.getApplicationById(appName);
+    return await this.applicationsService.getApplicationByName(appName);
   }
 
   /**

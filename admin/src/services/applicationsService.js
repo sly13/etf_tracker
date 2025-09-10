@@ -11,10 +11,10 @@ class ApplicationsService {
     }
   }
 
-  // Получение информации о приложении по ID
-  async getApplication(id) {
+  // Получение информации о приложении по имени
+  async getApplication(appName) {
     try {
-      const response = await api.get(`/applications/admin/${id}`);
+      const response = await api.get(`/applications/${appName}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);

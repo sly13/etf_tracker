@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { NotificationService } from './notifications/notification.service';
-import { TelegramBotService } from './telegram/telegram-bot.service';
+import { TelegramBotService } from './telegram-bot/telegram-bot.service';
 import { PrismaService } from '../shared/prisma/prisma.service';
 
 @Controller('notifications')

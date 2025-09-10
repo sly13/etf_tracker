@@ -133,7 +133,7 @@ class NotificationService {
       final deviceInfo = {
         'token': token,
         'appName': AppConfig.appName, // Добавляем название приложения
-        'deviceId': await _getDeviceId(), // Добавляем deviceId
+        'deviceId': await getDeviceId(), // Добавляем deviceId
         'deviceType': _getDeviceType(),
         'appVersion': await _getAppVersion(),
         'osVersion': await _getOSVersion(),
@@ -166,7 +166,7 @@ class NotificationService {
   }
 
   /// Получение deviceId устройства
-  static Future<String> _getDeviceId() async {
+  static Future<String> getDeviceId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? deviceId = prefs.getString('deviceId');
@@ -306,7 +306,6 @@ class NotificationService {
       sound: 'default',
       badgeNumber: 1,
       interruptionLevel: InterruptionLevel.active,
-      criticalAlert: false,
     );
 
     const notificationDetails = NotificationDetails(

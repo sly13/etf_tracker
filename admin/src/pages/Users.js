@@ -53,6 +53,25 @@ function Users() {
 			),
 		},
 		{
+			field: 'subscriptionStatus',
+			headerName: 'Подписка',
+			flex: 0.8,
+			minWidth: 120,
+			renderCell: (params) => (
+				<Chip
+					label={params.value || 'Нет подписки'}
+					color={
+						params.value === 'Активна'
+							? 'success'
+							: params.value === 'Неактивна'
+								? 'warning'
+								: 'default'
+					}
+					size="small"
+				/>
+			),
+		},
+		{
 			field: 'application',
 			headerName: 'Приложение',
 			flex: 1,

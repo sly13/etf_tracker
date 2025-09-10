@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { UniversalETFFlowService } from '../etf/universal-etf-flow.service';
 import TelegramBot from 'node-telegram-bot-api';
 
 export interface ETFNotificationData {
@@ -23,6 +24,7 @@ export class TelegramBotService {
   constructor(
     private configService: ConfigService,
     private prismaService: PrismaService,
+    private etfFlowService: UniversalETFFlowService,
   ) {
     this.logger.log('🚀 TelegramBotService constructor called');
     void this.initializeBot();
@@ -32,10 +34,15 @@ export class TelegramBotService {
     this.logger.log('🔧 Initializing Telegram bot...');
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
 
+    this.logger.log(`🔍 Checking TELEGRAM_BOT_TOKEN...`);
+    this.logger.log(`🔍 Token exists: ${!!token}`);
+    this.logger.log(`🔍 Token length: ${token?.length || 0}`);
+
     if (!token) {
       this.logger.warn(
         '⚠️ TELEGRAM_BOT_TOKEN not found in environment variables',
       );
+      this.logger.warn('⚠️ Bot will not be initialized');
       return;
     }
 
@@ -55,6 +62,14 @@ export class TelegramBotService {
       this.bot.on('error', (error) => {
         this.logger.error('❌ Bot error:', error);
       });
+
+      this.bot.on('message', (msg) => {
+        this.logger.log(
+          `📨 Получено сообщение: ${JSON.stringify(msg, null, 2)}`,
+        );
+      });
+
+      this.logger.log('🔧 Setting up bot handlers...');
 
       this.setupBotHandlers();
       this.isInitialized = true;
@@ -83,12 +98,64 @@ export class TelegramBotService {
       this.logger.log(
         `🚀 Обработка команды /start от ${msg.from?.first_name} (${msg.chat.id})`,
       );
+      this.logger.log(`🚀 Полный текст сообщения: "${msg.text}"`);
       this.logger.log(`🚀 Параметры команды: match=${JSON.stringify(match)}`);
+      this.logger.log(`🚀 Match groups: ${match?.length || 0} групп`);
+      if (match) {
+        for (let i = 0; i < match.length; i++) {
+          this.logger.log(`🚀 Match[${i}]: "${match[i]}"`);
+        }
+      }
+
+      // Логируем полную ссылку, которая пришла
+      this.logger.log(`🔗 === ПОЛНАЯ ССЫЛКА ===`);
+      this.logger.log(`🔗 Полное сообщение: ${JSON.stringify(msg, null, 2)}`);
+      this.logger.log(`🔗 Текст: "${msg.text}"`);
+      this.logger.log(`🔗 Entities: ${JSON.stringify(msg.entities)}`);
+      this.logger.log(`🔗 ====================`);
+      this.logger.log(`🚀 Entities: ${JSON.stringify(msg.entities)}`);
+      this.logger.log(`🚀 Caption: "${msg.caption || 'нет'}"`);
+      this.logger.log(`🚀 Contact: ${JSON.stringify(msg.contact)}`);
+      this.logger.log(`🚀 Location: ${JSON.stringify(msg.location)}`);
+
+      // Проверяем, есть ли параметры в entities
+      if (msg.entities) {
+        for (const entity of msg.entities) {
+          if (entity.type === 'bot_command') {
+            this.logger.log(
+              `🚀 Bot command entity: offset=${entity.offset}, length=${entity.length}`,
+            );
+            const commandText = msg.text?.substring(
+              entity.offset,
+              entity.offset + entity.length,
+            );
+            this.logger.log(`🚀 Command text: "${commandText}"`);
+
+            // Проверяем, есть ли параметры после команды
+            const afterCommand = msg.text?.substring(
+              entity.offset + entity.length,
+            );
+            this.logger.log(`🚀 After command: "${afterCommand}"`);
+            if (afterCommand && afterCommand.trim()) {
+              this.logger.log(
+                `🚀 Found parameters after command: "${afterCommand.trim()}"`,
+              );
+            }
+          }
+        }
+      }
       void (async () => {
         const chatId = msg.chat.id;
         const userName = msg.from?.first_name || 'User';
         const startParam = match?.[1]?.trim(); // Parameter after /start
         let appName = 'etf.flow'; // Default app
+
+        this.logger.log(
+          `🚀 Начало обработки /start: chatId=${chatId}, userName=${userName}, startParam="${startParam}"`,
+        );
+        this.logger.log(`🔍 === АНАЛИЗ ПАРАМЕТРОВ /start ===`);
+        this.logger.log(`📝 Полный startParam: "${startParam}"`);
+        this.logger.log(`📏 Длина startParam: ${startParam?.length || 0}`);
 
         try {
           // If there's a parameter, parse it
@@ -107,6 +174,10 @@ export class TelegramBotService {
                 this.logger.log(
                   `🔍 Парсинг: appName=${appName}, deviceId=${deviceId}, os=${os}`,
                 );
+                this.logger.log(`🔍 === РЕЗУЛЬТАТ ПАРСИНГА ===`);
+                this.logger.log(`📱 AppName: ${appName}`);
+                this.logger.log(`📱 DeviceId (до очистки): ${deviceId}`);
+                this.logger.log(`🖥️ OS: ${os}`);
               } else {
                 // Fallback для старого формата
                 appName = parts[0];
@@ -114,16 +185,18 @@ export class TelegramBotService {
               }
             }
 
-            // Очищаем deviceId от префикса OS (как в notification.service.ts)
-            let cleanDeviceId = deviceId;
-            if (deviceId.startsWith('ios_')) {
-              cleanDeviceId = deviceId.substring(4); // Убираем 'ios_'
-            } else if (deviceId.startsWith('android_')) {
-              cleanDeviceId = deviceId.substring(8); // Убираем 'android_'
-            }
+            // deviceId уже чистый (без префикса платформы)
+            const cleanDeviceId = deviceId;
 
-            this.logger.log(
-              `🔍 Поиск пользователя: оригинальный deviceId=${deviceId}, очищенный deviceId=${cleanDeviceId}`,
+            this.logger.log(`🔍 Поиск пользователя: deviceId=${cleanDeviceId}`);
+
+            // Отправляем deviceId в чат для отладки
+            await this.bot.sendMessage(
+              chatId,
+              `🔍 <b>Отладка:</b>\n` +
+                `📱 DeviceId: <code>${cleanDeviceId}</code>\n` +
+                `🔍 Ищем пользователя в базе данных...`,
+              { parse_mode: 'HTML' },
             );
 
             // Try to find user by deviceId
@@ -135,6 +208,27 @@ export class TelegramBotService {
             this.logger.log(
               `🔍 Результат поиска пользователя: ${userByDeviceId ? `найден (ID: ${userByDeviceId.id})` : 'не найден'}`,
             );
+
+            // Отправляем результат поиска в чат
+            if (userByDeviceId) {
+              await this.bot.sendMessage(
+                chatId,
+                `✅ <b>Пользователь найден!</b>\n` +
+                  `🆔 ID: <code>${userByDeviceId.id}</code>\n` +
+                  `📱 DeviceId: <code>${userByDeviceId.deviceId}</code>\n` +
+                  `📱 App: ${userByDeviceId.application.displayName}\n` +
+                  `🔗 Привязываем Telegram...`,
+                { parse_mode: 'HTML' },
+              );
+            } else {
+              await this.bot.sendMessage(
+                chatId,
+                `❌ <b>Пользователь не найден!</b>\n` +
+                  `🔍 Искали по deviceId: <code>${cleanDeviceId}</code>\n` +
+                  `⏳ Ожидаем регистрации в приложении...`,
+                { parse_mode: 'HTML' },
+              );
+            }
 
             if (userByDeviceId) {
               // Проверяем, не привязан ли уже этот Telegram Chat ID к другому пользователю
@@ -189,7 +283,11 @@ export class TelegramBotService {
               };
 
               // Привязываем Telegram аккаунт к существующему пользователю
-              await this.prismaService.user.update({
+              this.logger.log(
+                `🔗 Привязываем Telegram Chat ID ${chatId} к пользователю ${userByDeviceId.id} (deviceId: ${userByDeviceId.deviceId})`,
+              );
+
+              const updateResult = await this.prismaService.user.update({
                 where: { id: userByDeviceId.id },
                 data: {
                   telegramChatId: chatId.toString(),
@@ -197,6 +295,21 @@ export class TelegramBotService {
                   settings: updatedSettings,
                 },
               });
+
+              this.logger.log(
+                `✅ Пользователь обновлен: ID=${updateResult.id}, telegramChatId=${updateResult.telegramChatId}`,
+              );
+
+              // Проверяем, что обновление прошло успешно
+              if (updateResult.telegramChatId !== chatId.toString()) {
+                this.logger.error(
+                  `❌ ОШИБКА: telegramChatId не обновился! Ожидалось: ${chatId}, получено: ${updateResult.telegramChatId}`,
+                );
+              } else {
+                this.logger.log(
+                  `✅ telegramChatId успешно обновлен: ${updateResult.telegramChatId}`,
+                );
+              }
 
               const welcomeMessage = `
 🤖 <b>Welcome to ${userByDeviceId.application.displayName}!</b>
@@ -224,6 +337,37 @@ export class TelegramBotService {
 
               this.logger.log(
                 `✅ User ${userName} (${chatId}) automatically linked to deviceId: ${startParam}`,
+              );
+              return;
+            } else {
+              // Пользователь не найден по deviceId - возможно, он еще не зарегистрировался в приложении
+              // Сохраняем информацию о том, что этот Telegram аккаунт ожидает привязки к deviceId
+              this.logger.log(
+                `⏳ Пользователь с deviceId ${cleanDeviceId} не найден. Ожидаем регистрации в приложении.`,
+              );
+
+              const waitingMessage = `
+🤖 <b>Welcome to ETF Flow Tracker!</b>
+
+👋 Hello, ${userName}!
+
+⏳ <b>Waiting for app registration...</b>
+
+📱 Please open the ETF Flow Tracker app on your device and complete the registration process.
+
+🆔 Your Device ID: <code>${cleanDeviceId}</code>
+
+Once you register in the app, your Telegram account will be automatically linked and you'll start receiving notifications.
+
+<i>Use /help to see available commands</i>
+              `.trim();
+
+              await this.bot.sendMessage(chatId, waitingMessage, {
+                parse_mode: 'HTML',
+              });
+
+              this.logger.log(
+                `⏳ User ${userName} (${chatId}) waiting for app registration with deviceId: ${cleanDeviceId}`,
               );
               return;
             }
@@ -258,7 +402,14 @@ export class TelegramBotService {
               },
             });
 
-            const welcomeMessage = `
+            // Проверяем, есть ли у пользователя deviceId (подключено ли мобильное приложение)
+            let welcomeMessage = '';
+            if (
+              existingUser.deviceId &&
+              !existingUser.deviceId.startsWith('telegram_')
+            ) {
+              // У пользователя есть подключенное мобильное приложение
+              welcomeMessage = `
 🤖 <b>Welcome back!</b>
 
 👋 Hello, ${userName}!
@@ -270,8 +421,35 @@ export class TelegramBotService {
 • Ethereum ETF flows
 • Significant flow changes
 
+✅ <b>Mobile app connected!</b>
+🆔 Device ID: <code>${existingUser.deviceId}</code>
+
 <i>Use /help to see available commands</i>
-          `.trim();
+              `.trim();
+            } else {
+              // У пользователя нет подключенного мобильного приложения
+              welcomeMessage = `
+🤖 <b>Welcome back!</b>
+
+👋 Hello, ${userName}!
+
+🔔 <b>Telegram notifications activated!</b>
+
+📊 You will receive notifications about:
+• Bitcoin ETF flows
+• Ethereum ETF flows
+• Significant flow changes
+
+⚠️ <b>Mobile app not connected</b>
+📱 Install the mobile app for full functionality:
+• iOS: [App Store Link]
+• Android: [Google Play Link]
+
+🆔 Your Telegram Device ID: <code>telegram_${chatId}</code>
+
+💡 <i>Use /app for detailed installation instructions</i>
+              `.trim();
+            }
 
             await this.bot.sendMessage(chatId, welcomeMessage, {
               parse_mode: 'HTML',
@@ -281,7 +459,7 @@ export class TelegramBotService {
               `✅ User ${userName} (${chatId}) activated Telegram notifications`,
             );
           } else {
-            // Создаем нового пользователя в базе данных для Telegram-only использования
+            // Пользователь не найден - предлагаем установить приложение
             const defaultApp = await this.prismaService.application.findFirst({
               where: { name: appName },
             });
@@ -295,7 +473,24 @@ export class TelegramBotService {
               return;
             }
 
-            // Создаем пользователя с базовой информацией
+            // Создаем временного пользователя для Telegram-only использования
+            this.logger.log(
+              `⚠️ СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ! Это не должно происходить, если пользователь уже существует.`,
+            );
+            this.logger.log(
+              `⚠️ Параметры: chatId=${chatId}, appName=${appName}, startParam=${startParam}`,
+            );
+
+            await this.bot.sendMessage(
+              chatId,
+              `⚠️ <b>СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ!</b>\n` +
+                `🔍 Это не должно происходить, если пользователь уже существует.\n` +
+                `📱 App: ${appName}\n` +
+                `🔗 ChatId: <code>${chatId}</code>\n` +
+                `📝 StartParam: <code>${startParam}</code>`,
+              { parse_mode: 'HTML' },
+            );
+
             const newUserSettings = {
               notifications: {
                 enableETFUpdates: true,
@@ -315,10 +510,10 @@ export class TelegramBotService {
               },
             };
 
-            const newUser = await this.prismaService.user.create({
+            await this.prismaService.user.create({
               data: {
                 applicationId: defaultApp.id,
-                deviceId: `telegram_device_${chatId}`, // Уникальный deviceId для Telegram
+                deviceId: null, // Нет deviceId - пользователь должен установить приложение
                 deviceToken: `telegram_token_${chatId}`, // Заглушка для FCM токена
                 telegramChatId: chatId.toString(),
                 os: 'telegram',
@@ -340,11 +535,25 @@ export class TelegramBotService {
 • Ethereum ETF flows
 • Significant flow changes
 
-📱 <b>To sync with mobile app:</b>
-1. Open the ${defaultApp.displayName} application
-2. Go to settings
-3. Find the "Telegram notifications" section
-4. Use Device ID: <code>${newUser.deviceId}</code>
+📱 <b>⚠️ To get full functionality, please install the mobile app:</b>
+
+1️⃣ <b>Download the app:</b>
+   • iOS: [App Store Link]
+   • Android: [Google Play Link]
+
+2️⃣ <b>After installation:</b>
+   • Open the app
+   • Go to Settings → Telegram Notifications
+   • Use this Device ID: <code>telegram_${chatId}</code>
+   • Or scan QR code from app settings
+
+3️⃣ <b>Benefits of mobile app:</b>
+   • Real-time push notifications
+   • Detailed ETF analytics
+   • Portfolio tracking
+   • Custom alerts
+
+💡 <i>You can still receive basic notifications via Telegram without the app</i>
 
 <i>Use /help to see available commands</i>
           `.trim();
@@ -354,7 +563,7 @@ export class TelegramBotService {
             });
 
             this.logger.log(
-              `✅ New Telegram user ${userName} (${chatId}) created and registered in ${defaultApp.displayName} with deviceId: ${newUser.deviceId}`,
+              `✅ New Telegram-only user ${userName} (${chatId}) created in ${defaultApp.displayName} - no deviceId (app installation required)`,
             );
           }
         } catch (error) {
@@ -437,22 +646,46 @@ You will no longer receive Telegram notifications about ETF flows.
           const profile = settings.profile || {};
           const notifications = settings.notifications || {};
 
+          // Определяем статус мобильного приложения
+          let appStatus = '';
+          let deviceIdDisplay = '';
+
+          if (user.deviceId) {
+            if (user.deviceId.startsWith('telegram_')) {
+              appStatus = '⚠️ Telegram-only (Mobile app not connected)';
+              deviceIdDisplay = `${user.deviceId} (Telegram ID)`;
+            } else {
+              appStatus = '✅ Mobile app connected';
+              deviceIdDisplay = user.deviceId;
+            }
+          } else {
+            appStatus = '❌ Mobile app not connected';
+            deviceIdDisplay = 'Not specified';
+          }
+
           const statusMessage = `
 📊 <b>Account Status</b>
 
 👤 User: ${profile.firstName || 'Not specified'} ${profile.lastName || ''}
 📱 Application: ${user.application.displayName}
 🖥️ OS: ${user.os || 'Unknown'}
-🆔 Device ID: ${user.deviceId || 'Not specified'}
-🔔 Telegram notifications: ${notifications.enableTelegramNotifications ? '✅ Enabled' : '❌ Disabled'}
-📊 ETF notifications: ${notifications.enableETFUpdates ? '✅ Enabled' : '❌ Disabled'}
-📈 Significant changes: ${notifications.enableSignificantFlow ? '✅ Enabled' : '❌ Disabled'}
+🆔 Device ID: ${deviceIdDisplay}
+📲 Mobile App: ${appStatus}
 
-📅 Registration date: ${new Date(user.createdAt).toLocaleDateString('en-US')}
-🔗 Telegram linked: ${user.telegramChatId ? '✅ Linked' : '❌ Not linked'}
-🕐 Last used: ${new Date(user.lastUsed).toLocaleString('en-US')}
+🔔 <b>Notifications:</b>
+• Telegram: ${notifications.enableTelegramNotifications ? '✅ Enabled' : '❌ Disabled'}
+• ETF Updates: ${notifications.enableETFUpdates ? '✅ Enabled' : '❌ Disabled'}
+• Significant Changes: ${notifications.enableSignificantFlow ? '✅ Enabled' : '❌ Disabled'}
 
-<i>Use /start to activate or /stop to disable</i>
+📅 Registration: ${new Date(user.createdAt).toLocaleDateString('en-US')}
+🔗 Telegram: ${user.telegramChatId ? '✅ Linked' : '❌ Not linked'}
+🕐 Last Used: ${new Date(user.lastUsed).toLocaleString('en-US')}
+
+${
+  !user.deviceId || user.deviceId.startsWith('telegram_')
+    ? '💡 <i>Use /app to get mobile app installation instructions</i>'
+    : '<i>Use /start to activate or /stop to disable</i>'
+}
           `.trim();
 
           await this.bot.sendMessage(chatId, statusMessage, {
@@ -473,6 +706,32 @@ You will no longer receive Telegram notifications about ETF flows.
     this.bot.onText(/\/help/, async (msg) => {
       const chatId = msg.chat.id;
 
+      // Проверяем статус пользователя
+      const user = await this.prismaService.user.findUnique({
+        where: { telegramChatId: chatId.toString() },
+        include: { application: true },
+      });
+
+      let deviceStatusMessage = '';
+      if (user) {
+        if (user.deviceId) {
+          deviceStatusMessage = `
+✅ <b>Mobile app connected!</b>
+🆔 Device ID: <code>${user.deviceId}</code>
+📱 You have full functionality enabled.
+          `.trim();
+        } else {
+          deviceStatusMessage = `
+⚠️ <b>Mobile app not connected</b>
+📱 Install the app for full functionality:
+• iOS: [App Store Link]
+• Android: [Google Play Link]
+
+🆔 Your Telegram Device ID: <code>telegram_${chatId}</code>
+          `.trim();
+        }
+      }
+
       const helpMessage = `
 📋 <b>Available commands:</b>
 
@@ -480,6 +739,12 @@ You will no longer receive Telegram notifications about ETF flows.
 /stop - Unsubscribe from notifications
 /status - Check subscription status
 /help - Show this help
+/app - Get app installation instructions
+
+📊 <b>ETF Data Commands:</b>
+/bitcoin - Get Bitcoin ETF flow data
+/ethereum - Get Ethereum ETF flow data
+/summary - Get both Bitcoin & Ethereum summary
 
 📊 <b>About the bot:</b>
 I send notifications about new ETF flow data:
@@ -488,11 +753,307 @@ I send notifications about new ETF flow data:
 • Significant changes (>20%)
 
 🔔 Notifications are sent automatically when new data appears.
+
+${deviceStatusMessage}
       `.trim();
 
       await this.bot.sendMessage(chatId, helpMessage, {
         parse_mode: 'HTML',
       });
+    });
+
+    // /app command - Get app installation instructions
+    this.bot.onText(/\/app/, async (msg) => {
+      const chatId = msg.chat.id;
+      const userName = msg.from?.first_name || 'User';
+
+      try {
+        const user = await this.prismaService.user.findUnique({
+          where: { telegramChatId: chatId.toString() },
+          include: { application: true },
+        });
+
+        if (!user) {
+          await this.bot.sendMessage(
+            chatId,
+            '❌ You are not registered. Please use /start first.',
+          );
+          return;
+        }
+
+        const appMessage = `
+📱 <b>${user.application.displayName} - Installation Guide</b>
+
+👋 Hello, ${userName}!
+
+🔗 <b>Download Links:</b>
+• iOS: [App Store Link]
+• Android: [Google Play Link]
+
+📋 <b>Installation Steps:</b>
+
+1️⃣ <b>Download & Install:</b>
+   • Click the appropriate link above
+   • Install the app on your device
+
+2️⃣ <b>Connect to Telegram:</b>
+   • Open the app
+   • Go to Settings → Telegram Notifications
+   • Enter this Device ID: <code>telegram_${chatId}</code>
+   • Or scan QR code from app settings
+
+3️⃣ <b>Verify Connection:</b>
+   • Use /status command to check connection
+   • You should see "Mobile app connected"
+
+🎯 <b>Benefits of Mobile App:</b>
+• Real-time push notifications
+• Detailed ETF analytics & charts
+• Portfolio tracking
+• Custom alerts & thresholds
+• Offline data access
+• Better performance
+
+💡 <b>Note:</b>
+You can still receive basic notifications via Telegram without the app, but the mobile app provides much more functionality.
+
+<i>Use /status to check your connection status</i>
+        `.trim();
+
+        await this.bot.sendMessage(chatId, appMessage, {
+          parse_mode: 'HTML',
+        });
+
+        this.logger.log(
+          `📱 User ${userName} (${chatId}) requested app installation instructions`,
+        );
+      } catch (error) {
+        this.logger.error('❌ Error processing /app command:', error);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error getting app information. Please try again later.',
+        );
+      }
+    });
+
+    // /ethereum command - Get Ethereum ETF data
+    this.bot.onText(/\/ethereum/, async (msg) => {
+      const chatId = msg.chat.id;
+      const userName = msg.from?.first_name || 'User';
+
+      try {
+        const ethereumData =
+          await this.etfFlowService.getETFFlowData('ethereum');
+
+        if (!ethereumData || ethereumData.length === 0) {
+          await this.bot.sendMessage(
+            chatId,
+            '📊 <b>Ethereum ETF Data</b>\n\n❌ No data available at the moment.',
+            { parse_mode: 'HTML' },
+          );
+          return;
+        }
+
+        // Get latest data
+        const latestData = ethereumData[0] as any;
+        const totalFlow = latestData.total || 0;
+
+        // Calculate 7-day average
+        const sevenDayData = ethereumData.slice(0, 7);
+        const sevenDayAverage =
+          sevenDayData.reduce((sum, day) => sum + (day.total || 0), 0) /
+          sevenDayData.length;
+
+        const message = `
+📊 <b>Ethereum ETF Flow Data</b>
+
+📅 <b>Latest Data (${latestData.date}):</b>
+💰 Total Flow: <b>${totalFlow.toLocaleString()} ETH</b>
+
+📈 <b>7-Day Average:</b>
+📊 Average Flow: <b>${sevenDayAverage.toLocaleString()} ETH</b>
+
+🏢 <b>Top Performers:</b>
+• BlackRock: ${(latestData.blackrock || 0).toLocaleString()} ETH
+• Fidelity: ${(latestData.fidelity || 0).toLocaleString()} ETH
+• Bitwise: ${(latestData.bitwise || 0).toLocaleString()} ETH
+• Grayscale: ${(latestData.grayscale || 0).toLocaleString()} ETH
+
+📊 <b>All Funds:</b>
+• BlackRock: ${(latestData.blackrock || 0).toLocaleString()} ETH
+• Fidelity: ${(latestData.fidelity || 0).toLocaleString()} ETH
+• Bitwise: ${(latestData.bitwise || 0).toLocaleString()} ETH
+• 21Shares: ${(latestData.twentyOneShares || 0).toLocaleString()} ETH
+• VanEck: ${(latestData.vanEck || 0).toLocaleString()} ETH
+• Invesco: ${(latestData.invesco || 0).toLocaleString()} ETH
+• Franklin: ${(latestData.franklin || 0).toLocaleString()} ETH
+• Grayscale: ${(latestData.grayscale || 0).toLocaleString()} ETH
+• Grayscale ETH: ${(latestData.grayscaleCrypto || 0).toLocaleString()} ETH
+
+<i>Data source: Farside.co.uk</i>
+        `.trim();
+
+        await this.bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+        });
+
+        this.logger.log(
+          `📊 User ${userName} (${chatId}) requested Ethereum ETF data`,
+        );
+      } catch (error) {
+        this.logger.error('❌ Error processing /ethereum command:', error);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error getting Ethereum ETF data. Please try again later.',
+        );
+      }
+    });
+
+    // /bitcoin command - Get Bitcoin ETF data
+    this.bot.onText(/\/bitcoin/, async (msg) => {
+      const chatId = msg.chat.id;
+      const userName = msg.from?.first_name || 'User';
+
+      try {
+        const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+
+        if (!bitcoinData || bitcoinData.length === 0) {
+          await this.bot.sendMessage(
+            chatId,
+            '📊 <b>Bitcoin ETF Data</b>\n\n❌ No data available at the moment.',
+            { parse_mode: 'HTML' },
+          );
+          return;
+        }
+
+        // Get latest data
+        const latestData = bitcoinData[0] as any;
+        const totalFlow = latestData.total || 0;
+
+        // Calculate 7-day average
+        const sevenDayData = bitcoinData.slice(0, 7);
+        const sevenDayAverage =
+          sevenDayData.reduce((sum, day) => sum + (day.total || 0), 0) /
+          sevenDayData.length;
+
+        const message = `
+📊 <b>Bitcoin ETF Flow Data</b>
+
+📅 <b>Latest Data (${latestData.date}):</b>
+💰 Total Flow: <b>${totalFlow.toLocaleString()} BTC</b>
+
+📈 <b>7-Day Average:</b>
+📊 Average Flow: <b>${sevenDayAverage.toLocaleString()} BTC</b>
+
+🏢 <b>Top Performers:</b>
+• BlackRock: ${(latestData.blackrock || 0).toLocaleString()} BTC
+• Fidelity: ${(latestData.fidelity || 0).toLocaleString()} BTC
+• Bitwise: ${(latestData.bitwise || 0).toLocaleString()} BTC
+• Grayscale: ${(latestData.grayscale || 0).toLocaleString()} BTC
+
+📊 <b>All Funds:</b>
+• BlackRock: ${(latestData.blackrock || 0).toLocaleString()} BTC
+• Fidelity: ${(latestData.fidelity || 0).toLocaleString()} BTC
+• Bitwise: ${(latestData.bitwise || 0).toLocaleString()} BTC
+• 21Shares: ${(latestData.twentyOneShares || 0).toLocaleString()} BTC
+• VanEck: ${(latestData.vanEck || 0).toLocaleString()} BTC
+• Invesco: ${(latestData.invesco || 0).toLocaleString()} BTC
+• Franklin: ${(latestData.franklin || 0).toLocaleString()} BTC
+• Valkyrie: ${(latestData.valkyrie || 0).toLocaleString()} BTC
+• WisdomTree: ${(latestData.wisdomTree || 0).toLocaleString()} BTC
+• Grayscale: ${(latestData.grayscale || 0).toLocaleString()} BTC
+• Grayscale BTC: ${(latestData.grayscaleBtc || 0).toLocaleString()} BTC
+
+<i>Data source: Farside.co.uk</i>
+        `.trim();
+
+        await this.bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+        });
+
+        this.logger.log(
+          `📊 User ${userName} (${chatId}) requested Bitcoin ETF data`,
+        );
+      } catch (error) {
+        this.logger.error('❌ Error processing /bitcoin command:', error);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error getting Bitcoin ETF data. Please try again later.',
+        );
+      }
+    });
+
+    // /summary command - Get both Bitcoin and Ethereum ETF data
+    this.bot.onText(/\/summary/, async (msg) => {
+      const chatId = msg.chat.id;
+      const userName = msg.from?.first_name || 'User';
+
+      try {
+        const [bitcoinData, ethereumData] = await Promise.all([
+          this.etfFlowService.getETFFlowData('bitcoin'),
+          this.etfFlowService.getETFFlowData('ethereum'),
+        ]);
+
+        if (
+          (!bitcoinData || bitcoinData.length === 0) &&
+          (!ethereumData || ethereumData.length === 0)
+        ) {
+          await this.bot.sendMessage(
+            chatId,
+            '📊 <b>ETF Summary</b>\n\n❌ No data available at the moment.',
+            { parse_mode: 'HTML' },
+          );
+          return;
+        }
+
+        let message = '📊 <b>ETF Flow Summary</b>\n\n';
+
+        // Bitcoin data
+        if (bitcoinData && bitcoinData.length > 0) {
+          const latestBtc = bitcoinData[0] as any;
+          const btcTotal = latestBtc.total || 0;
+          const btcSevenDay = bitcoinData.slice(0, 7);
+          const btcAverage =
+            btcSevenDay.reduce((sum, day) => sum + (day.total || 0), 0) /
+            btcSevenDay.length;
+
+          message += `🟠 <b>Bitcoin ETF (${latestBtc.date}):</b>\n`;
+          message += `💰 Total Flow: <b>${btcTotal.toLocaleString()} BTC</b>\n`;
+          message += `📈 7-Day Avg: <b>${btcAverage.toLocaleString()} BTC</b>\n\n`;
+        }
+
+        // Ethereum data
+        if (ethereumData && ethereumData.length > 0) {
+          const latestEth = ethereumData[0] as any;
+          const ethTotal = latestEth.total || 0;
+          const ethSevenDay = ethereumData.slice(0, 7);
+          const ethAverage =
+            ethSevenDay.reduce((sum, day) => sum + (day.total || 0), 0) /
+            ethSevenDay.length;
+
+          message += `🔵 <b>Ethereum ETF (${latestEth.date}):</b>\n`;
+          message += `💰 Total Flow: <b>${ethTotal.toLocaleString()} ETH</b>\n`;
+          message += `📈 7-Day Avg: <b>${ethAverage.toLocaleString()} ETH</b>\n\n`;
+        }
+
+        message +=
+          '💡 <i>Use /bitcoin or /ethereum for detailed breakdown</i>\n';
+        message += '<i>Data source: Farside.co.uk</i>';
+
+        await this.bot.sendMessage(chatId, message, {
+          parse_mode: 'HTML',
+        });
+
+        this.logger.log(
+          `📊 User ${userName} (${chatId}) requested ETF summary`,
+        );
+      } catch (error) {
+        this.logger.error('❌ Error processing /summary command:', error);
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error getting ETF summary. Please try again later.',
+        );
+      }
     });
 
     // Обработка ошибок

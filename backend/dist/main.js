@@ -4,11 +4,17 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const universal_etf_flow_service_1 = require("./api/etf/universal-etf-flow.service");
 const admin_service_1 = require("./admin-panel/admin/admin.service");
-const telegram_bot_service_1 = require("./api/telegram/telegram-bot.service");
+const telegram_bot_service_1 = require("./api/telegram-bot/telegram-bot.service");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: ['http://localhost:3065', 'http://localhost:3000'],
+        origin: [
+            'http://localhost:3065',
+            'http://localhost:3066',
+            'http://10.0.2.2:3066',
+            'http://127.0.0.1:3066',
+            'http://172.20.10.9:3066',
+        ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: [
             'Content-Type',
@@ -35,32 +41,34 @@ async function bootstrap() {
         console.log('⚠️ Ошибка создания администратора:', error.message);
     }
     console.log('📊 Инициализация данных ETF...');
-    try {
-        const results = await etfFlowService.parseAllETFFlowData();
-        console.log('✅ Результаты парсинга при старте:');
-        console.log(`   Ethereum: ${results.ethereum.success ? '✅' : '❌'} ${results.ethereum.count} записей`);
-        console.log(`   Bitcoin: ${results.bitcoin.success ? '✅' : '❌'} ${results.bitcoin.count} записей`);
-        if (results.ethereum.error) {
-            console.log(`   Ошибка Ethereum: ${results.ethereum.error}`);
+    if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 Development режим: пропускаем парсинг данных ETF');
+    }
+    else {
+        try {
+            const results = await etfFlowService.parseAllETFFlowData();
+            console.log('✅ Результаты парсинга при старте:');
+            console.log(`   Ethereum: ${results.ethereum.success ? '✅' : '❌'} ${results.ethereum.count} записей`);
+            console.log(`   Bitcoin: ${results.bitcoin.success ? '✅' : '❌'} ${results.bitcoin.count} записей`);
+            if (results.ethereum.error) {
+                console.log(`   Ошибка Ethereum: ${results.ethereum.error}`);
+            }
+            if (results.bitcoin.error) {
+                console.log(`   Ошибка Bitcoin: ${results.bitcoin.error}`);
+            }
         }
-        if (results.bitcoin.error) {
-            console.log(`   Ошибка Bitcoin: ${results.bitcoin.error}`);
+        catch (error) {
+            console.log('⚠️ Ошибка при инициализации данных ETF:', error.message);
+            console.log('📝 Сервер запустится с существующими данными');
         }
     }
-    catch (error) {
-        console.log('⚠️ Ошибка при инициализации данных ETF:', error.message);
-        console.log('📝 Сервер запустится с существующими данными');
-    }
-    await app.listen(process.env.PORT ?? 3000);
-    console.log(`🌐 Сервер запущен на порту ${process.env.PORT ?? 3000}`);
+    await app.listen(process.env.PORT ?? 3066);
+    console.log(`🌐 Сервер запущен на порту ${process.env.PORT ?? 3066}`);
     console.log('🎯 ETF Flow Tracker готов к работе!');
     console.log('📱 Состояние Telegram бота:');
     try {
-        const botInfo = await telegramBotService.getBotInfo();
-        if (botInfo) {
-            console.log(`   ✅ Бот активен: @${botInfo.username}`);
-            console.log(`   📝 Имя: ${botInfo.first_name}`);
-            console.log(`   🆔 ID: ${botInfo.id}`);
+        if (telegramBotService.isBotInitialized()) {
+            console.log('   ✅ Telegram бот инициализирован');
         }
         else {
             console.log('   ❌ Бот не инициализирован');

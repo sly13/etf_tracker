@@ -49,6 +49,16 @@ const usersService = {
 			throw error;
 		}
 	},
+
+	getUsersByApplication: async (appName) => {
+		try {
+			const response = await api.get(`/applications/${appName}/users`);
+			return response.data;
+		} catch (error) {
+			console.error('Error fetching users by application:', error);
+			throw error;
+		}
+	},
 };
 
 export default usersService;

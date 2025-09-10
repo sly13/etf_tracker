@@ -1,9 +1,12 @@
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io' show Platform;
 import '../models/user.dart';
 import '../config/app_config.dart';
-import 'dart:io' show Platform;
+import 'notification_service.dart';
 
 class SubscriptionService {
   // Получение API ключей из переменных окружения
@@ -13,6 +16,88 @@ class SubscriptionService {
     } catch (e) {
       print('⚠️ Ошибка получения API ключа: $e');
       return '';
+    }
+  }
+
+  // Ручная синхронизация подписок (можно вызвать из UI)
+  static Future<void> syncSubscriptions() async {
+    try {
+      print('🔄 Ручная синхронизация подписок...');
+      await syncSubscriptionsOnStartup();
+    } catch (e) {
+      print('❌ Ошибка ручной синхронизации: $e');
+      rethrow;
+    }
+  }
+
+  // Синхронизация подписок с бэкендом при старте
+  static Future<void> syncSubscriptionsOnStartup() async {
+    try {
+      print('🔄 Синхронизируем подписки при старте...');
+
+      // Получаем информацию о пользователе
+      final customerInfo = await Purchases.getCustomerInfo();
+      final deviceId = await NotificationService.getDeviceId();
+
+      print('🔍 Customer Info: ${customerInfo.toJson()}');
+      print('🔍 Device ID: $deviceId');
+
+      // Проверяем, есть ли активные entitlements
+      final activeEntitlements = customerInfo.entitlements.active;
+      if (activeEntitlements.isEmpty) {
+        print('ℹ️ Нет активных entitlements для синхронизации');
+        return;
+      }
+
+      print('📦 Активные entitlements: ${activeEntitlements.keys.toList()}');
+
+      // Синхронизируем каждую активную подписку
+      for (final entitlementId in activeEntitlements.keys) {
+        try {
+          final subscription = activeEntitlements[entitlementId];
+          if (subscription != null) {
+            print('🔄 Синхронизируем entitlement: $entitlementId');
+
+            final syncData = {
+              'userId':
+                  deviceId, // Используем deviceId как userId для поиска в БД
+              'deviceId': deviceId,
+              'customerInfo': {
+                'originalAppUserId': customerInfo.originalAppUserId,
+                'activeEntitlements': activeEntitlements.keys.toList(),
+              },
+              'productId': subscription.productIdentifier,
+              'transactionId': subscription.originalPurchaseDate,
+              'originalTransactionId': subscription.originalPurchaseDate,
+              'purchaseDate': subscription.originalPurchaseDate,
+              'expirationDate': subscription.expirationDate,
+              'isActive': subscription.isActive,
+              'isPremium': subscription.isActive,
+              'autoRenew': subscription.willRenew,
+              'environment': subscription.isSandbox ? 'Sandbox' : 'Production',
+              'platform': Platform.isIOS ? 'ios' : 'android',
+              'price': null, // RevenueCat не всегда предоставляет цену
+              'currency': null,
+            };
+
+            print('📤 Отправляем данные синхронизации:');
+            print('   - userId: ${syncData['userId']}');
+            print('   - deviceId: ${syncData['deviceId']}');
+            print('   - productId: ${syncData['productId']}');
+            print('   - isActive: ${syncData['isActive']}');
+            print('   - expirationDate: ${syncData['expirationDate']}');
+
+            await _syncExistingSubscriptionToBackend(syncData);
+            print('✅ Entitlement $entitlementId синхронизирован');
+          }
+        } catch (e) {
+          print('❌ Ошибка синхронизации entitlement $entitlementId: $e');
+        }
+      }
+
+      print('✅ Синхронизация подписок завершена');
+    } catch (e) {
+      print('❌ Ошибка синхронизации подписок: $e');
     }
   }
 
@@ -59,7 +144,31 @@ class SubscriptionService {
       }
 
       await Purchases.configure(configuration);
+
+      // Устанавливаем ваш deviceId как App User ID в RevenueCat
+      final deviceId = await NotificationService.getDeviceId();
+      print('🔍 Получен deviceId: $deviceId');
+
+      if (deviceId.isNotEmpty) {
+        // Сначала logout, чтобы очистить кэш
+        await Purchases.logOut();
+        print('🔓 Выполнен logout из RevenueCat');
+
+        // Затем login с новым ID
+        await Purchases.logIn(deviceId);
+        print('🔗 Установлен App User ID в RevenueCat: $deviceId');
+
+        // Проверяем, какой ID теперь используется
+        final customerInfo = await Purchases.getCustomerInfo();
+        print(
+          '🔍 RevenueCat App User ID после логина: ${customerInfo.originalAppUserId}',
+        );
+      }
+
       print('✅ RevenueCat инициализирован успешно');
+
+      // Синхронизируем существующие подписки с бэкендом
+      await syncSubscriptionsOnStartup();
     } catch (e) {
       print('❌ Ошибка инициализации RevenueCat: $e');
       // Не выбрасываем исключение, чтобы приложение могло работать без RevenueCat
@@ -180,6 +289,9 @@ class SubscriptionService {
       // Проверяем статус после покупки
       final isPremium = customerInfo.entitlements.active.containsKey('premium');
       print('🔧 Статус после покупки: ${isPremium ? "Premium" : "Basic"}');
+
+      // Отправляем данные о покупке на бэкенд
+      await _syncPurchaseToBackend(product, customerInfo);
       print(
         '🔧 Активные entitlements после покупки: ${customerInfo.entitlements.active.keys}',
       );
@@ -431,6 +543,121 @@ class SubscriptionService {
     } catch (e) {
       print('❌ Ошибка диагностики: $e');
       print('🔧 Проверьте настройки RevenueCat');
+    }
+  }
+
+  // Синхронизация существующей подписки с бэкендом
+  static Future<void> _syncExistingSubscriptionToBackend(
+    Map<String, dynamic> subscriptionData,
+  ) async {
+    try {
+      print('💳 === СИНХРОНИЗАЦИЯ СУЩЕСТВУЮЩЕЙ ПОДПИСКИ С БЭКЕНДОМ ===');
+      print('📦 Данные для отправки: $subscriptionData');
+
+      final backendUrl = AppConfig.getApiUrl('/subscription/sync-purchase');
+      print('🔧 Используем BACKEND_URL из .env: $backendUrl');
+
+      final response = await http.post(
+        Uri.parse(backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(subscriptionData),
+      );
+
+      print('📦 Статус ответа: ${response.statusCode}');
+      print('📦 Ответ бэкенда: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('✅ Синхронизация существующей подписки успешна');
+
+        // Парсим ответ для проверки
+        try {
+          final responseData = json.decode(response.body);
+          if (responseData['success'] == true) {
+            print('✅ Подписка успешно сохранена в базе данных');
+          } else {
+            print('❌ Ошибка сохранения подписки: ${responseData['error']}');
+          }
+        } catch (e) {
+          print('⚠️ Не удалось распарсить ответ бэкенда: $e');
+        }
+      } else {
+        print(
+          '❌ Ошибка синхронизации существующей подписки: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('❌ Ошибка синхронизации существующей подписки с бэкендом: $e');
+    }
+  }
+
+  // Синхронизация данных о покупке с бэкендом
+  static Future<void> _syncPurchaseToBackend(
+    StoreProduct product,
+    CustomerInfo customerInfo,
+  ) async {
+    try {
+      print('💳 === СИНХРОНИЗАЦИЯ ПОКУПКИ С БЭКЕНДОМ ===');
+
+      // Получаем активную подписку
+      final activeEntitlements = customerInfo.entitlements.active;
+      final isPremium = activeEntitlements.containsKey('premium');
+      EntitlementInfo? activeSubscription;
+
+      if (isPremium) {
+        activeSubscription = activeEntitlements['premium'];
+      }
+
+      // Получаем deviceId для идентификации пользователя
+      final deviceId = await NotificationService.getDeviceId();
+      print('🔍 DeviceId для отправки: $deviceId');
+      print('🔍 DeviceId type: ${deviceId.runtimeType}');
+      print('🔍 DeviceId length: ${deviceId.length}');
+
+      // Подготавливаем данные для отправки
+      final purchaseData = {
+        'userId': deviceId, // Используем deviceId как userId для поиска в БД
+        'deviceId':
+            deviceId, // Используем deviceId для идентификации пользователя
+        // deviceToken НЕ передаем - он уже есть в базе данных
+        'customerInfo': {
+          'originalAppUserId': customerInfo.originalAppUserId,
+          'activeEntitlements': activeEntitlements.keys.toList(),
+        },
+        'productId': product.identifier,
+        'transactionId': activeSubscription?.originalPurchaseDate,
+        'originalTransactionId': activeSubscription?.originalPurchaseDate,
+        'purchaseDate': activeSubscription?.originalPurchaseDate,
+        'expirationDate': activeSubscription?.expirationDate,
+        'isActive': isPremium,
+        'isPremium': isPremium,
+        'autoRenew': activeSubscription?.willRenew ?? false,
+        'environment': kDebugMode ? 'Sandbox' : 'Production',
+        'platform': Platform.isIOS ? 'ios' : 'android',
+        'price': product.price,
+        'currency': product.currencyCode,
+      };
+
+      print('📦 Данные для отправки: ${jsonEncode(purchaseData)}');
+
+      // Отправляем данные на бэкенд
+      final backendUrl = AppConfig.backendBaseUrl;
+      final response = await http.post(
+        Uri.parse('$backendUrl/api/subscription/sync-purchase'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(purchaseData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print('✅ Данные о покупке успешно синхронизированы с бэкендом');
+        print('📦 Ответ бэкенда: ${responseData}');
+      } else {
+        print('❌ Ошибка синхронизации с бэкендом: ${response.statusCode}');
+        print('📦 Ответ бэкенда: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ Ошибка синхронизации покупки с бэкендом: $e');
+      // Не прерываем процесс покупки из-за ошибки синхронизации
     }
   }
 }

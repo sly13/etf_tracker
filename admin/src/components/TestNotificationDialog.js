@@ -184,3 +184,4 @@ function TestNotificationDialog({ open, onClose, user }) {
 }
 
 export default TestNotificationDialog;
+

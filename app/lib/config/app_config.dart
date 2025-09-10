@@ -8,6 +8,9 @@ class AppConfig {
   // Название приложения для регистрации в бэкенде
   static const String appName = 'etf.flow';
 
+  // Название Telegram бота по умолчанию
+  static const String _defaultTelegramBotName = 'etf_flows_bot';
+
   // Определяем, запущено ли приложение в режиме отладки
   static bool get isDebugMode => !kReleaseMode;
 
@@ -46,6 +49,24 @@ class AppConfig {
   // Метод для принудительного переключения на продакшн бэкенд
   static String getProductionBackendUrl(String endpoint) {
     return '$_defaultBackendUrl$endpoint';
+  }
+
+  // Получаем название Telegram бота
+  static String get telegramBotName {
+    try {
+      // Сначала проверяем переменную окружения
+      final envBotName = dotenv.env['TELEGRAM_BOT_NAME'];
+      if (envBotName != null && envBotName.isNotEmpty) {
+        print('🔧 Используем TELEGRAM_BOT_NAME из .env: $envBotName');
+        return envBotName;
+      }
+    } catch (e) {
+      print('⚠️ Ошибка получения TELEGRAM_BOT_NAME из .env: $e');
+    }
+
+    // Используем название по умолчанию
+    print('🔧 Используем название бота по умолчанию: $_defaultTelegramBotName');
+    return _defaultTelegramBotName;
   }
 
   // Получаем информацию о текущем окружении

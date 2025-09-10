@@ -244,6 +244,52 @@ export class ApplicationsService {
   }
 
   /**
+   * Получение приложения по имени
+   */
+  async getApplicationByName(name: string) {
+    try {
+      const application = await this.prismaService.application.findUnique({
+        where: { name },
+        include: {
+          users: {
+            select: {
+              id: true,
+              deviceId: true,
+              isActive: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      if (!application) {
+        throw new NotFoundException('Приложение не найдено');
+      }
+
+      return {
+        success: true,
+        application: {
+          id: application.id,
+          name: application.name,
+          displayName: application.displayName,
+          description: application.description,
+          isActive: application.isActive,
+          createdAt: application.createdAt,
+          updatedAt: application.updatedAt,
+          userCount: application.users.length,
+          users: application.users,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('❌ Ошибка получения приложения по имени:', error);
+      throw new Error('Внутренняя ошибка сервера при получении приложения');
+    }
+  }
+
+  /**
    * Удаление приложения
    */
   async deleteApplication(id: string) {
@@ -299,15 +345,11 @@ export class ApplicationsService {
         where: { name: appName },
         include: {
           users: {
-            select: {
-              id: true,
-              deviceId: true,
-              deviceToken: true,
-              telegramChatId: true,
-              settings: true,
-              isActive: true,
-              lastUsed: true,
-              createdAt: true,
+            include: {
+              subscriptions: {
+                orderBy: { createdAt: 'desc' },
+                take: 1, // Берем только последнюю подписку
+              },
             },
           },
         },
@@ -324,6 +366,14 @@ export class ApplicationsService {
         const notifications = settings.notifications || {};
         const preferences = settings.preferences || {};
 
+        // Проверяем статус подписки
+        const latestSubscription = user.subscriptions?.[0];
+        const hasActiveSubscription =
+          latestSubscription &&
+          latestSubscription.isActive &&
+          (!latestSubscription.expirationDate ||
+            latestSubscription.expirationDate > new Date());
+
         return {
           id: user.id,
           deviceId: user.deviceId,
@@ -332,6 +382,17 @@ export class ApplicationsService {
           isActive: user.isActive,
           lastUsed: user.lastUsed,
           createdAt: user.createdAt,
+          // Информация о подписке
+          hasSubscription: !!latestSubscription,
+          hasActiveSubscription: hasActiveSubscription,
+          subscriptionStatus: latestSubscription
+            ? hasActiveSubscription
+              ? 'Активна'
+              : 'Неактивна'
+            : 'Нет подписки',
+          subscriptionExpirationDate: latestSubscription?.expirationDate,
+          // Полная информация о подписке для детального просмотра
+          subscriptions: user.subscriptions,
           // Данные из JSON settings
           firstName: profile.firstName || telegram.firstName,
           lastName: profile.lastName || telegram.lastName,

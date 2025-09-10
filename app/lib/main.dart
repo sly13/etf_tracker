@@ -38,18 +38,6 @@ void main() async {
   print('BACKEND_URL: ${dotenv.env['BACKEND_URL']}');
   print('REVENUECAT_IOS_API_KEY: ${dotenv.env['REVENUECAT_IOS_API_KEY']}');
 
-  // Инициализируем RevenueCat
-  try {
-    await SubscriptionService.initialize();
-    print('✅ RevenueCat инициализирован');
-
-    // Запускаем диагностику в debug режиме
-    await RevenueCatChecker.printDiagnostics();
-  } catch (e) {
-    print('❌ Ошибка инициализации RevenueCat: $e');
-    print('🔧 Приложение будет работать без функций подписки');
-  }
-
   // Инициализируем Firebase
   try {
     await Firebase.initializeApp();
@@ -66,13 +54,25 @@ void main() async {
     print('❌ Ошибка инициализации Firebase Analytics: $e');
   }
 
-  // Инициализируем уведомления
+  // Инициализируем уведомления ПЕРВЫМИ (регистрируем устройство)
   try {
     await NotificationService.initialize();
     print('✅ NotificationService инициализирован');
   } catch (e) {
     print('❌ Ошибка инициализации NotificationService: $e');
     print('🔧 Приложение будет работать без пуш-уведомлений');
+  }
+
+  // Инициализируем RevenueCat ПОСЛЕ регистрации устройства
+  try {
+    await SubscriptionService.initialize();
+    print('✅ RevenueCat инициализирован');
+
+    // Запускаем диагностику в debug режиме
+    await RevenueCatChecker.printDiagnostics();
+  } catch (e) {
+    print('❌ Ошибка инициализации RevenueCat: $e');
+    print('🔧 Приложение будет работать без функций подписки');
   }
 
   runApp(const MyApp());

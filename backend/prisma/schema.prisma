@@ -67,20 +67,57 @@ model Application {
 }
 
 model User {
-  id             String      @id @default(cuid())
-  applicationId  String
-  deviceId       String?     @unique
-  deviceToken    String      @unique
-  telegramChatId String?     @unique
-  os             String?     // Тип ОС: ios, android, web, etc.
-  settings       Json?
-  isActive       Boolean     @default(true)
-  lastUsed       DateTime    @default(now())
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  application    Application @relation(fields: [applicationId], references: [id])
+  id               String         @id @default(cuid())
+  applicationId    String
+  deviceId         String?        @unique
+  revenueCatUserId String?        @unique // RevenueCat App User ID
+  deviceToken      String         @unique
+  telegramChatId   String?        @unique
+  os               String?        // Тип ОС: ios, android, web, etc.
+  settings         Json?
+  isActive         Boolean        @default(true)
+  lastUsed         DateTime       @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  application      Application    @relation(fields: [applicationId], references: [id])
+  subscriptions    Subscription[]
 
   @@index([settings], map: "idx_user_settings", type: Gin)
+  @@index([revenueCatUserId])
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String    // Связь с пользователем
+  user                  User      @relation(fields: [userId], references: [id])
+  
+  // RevenueCat данные
+  revenueCatUserId      String?   // RevenueCat App User ID
+  originalTransactionId String?   // Apple/Google Transaction ID
+  productId             String?   // ID продукта (premium_monthly, etc.)
+  
+  // Статус подписки
+  isActive              Boolean   @default(false)
+  isPremium             Boolean   @default(false)
+  autoRenew             Boolean   @default(false)
+  
+  // Даты
+  purchaseDate          DateTime?
+  expirationDate        DateTime?
+  originalPurchaseDate  DateTime?
+  
+  // Дополнительная информация
+  environment           String?   // Sandbox/Production
+  platform              String?   // ios/android
+  price                 Float?
+  currency              String?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([revenueCatUserId])
+  @@index([originalTransactionId])
 }
 
 model Admin {

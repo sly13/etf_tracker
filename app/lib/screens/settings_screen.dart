@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -10,6 +11,7 @@ import 'dart:io' show HttpClient, ContentType;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../services/subscription_service.dart';
+import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
 import '../utils/haptic_feedback.dart';
 import '../widgets/pro_button.dart';
@@ -78,6 +80,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Уведомления
             _buildNotificationSection(),
+            const SizedBox(height: 24),
+
+            // Device ID
+            _buildDeviceIdSection(),
             const SizedBox(height: 24),
 
             // О приложении
@@ -670,6 +676,254 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildDeviceIdSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Device ID',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 0.5,
+            ),
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.fingerprint,
+                      color: isDark
+                          ? Colors.grey.withOpacity(0.6)
+                          : Colors.grey.withOpacity(0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ваш Device ID',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Скопируйте этот ID для привязки Telegram',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark
+                                  ? Colors.grey.withOpacity(0.6)
+                                  : Colors.grey.withOpacity(0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        try {
+                          final deviceId =
+                              await NotificationService.getDeviceId();
+                          await Clipboard.setData(
+                            ClipboardData(text: deviceId),
+                          );
+                          HapticUtils.lightImpact(); // Добавляем вибрацию
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text('Device ID скопирован в буфер обмена'),
+                                  ],
+                                ),
+                                backgroundColor: Colors.green,
+                                duration: Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Ошибка копирования: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: Icon(Icons.copy, color: Colors.blue, size: 20),
+                      tooltip: 'Скопировать Device ID',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                FutureBuilder<String>(
+                  future: NotificationService.getDeviceId(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        height: 20,
+                        child: Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final deviceId = snapshot.data ?? 'Ошибка загрузки';
+                    return Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.grey.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.grey.withOpacity(0.2)
+                              : Colors.grey.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              deviceId,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: 'monospace',
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () async {
+                              try {
+                                await Clipboard.setData(
+                                  ClipboardData(text: deviceId),
+                                );
+                                HapticUtils.lightImpact(); // Добавляем вибрацию
+
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text('Device ID скопирован'),
+                                        ],
+                                      ),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Ошибка копирования: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Для привязки Telegram:\n1. Скопируйте Device ID\n2. Отправьте команду /link в боте\n3. Вставьте скопированный ID',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark
+                        ? Colors.grey.withOpacity(0.6)
+                        : Colors.grey.withOpacity(0.5),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAboutSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -841,14 +1095,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final platform = Platform.isAndroid ? 'android' : 'ios';
 
       // Создаем ссылку на Telegram бота с appName, deviceId и платформой
+      // Убираем префикс платформы из deviceId и добавляем его в конце
+      final cleanDeviceId = deviceId.startsWith('ios_')
+          ? deviceId.substring(4) // убираем 'ios_'
+          : deviceId.startsWith('android_')
+          ? deviceId.substring(8) // убираем 'android_'
+          : deviceId;
+
       final botUrl =
-          'https://t.me/etf_flows_bot?start=etf_flow_${deviceId}_$platform';
+          'https://t.me/${AppConfig.telegramBotName}?start=etf_flow_${cleanDeviceId}_$platform';
+
+      // Логируем информацию о ссылке для отладки
+      print('🔗 === ГЕНЕРАЦИЯ ССЫЛКИ НА TELEGRAM БОТА ===');
+      print('📱 DeviceId: $deviceId');
+      print('🖥️ Platform: $platform');
+      print('🤖 Bot Name: ${AppConfig.telegramBotName}');
+      print('🔗 Bot URL: $botUrl');
+      print('📝 Clean DeviceId: $cleanDeviceId');
+      print('📝 Start Parameter: etf_flow_${cleanDeviceId}_$platform');
+      print('==========================================');
 
       // Открываем URL через url_launcher
       try {
         final uri = Uri.parse(botUrl);
+        print('🔗 Открываем ссылку: $uri');
+        print('🔗 URI scheme: ${uri.scheme}');
+        print('🔗 URI host: ${uri.host}');
+        print('🔗 URI path: ${uri.path}');
+        print('🔗 URI query: ${uri.query}');
+        print('🔗 URI fragment: ${uri.fragment}');
+
         if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          print('🔗 Ссылка может быть открыта, запускаем...');
+          final result = await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+          );
+          print('🔗 Результат открытия ссылки: $result');
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
