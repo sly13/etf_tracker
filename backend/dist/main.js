@@ -4,7 +4,7 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const universal_etf_flow_service_1 = require("./api/etf/universal-etf-flow.service");
 const admin_service_1 = require("./admin-panel/admin/admin.service");
-const telegram_bot_service_1 = require("./api/telegram-bot/telegram-bot.service");
+const telegram_bot_service_1 = require("./api/telegram/telegram-bot.service");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
@@ -14,6 +14,7 @@ async function bootstrap() {
             'http://10.0.2.2:3066',
             'http://127.0.0.1:3066',
             'http://172.20.10.9:3066',
+            'https://admin-etf.vadimsemenko.ru',
         ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: [
