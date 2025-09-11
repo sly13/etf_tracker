@@ -1,7 +1,7 @@
 module.exports = {
 	apps: [
 		{
-			name: "etf-admin-panel",
+			name: "etf-admin-panel-dev",
 			script: "npm",
 			args: "start",
 			cwd: "/var/www/etf_tracker_app/admin",
@@ -12,13 +12,14 @@ module.exports = {
 			}
 		},
 		{
-			name: "etf-admin-panel-serve",
+			name: "etf-admin-panel-prod",
 			script: "npx",
 			args: "serve -s build -l 3065",
 			cwd: "/var/www/etf_tracker_app/admin",
 			env_production: {
 				PORT: 3065,
-				NODE_ENV: "production"
+				NODE_ENV: "production",
+				REACT_APP_API_URL: "https://etf-flow.vadimsemenko.ru/api"
 			}
 		}
 	]
