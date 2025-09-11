@@ -33,7 +33,7 @@ class ETFMacWidgetService {
     private let baseURL = "https://etf-flow.vadimsemenko.ru"
     
     func fetchETFData() async -> ETFMacWidgetData? {
-        guard let url = URL(string: "\(baseURL)/etf-flow/summary") else {
+        guard let url = URL(string: "\(baseURL)/api/etf-flow/summary") else {
             return nil
         }
         
@@ -52,13 +52,13 @@ class ETFMacWidgetService {
             
             // Пытаемся получить дату данных из API
             var dataDate = Date()
-            if let bitcoinDateString = bitcoinData?["date"] as? String {
+            if let bitcoinDateString = bitcoinData?["latestDate"] as? String {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd"
                 if let parsedDate = formatter.date(from: bitcoinDateString) {
                     dataDate = parsedDate
                 }
-            } else if let ethereumDateString = ethereumData?["date"] as? String {
+            } else if let ethereumDateString = ethereumData?["latestDate"] as? String {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd"
                 if let parsedDate = formatter.date(from: ethereumDateString) {

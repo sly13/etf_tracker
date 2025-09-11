@@ -43,17 +43,56 @@ struct ETFTrackerTimelineProvider: TimelineProvider {
         let currentDate = Date()
         let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
         
-        let entry = ETFTrackerEntry(
-            date: currentDate,
-            ethereumTotal: 1876.3,
-            bitcoinTotal: 6.4,
-            overallTotal: 1882.7,
-            ethereumChange: 12.5,
-            bitcoinChange: -3.2
-        )
+        // Загружаем данные из API
+        Task {
+            let entry = await fetchETFData()
+            let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
+            completion(timeline)
+        }
+    }
+    
+    private func fetchETFData() async -> ETFTrackerEntry {
+        guard let url = URL(string: "https://etf-flow.vadimsemenko.ru/api/etf-flow/summary") else {
+            return ETFTrackerEntry(
+                date: Date(),
+                ethereumTotal: 0,
+                bitcoinTotal: 0,
+                overallTotal: 0,
+                ethereumChange: 0,
+                bitcoinChange: 0
+            )
+        }
         
-        let timeline = Timeline(entries: [entry], policy: .after(refreshDate))
-        completion(timeline)
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            
+            let bitcoinData = json?["bitcoin"] as? [String: Any]
+            let ethereumData = json?["ethereum"] as? [String: Any]
+            
+            let bitcoinTotal = bitcoinData?["total"] as? Double ?? 0.0
+            let ethereumTotal = ethereumData?["total"] as? Double ?? 0.0
+            let overallTotal = bitcoinTotal + ethereumTotal
+            
+            return ETFTrackerEntry(
+                date: Date(),
+                ethereumTotal: ethereumTotal,
+                bitcoinTotal: bitcoinTotal,
+                overallTotal: overallTotal,
+                ethereumChange: 0, // Пока не реализовано
+                bitcoinChange: 0   // Пока не реализовано
+            )
+        } catch {
+            print("Ошибка загрузки данных виджета: \(error)")
+            return ETFTrackerEntry(
+                date: Date(),
+                ethereumTotal: 0,
+                bitcoinTotal: 0,
+                overallTotal: 0,
+                ethereumChange: 0,
+                bitcoinChange: 0
+            )
+        }
     }
 }
 

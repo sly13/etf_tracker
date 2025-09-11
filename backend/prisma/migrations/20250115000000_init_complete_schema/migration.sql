@@ -102,6 +102,29 @@ CREATE TABLE "public"."Admin" (
     CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."Subscription" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "revenueCatUserId" TEXT,
+    "originalTransactionId" TEXT,
+    "productId" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "isPremium" BOOLEAN NOT NULL DEFAULT false,
+    "autoRenew" BOOLEAN NOT NULL DEFAULT false,
+    "purchaseDate" TIMESTAMP(3),
+    "expirationDate" TIMESTAMP(3),
+    "originalPurchaseDate" TIMESTAMP(3),
+    "environment" TEXT,
+    "platform" TEXT,
+    "price" DOUBLE PRECISION,
+    "currency" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "ETFFlow_date_key" ON "public"."ETFFlow"("date");
 
@@ -135,8 +158,20 @@ CREATE INDEX "idx_user_settings" ON "public"."User" USING GIN ("settings");
 -- CreateIndex
 CREATE INDEX "idx_user_revenueCatUserId" ON "public"."User"("revenueCatUserId");
 
+-- CreateIndex
+CREATE INDEX "Subscription_userId_idx" ON "public"."Subscription"("userId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_revenueCatUserId_idx" ON "public"."Subscription"("revenueCatUserId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_originalTransactionId_idx" ON "public"."Subscription"("originalTransactionId");
+
 -- AddForeignKey
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "public"."Application"("id") ON UPDATE CASCADE ON DELETE RESTRICT;
+
+-- AddForeignKey
+ALTER TABLE "public"."Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON UPDATE CASCADE ON DELETE RESTRICT;
 
 -- Создаем функции для работы с настройками
 CREATE OR REPLACE FUNCTION get_user_setting(user_id TEXT, setting_key TEXT)
