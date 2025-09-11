@@ -83,11 +83,20 @@ export class NotificationService {
       this.logger.log('=====================================');
 
       // Проверяем валидность токена
+      this.logger.log('🔍 Проверяем валидность FCM токена...');
       const isValid = await this.firebaseAdminService.validateToken(token);
       if (!isValid) {
-        this.logger.warn(`⚠️ Невалидный FCM токен: ${token}`);
+        this.logger.warn(
+          `⚠️ Невалидный FCM токен: ${token.substring(0, 20)}...`,
+        );
+        this.logger.warn('💡 Возможные причины:');
+        this.logger.warn('   - Токен устарел или был отозван');
+        this.logger.warn('   - Приложение было переустановлено');
+        this.logger.warn('   - Неверный формат токена');
+        this.logger.warn('   - Проблемы с Firebase конфигурацией');
         return false;
       }
+      this.logger.log('✅ FCM токен прошел валидацию');
 
       // Получаем или создаем приложение
       const application = await this.prismaService.application.upsert({
@@ -194,7 +203,7 @@ export class NotificationService {
 
       // Проверяем, есть ли ожидающие Telegram аккаунты для этого deviceId
       if (cleanDeviceId) {
-        await this.checkPendingTelegramAccounts(cleanDeviceId, application.id);
+        this.checkPendingTelegramAccounts(cleanDeviceId);
       }
 
       return true;
@@ -447,10 +456,7 @@ export class NotificationService {
   /**
    * Проверяет, есть ли ожидающие Telegram аккаунты для данного deviceId
    */
-  private async checkPendingTelegramAccounts(
-    deviceId: string,
-    applicationId: string,
-  ): Promise<void> {
+  private checkPendingTelegramAccounts(deviceId: string): void {
     try {
       // Здесь можно добавить логику для поиска ожидающих Telegram аккаунтов
       // Например, можно создать отдельную таблицу для ожидающих привязок

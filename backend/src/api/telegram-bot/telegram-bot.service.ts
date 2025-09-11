@@ -12,7 +12,7 @@ export class TelegramBotService implements OnModuleInit {
     private botHandler: BotHandler,
   ) {}
 
-  async onModuleInit() {
+  onModuleInit() {
     this.logger.log('🚀 Initializing Telegram Bot Service...');
 
     if (this.botService.isBotInitialized()) {

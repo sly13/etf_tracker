@@ -245,6 +245,7 @@ export class FirebaseAdminService {
    */
   async validateToken(token: string): Promise<boolean> {
     if (!this.app) {
+      this.logger.warn('⚠️ Firebase app не инициализирован');
       return false;
     }
 
@@ -254,17 +255,43 @@ export class FirebaseAdminService {
       return true;
     }
 
+    // Базовая проверка формата токена
+    if (!token || token.length < 10) {
+      this.logger.warn(`⚠️ Токен слишком короткий: ${token}`);
+      return false;
+    }
+
+    // Проверяем формат FCM токена (должен содержать двоеточие)
+    if (!token.includes(':')) {
+      this.logger.warn(`⚠️ Неверный формат FCM токена: ${token}`);
+      return false;
+    }
+
     try {
-      // Попробуем отправить тестовое сообщение
+      // Используем dry-run для проверки токена без отправки сообщения
       const message: admin.messaging.Message = {
         token,
-        data: { test: 'true' },
+        data: { test: 'validation' },
       };
 
-      await admin.messaging().send(message);
+      // Отправляем с dry-run флагом для проверки валидности
+      await admin.messaging().send(message, true);
+      this.logger.log(`✅ Токен валиден: ${token.substring(0, 20)}...`);
       return true;
     } catch (error) {
-      this.logger.warn(`⚠️ Токен невалиден: ${token}`, error.message);
+      this.logger.warn(
+        `⚠️ Токен невалиден: ${token.substring(0, 20)}...`,
+        error.message,
+      );
+
+      // Логируем детали ошибки для отладки
+      if (error.code) {
+        this.logger.warn(`   Код ошибки: ${error.code}`);
+      }
+      if (error.message) {
+        this.logger.warn(`   Сообщение: ${error.message}`);
+      }
+
       return false;
     }
   }

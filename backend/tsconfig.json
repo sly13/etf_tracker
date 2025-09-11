@@ -20,5 +20,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "exclude": ["ecosystem.config.js", "node_modules", "dist", "logs"]
 }

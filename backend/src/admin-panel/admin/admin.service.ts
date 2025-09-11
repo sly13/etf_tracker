@@ -10,7 +10,7 @@ export class AdminService {
     private jwtService: JwtService,
   ) {}
 
-  async validateAdmin(username: string, password: string) {
+  async validateAdmin(username: string, userPassword: string) {
     const admin = await this.prisma.admin.findUnique({
       where: { username },
     });
@@ -19,7 +19,7 @@ export class AdminService {
       throw new UnauthorizedException('Неверные учетные данные');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    const isPasswordValid = await bcrypt.compare(userPassword, admin.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Неверные учетные данные');
     }
@@ -30,7 +30,8 @@ export class AdminService {
       data: { lastLogin: new Date() },
     });
 
-    const { password: _password, ...result } = admin;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = admin;
     return result;
   }
 
