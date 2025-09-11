@@ -15,6 +15,7 @@ async function bootstrap() {
       'http://10.0.2.2:3066', // Android эмулятор
       'http://127.0.0.1:3066', // iOS симулятор
       'http://172.20.10.9:3066', // Физическое устройство (ваш IP)
+      'https://admin-etf.vadimsemenko.ru', // Админ-панель
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
