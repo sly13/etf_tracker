@@ -1,9 +1,10 @@
 module.exports = {
 	apps: [
 		{
-			name: "my-react-app",
-			script: "react-scripts",
+			name: "etf-admin-panel",
+			script: "node_modules/.bin/react-scripts",
 			args: "start",
+			cwd: "/var/www/etf_tracker_app/admin",
 			env: {
 				PORT: 3065,
 				NODE_ENV: "development"
