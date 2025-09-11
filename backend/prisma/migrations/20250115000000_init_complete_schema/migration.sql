@@ -73,8 +73,10 @@ CREATE TABLE "public"."User" (
     "id" TEXT NOT NULL,
     "applicationId" TEXT NOT NULL,
     "deviceId" TEXT,
+    "revenueCatUserId" TEXT,
     "deviceToken" TEXT NOT NULL,
     "telegramChatId" TEXT,
+    "os" TEXT,
     "settings" JSONB,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "lastUsed" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -113,6 +115,9 @@ CREATE UNIQUE INDEX "Application_name_key" ON "public"."Application"("name");
 CREATE UNIQUE INDEX "User_deviceId_key" ON "public"."User"("deviceId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_revenueCatUserId_key" ON "public"."User"("revenueCatUserId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_deviceToken_key" ON "public"."User"("deviceToken");
 
 -- CreateIndex
@@ -126,6 +131,9 @@ CREATE UNIQUE INDEX "Admin_email_key" ON "public"."Admin"("email");
 
 -- CreateIndex
 CREATE INDEX "idx_user_settings" ON "public"."User" USING GIN ("settings");
+
+-- CreateIndex
+CREATE INDEX "idx_user_revenueCatUserId" ON "public"."User"("revenueCatUserId");
 
 -- AddForeignKey
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "public"."Application"("id") ON UPDATE CASCADE ON DELETE RESTRICT;
