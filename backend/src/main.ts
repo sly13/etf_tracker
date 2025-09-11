@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { UniversalETFFlowService } from './api/etf/universal-etf-flow.service';
 import { AdminService } from './admin-panel/admin/admin.service';
-import { TelegramBotService } from './api/telegram-bot/telegram-bot.service';
+import { TelegramBotService } from './api/telegram/telegram-bot.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
