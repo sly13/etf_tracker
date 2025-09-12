@@ -148,26 +148,27 @@ class _SubscriptionSelectionScreenState
 
         // Основной контент
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Заголовок
                 _buildHeader(),
-                SizedBox(height: isSmallScreen ? 12 : 20),
+                SizedBox(height: isSmallScreen ? 8 : 12),
 
                 // Преимущества
-                Expanded(flex: isSmallScreen ? 2 : 3, child: _buildBenefits()),
-                SizedBox(height: isSmallScreen ? 12 : 20),
+                _buildBenefits(),
+                SizedBox(height: isSmallScreen ? 8 : 12),
 
                 // Планы подписок
                 _buildSubscriptionPlans(),
-                SizedBox(height: isSmallScreen ? 12 : 20),
+                SizedBox(height: isSmallScreen ? 8 : 12),
 
                 // Кнопка покупки
                 _buildPurchaseButton(),
-                SizedBox(height: isSmallScreen ? 8 : 12),
+                SizedBox(height: isSmallScreen ? 6 : 8),
 
                 // Ссылки на Terms of Use и Privacy Policy
                 _buildLegalLinks(),
@@ -301,6 +302,7 @@ class _SubscriptionSelectionScreenState
     final isSmallScreen = screenHeight < 700;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -311,29 +313,30 @@ class _SubscriptionSelectionScreenState
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
-        SizedBox(height: isSmallScreen ? 12 : 16),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildBenefitItem(
-                'subscription.features.analytics'.tr(),
-                Icons.analytics_outlined,
-              ),
-              _buildBenefitItem(
-                'subscription.features.statistics'.tr(),
-                Icons.bar_chart_outlined,
-              ),
-              _buildBenefitItem(
-                'subscription.features.notifications'.tr(),
-                Icons.notifications_outlined,
-              ),
-              _buildBenefitItem(
-                'subscription.features.insights'.tr(),
-                Icons.insights_outlined,
-              ),
-            ],
-          ),
+        SizedBox(height: isSmallScreen ? 8 : 10),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildBenefitItem(
+              'subscription.features.analytics'.tr(),
+              Icons.analytics_outlined,
+            ),
+            SizedBox(height: isSmallScreen ? 6 : 8),
+            _buildBenefitItem(
+              'subscription.features.statistics'.tr(),
+              Icons.bar_chart_outlined,
+            ),
+            SizedBox(height: isSmallScreen ? 6 : 8),
+            _buildBenefitItem(
+              'subscription.features.notifications'.tr(),
+              Icons.notifications_outlined,
+            ),
+            SizedBox(height: isSmallScreen ? 6 : 8),
+            _buildBenefitItem(
+              'subscription.features.insights'.tr(),
+              Icons.insights_outlined,
+            ),
+          ],
         ),
       ],
     );
@@ -345,11 +348,11 @@ class _SubscriptionSelectionScreenState
     final isSmallScreen = screenHeight < 700;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 8 : 10),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.blue.shade900.withOpacity(0.3)
@@ -359,15 +362,15 @@ class _SubscriptionSelectionScreenState
             child: Icon(
               icon,
               color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-              size: isSmallScreen ? 18 : 20,
+              size: isSmallScreen ? 16 : 18,
             ),
           ),
-          SizedBox(width: isSmallScreen ? 12 : 16),
+          SizedBox(width: isSmallScreen ? 10 : 12),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                fontSize: isSmallScreen ? 14 : 16,
+                fontSize: isSmallScreen ? 13 : 15,
                 color: isDark ? Colors.white : Colors.black87,
                 fontWeight: FontWeight.w500,
               ),
@@ -380,8 +383,11 @@ class _SubscriptionSelectionScreenState
 
   Widget _buildSubscriptionPlans() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -392,7 +398,7 @@ class _SubscriptionSelectionScreenState
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: isSmallScreen ? 8 : 10),
         if (_isLoadingPrices)
           const Center(child: CircularProgressIndicator())
         else
@@ -406,9 +412,11 @@ class _SubscriptionSelectionScreenState
   Widget _buildPlanCard(SubscriptionPlan plan) {
     final isSelected = _selectedPlanId == plan.id;
     final isPopular = plan.isPopular;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 6 : 8),
       decoration: BoxDecoration(
         color: const Color(0xFF2A2A2A),
         borderRadius: BorderRadius.circular(10),
@@ -425,7 +433,7 @@ class _SubscriptionSelectionScreenState
         },
         borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
           child: Row(
             children: [
               // Радио кнопка
@@ -441,11 +449,12 @@ class _SubscriptionSelectionScreenState
                     ? Icon(Icons.check, color: Colors.black, size: 14)
                     : null,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isSmallScreen ? 8 : 12),
 
               // Контент плана
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -453,8 +462,8 @@ class _SubscriptionSelectionScreenState
                         Expanded(
                           child: Text(
                             plan.id == 'yearly' ? 'Year' : 'Week',
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14 : 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -462,9 +471,9 @@ class _SubscriptionSelectionScreenState
                         ),
                         if (isPopular)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 4 : 6,
+                              vertical: isSmallScreen ? 1 : 2,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -472,32 +481,32 @@ class _SubscriptionSelectionScreenState
                             ),
                             child: Text(
                               _getDiscountText(plan),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 10,
+                                fontSize: isSmallScreen ? 8 : 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
                     if (plan.id == 'yearly')
                       Row(
                         children: [
                           Text(
                             _getOriginalPrice(plan),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: isSmallScreen ? 10 : 12,
                               color: Colors.grey[400],
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: isSmallScreen ? 4 : 6),
                           Text(
                             plan.price,
-                            style: const TextStyle(
-                              fontSize: 14,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 12 : 14,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -507,8 +516,8 @@ class _SubscriptionSelectionScreenState
                     else
                       Text(
                         '3 Days free then ${plan.price}',
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 12 : 14,
                           color: Colors.white,
                         ),
                       ),
