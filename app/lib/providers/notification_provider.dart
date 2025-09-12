@@ -14,6 +14,8 @@ class NotificationProvider extends ChangeNotifier {
   bool _enableTestNotifications = false;
   double _minFlowThreshold = 0.1;
   double _significantChangePercent = 20.0;
+  bool _enableFlowAmount = false;
+  double _flowAmountThreshold = 10.0;
   String? _quietHoursStart;
   String? _quietHoursEnd;
   int _notificationCount = 0;
@@ -28,6 +30,8 @@ class NotificationProvider extends ChangeNotifier {
   bool get enableTestNotifications => _enableTestNotifications;
   double get minFlowThreshold => _minFlowThreshold;
   double get significantChangePercent => _significantChangePercent;
+  bool get enableFlowAmount => _enableFlowAmount;
+  double get flowAmountThreshold => _flowAmountThreshold;
   String? get quietHoursStart => _quietHoursStart;
   String? get quietHoursEnd => _quietHoursEnd;
   int get notificationCount => _notificationCount;
@@ -114,6 +118,9 @@ class NotificationProvider extends ChangeNotifier {
         _minFlowThreshold = (settings['minFlowThreshold'] ?? 0.1).toDouble();
         _significantChangePercent =
             (settings['significantChangePercent'] ?? 20.0).toDouble();
+        _enableFlowAmount = settings['enableFlowAmount'] ?? false;
+        _flowAmountThreshold = (settings['flowAmountThreshold'] ?? 10.0)
+            .toDouble();
         _quietHoursStart = settings['quietHoursStart'];
         _quietHoursEnd = settings['quietHoursEnd'];
         _notificationCount = settings['notificationCount'] ?? 0;
@@ -155,6 +162,12 @@ class NotificationProvider extends ChangeNotifier {
         if (settings.containsKey('significantChangePercent')) {
           _significantChangePercent = settings['significantChangePercent']
               .toDouble();
+        }
+        if (settings.containsKey('enableFlowAmount')) {
+          _enableFlowAmount = settings['enableFlowAmount'];
+        }
+        if (settings.containsKey('flowAmountThreshold')) {
+          _flowAmountThreshold = settings['flowAmountThreshold'].toDouble();
         }
         if (settings.containsKey('quietHoursStart')) {
           _quietHoursStart = settings['quietHoursStart'];
@@ -209,6 +222,8 @@ class NotificationProvider extends ChangeNotifier {
       'enableTestNotifications': _enableTestNotifications,
       'minFlowThreshold': _minFlowThreshold,
       'significantChangePercent': _significantChangePercent,
+      'enableFlowAmount': _enableFlowAmount,
+      'flowAmountThreshold': _flowAmountThreshold,
       'quietHoursStart': _quietHoursStart,
       'quietHoursEnd': _quietHoursEnd,
       'notificationCount': _notificationCount,

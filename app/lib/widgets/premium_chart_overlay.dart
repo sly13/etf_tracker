@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
-import '../services/subscription_service.dart';
 import '../screens/subscription_selection_screen.dart';
 import '../providers/subscription_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +10,7 @@ class PremiumChartOverlay extends StatelessWidget {
   final String title;
   final String description;
   final VoidCallback? onSubscribe;
+  final double? lockedHeight;
 
   const PremiumChartOverlay({
     super.key,
@@ -18,6 +18,7 @@ class PremiumChartOverlay extends StatelessWidget {
     required this.title,
     required this.description,
     this.onSubscribe,
+    this.lockedHeight,
   });
 
   @override
@@ -39,9 +40,14 @@ class PremiumChartOverlay extends StatelessWidget {
           return this.child;
         }
 
-        // Если не премиум - показываем заблокированный контент
+        // Если не премиум - показываем заблокированный контент с ограниченной высотой
         print('🔧 PremiumChartOverlay: Показываем заблокированный контент');
-        return _buildLockedContent(context);
+        return SizedBox(
+          height:
+              lockedHeight ??
+              200, // Используем переданную высоту или 200 по умолчанию
+          child: _buildLockedContent(context),
+        );
       },
     );
   }
@@ -70,47 +76,47 @@ class PremiumChartOverlay extends StatelessWidget {
               children: [
                 // Иконка замка
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
                     ).colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.primary,
-                      width: 2,
+                      width: 1.5,
                     ),
                   ),
                   child: Icon(
                     Icons.lock,
-                    size: 30,
+                    size: 20,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
 
                 // Заголовок
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
 
                 // Описание
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     description,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Theme.of(
                         context,
                       ).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -119,7 +125,7 @@ class PremiumChartOverlay extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
                 // Кнопка подписки
                 ElevatedButton.icon(
@@ -134,17 +140,20 @@ class PremiumChartOverlay extends StatelessWidget {
                           ),
                         );
                       },
-                  icon: const Icon(Icons.star),
-                  label: Text('premium.unlock'.tr()),
+                  icon: const Icon(Icons.star, size: 16),
+                  label: Text(
+                    'premium.unlock'.tr(),
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+                      horizontal: 16,
+                      vertical: 8,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                 ),

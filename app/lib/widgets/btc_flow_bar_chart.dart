@@ -110,31 +110,32 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: isDark ? null : Border.all(
-          color: Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
-        boxShadow: isDark ? null : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: isDark
+            ? null
+            : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         children: [
           _buildHeader(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           _buildKeyMetrics(),
-          const SizedBox(height: 16),
-          Expanded(child: _buildChart()),
+          const SizedBox(height: 8),
+          Flexible(child: _buildChart()),
         ],
       ),
     );
@@ -142,7 +143,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
 
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -150,11 +151,11 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           'etf.bitcoin_flows'.tr(),
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
@@ -164,7 +165,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
                 _selectedPeriod == ChartPeriod.daily,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Expanded(
               child: _buildPeriodButton(
                 'etf.weekly'.tr(),
@@ -172,7 +173,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
                 _selectedPeriod == ChartPeriod.weekly,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Expanded(
               child: _buildPeriodButton(
                 'etf.monthly'.tr(),
@@ -188,7 +189,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
 
   Widget _buildPeriodButton(String text, ChartPeriod period, bool isSelected) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -197,10 +198,10 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
         _filterData();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 3),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Colors.blue 
+          color: isSelected
+              ? Colors.blue
               : (isDark ? Colors.grey[800] : Colors.grey[200]),
           borderRadius: BorderRadius.circular(4),
         ),
@@ -208,10 +209,10 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           text,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected 
-                ? Colors.white 
+            color: isSelected
+                ? Colors.white
                 : (isDark ? Colors.grey[400] : Colors.grey[700]),
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -236,7 +237,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
             Colors.green,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Expanded(
           child: _buildMetricCard(
             'etf.assets'.tr(),
@@ -245,7 +246,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
             Colors.blue,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Expanded(
           child: _buildMetricCard(
             'etf.btc_price'.tr(),
@@ -265,37 +266,43 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
     Color color,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[800] : Colors.grey[100],
         borderRadius: BorderRadius.circular(6),
-        border: isDark ? null : Border.all(
-          color: Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 14),
-          const SizedBox(height: 4),
+          Icon(icon, color: color, size: 12),
+          const SizedBox(height: 2),
           Text(
             title,
             style: const TextStyle(
               color: Colors.grey,
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             value,
             style: TextStyle(
               color: color,
-              fontSize: 14,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -312,34 +319,60 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
       );
     }
 
-    return AspectRatio(
-      aspectRatio: 1.5,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 18.0, right: 18.0),
-        child: Row(
-          children: [
-            // Фиксированная шкала слева
-            SizedBox(
-              width: 70,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Expanded(child: _buildFixedAxis()),
-                ],
-              ),
-            ),
-            // Скроллируемая область с графиком
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: SizedBox(
-                  width: _getChartWidth(),
-                  child: _buildScrollableChart(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight;
+        final minHeight = 60.0; // Минимальная высота для графика
+
+        if (availableHeight < minHeight) {
+          // Если места очень мало, показываем упрощенную версию
+          return _buildCompactChart();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0, right: 8.0),
+          child: Row(
+            children: [
+              // Фиксированная шкала слева (только если достаточно места)
+              if (availableHeight >= 80)
+                SizedBox(
+                  width: 60,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Expanded(child: _buildFixedAxis()),
+                    ],
+                  ),
+                ),
+              // Скроллируемая область с графиком
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: SizedBox(
+                    width: _getChartWidth(),
+                    child: _buildScrollableChart(
+                      showAxis: availableHeight >= 80,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCompactChart() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: SizedBox(
+          width: _getChartWidth(),
+          child: _buildScrollableChart(showAxis: false),
         ),
       ),
     );
@@ -377,7 +410,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
     return Column(children: axisLabels);
   }
 
-  Widget _buildScrollableChart() {
+  Widget _buildScrollableChart({bool showAxis = true}) {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
@@ -410,7 +443,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           ),
         ),
         titlesData: FlTitlesData(
-          show: true,
+          show: showAxis,
           rightTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
@@ -422,8 +455,8 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 25,
+              showTitles: showAxis,
+              reservedSize: showAxis ? 25 : 0,
               interval: _getInterval(),
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&

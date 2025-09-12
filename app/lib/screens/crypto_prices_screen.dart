@@ -55,6 +55,7 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
                 showRefreshButton:
                     false, // Убираем кнопку, так как она есть в AppBar
                 showLastUpdateTime: true,
+                padding: EdgeInsets.zero, // Убираем дополнительные отступы
               ),
 
               // Дополнительная информация
@@ -74,13 +75,16 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'crypto.additional_info'.tr(),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -117,7 +121,7 @@ class _CryptoPricesScreenState extends State<CryptoPricesScreen> {
   Widget _buildInfoCard(String title, List<Widget> children) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

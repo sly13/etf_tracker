@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/subscription_plan.dart';
 import '../services/subscription_service.dart';
 import '../providers/subscription_provider.dart';
 import '../widgets/loading_screen.dart';
+import '../config/app_config.dart';
+import '../utils/haptic_feedback.dart';
 
 class SubscriptionSelectionScreen extends StatefulWidget {
   const SubscriptionSelectionScreen({super.key});
@@ -91,6 +94,16 @@ class _SubscriptionSelectionScreenState
           : Stack(
               children: [
                 _buildContent(),
+                // Кнопка восстановления покупок в левом верхнем углу
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  left: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.restore, color: Colors.white),
+                    onPressed: _handleRestorePurchases,
+                    tooltip: 'Restore purchases',
+                  ),
+                ),
                 // Кнопка закрытия в правом верхнем углу
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 16,
@@ -136,7 +149,7 @@ class _SubscriptionSelectionScreenState
         // Основной контент
         Expanded(
           child: Padding(
-            padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -156,8 +169,8 @@ class _SubscriptionSelectionScreenState
                 _buildPurchaseButton(),
                 SizedBox(height: isSmallScreen ? 8 : 12),
 
-                // Восстановление покупок
-                _buildRestorePurchases(),
+                // Ссылки на Terms of Use и Privacy Policy
+                _buildLegalLinks(),
               ],
             ),
           ),
@@ -168,7 +181,6 @@ class _SubscriptionSelectionScreenState
 
   Widget _buildHeroImage() {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     // Адаптивная высота: больше на больших экранах, меньше на маленьких
     final heroHeight = screenHeight > 800
@@ -292,7 +304,7 @@ class _SubscriptionSelectionScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'What\'s included:',
+          'subscription.features.title'.tr(),
           style: TextStyle(
             fontSize: isSmallScreen ? 16 : 18,
             fontWeight: FontWeight.bold,
@@ -304,9 +316,10 @@ class _SubscriptionSelectionScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildBenefitItem('Advanced ETF flow analytics'),
-              _buildBenefitItem('Detailed fund statistics'),
-              _buildBenefitItem('Real-time notifications'),
+              _buildBenefitItem('subscription.features.analytics'.tr()),
+              _buildBenefitItem('subscription.features.statistics'.tr()),
+              _buildBenefitItem('subscription.features.notifications'.tr()),
+              _buildBenefitItem('subscription.features.insights'.tr()),
             ],
           ),
         ),
@@ -320,7 +333,7 @@ class _SubscriptionSelectionScreenState
     final isSmallScreen = screenHeight < 700;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: isSmallScreen ? 8 : 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Icon(
@@ -357,7 +370,7 @@ class _SubscriptionSelectionScreenState
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (_isLoadingPrices)
           const Center(child: CircularProgressIndicator())
         else
@@ -373,10 +386,10 @@ class _SubscriptionSelectionScreenState
     final isPopular = plan.isPopular;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelected ? Colors.white : Colors.transparent,
           width: 2,
@@ -388,25 +401,25 @@ class _SubscriptionSelectionScreenState
             _selectedPlanId = plan.id;
           });
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Радио кнопка
               Container(
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.grey[400]!, width: 1),
                   color: isSelected ? Colors.white : Colors.transparent,
                 ),
                 child: isSelected
-                    ? Icon(Icons.check, color: Colors.black, size: 16)
+                    ? Icon(Icons.check, color: Colors.black, size: 14)
                     : null,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
 
               // Контент плана
               Expanded(
@@ -419,7 +432,7 @@ class _SubscriptionSelectionScreenState
                           child: Text(
                             plan.id == 'yearly' ? 'Year' : 'Week',
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -428,41 +441,41 @@ class _SubscriptionSelectionScreenState
                         if (isPopular)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 6,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               _getDiscountText(plan),
                               style: const TextStyle(
                                 color: Colors.black,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     if (plan.id == 'yearly')
                       Row(
                         children: [
                           Text(
                             _getOriginalPrice(plan),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Colors.grey[400],
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             plan.price,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -473,7 +486,7 @@ class _SubscriptionSelectionScreenState
                       Text(
                         '3 Days free then ${plan.price}',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: Colors.white,
                         ),
                       ),
@@ -487,43 +500,131 @@ class _SubscriptionSelectionScreenState
     );
   }
 
-  Widget _buildRestorePurchases() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Future<void> _handleRestorePurchases() async {
+    HapticUtils.lightImpact();
 
-    return Center(
-      child: TextButton(
-        onPressed: () async {
-          try {
-            await SubscriptionService.restorePurchases();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('subscription.restore_success'.tr()),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('subscription.restore_error'.tr()),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        },
-        child: Text(
-          'Restore purchases',
-          style: TextStyle(
-            color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
-            decoration: TextDecoration.underline,
-            fontSize: 14,
+    try {
+      print('🔄 Начинаем восстановление покупок...');
+
+      // Восстанавливаем покупки
+      final customerInfo = await SubscriptionService.restorePurchases();
+      print('✅ Покупки восстановлены');
+
+      // Проверяем статус подписки после восстановления
+      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+      print(
+        '🔍 Статус подписки после восстановления: ${isPremium ? "Premium" : "Basic"}',
+      );
+      print(
+        '🔍 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      // Обновляем статус в SubscriptionProvider
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(
+        context,
+        listen: false,
+      );
+      subscriptionProvider.setPremiumStatus(isPremium);
+
+      // Принудительно обновляем статус из RevenueCat
+      await subscriptionProvider.refreshSubscriptionStatus();
+      print('✅ Статус подписки обновлен в провайдере');
+
+      // Синхронизируем с бэкендом
+      await SubscriptionService.syncSubscriptions();
+      print('✅ Синхронизация с бэкендом завершена');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isPremium
+                  ? 'Покупки восстановлены! Премиум активирован.'
+                  : 'Покупки восстановлены, но активных подписок не найдено.',
+            ),
+            backgroundColor: isPremium ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Ошибка восстановления покупок: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('subscription.restore_error'.tr()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildLegalLinks() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: () => _openUrl(AppConfig.termsOfUseUrl),
+          child: Text(
+            'Terms of Use',
+            style: TextStyle(
+              color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
+              decoration: TextDecoration.underline,
+              fontSize: isSmallScreen ? 12 : 14,
+            ),
           ),
         ),
-      ),
+        Text(
+          ' • ',
+          style: TextStyle(
+            color: isDark ? Colors.white.withOpacity(0.5) : Colors.grey[500],
+            fontSize: isSmallScreen ? 12 : 14,
+          ),
+        ),
+        TextButton(
+          onPressed: () => _openUrl(AppConfig.privacyPolicyUrl),
+          child: Text(
+            'Privacy Policy',
+            style: TextStyle(
+              color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
+              decoration: TextDecoration.underline,
+              fontSize: isSmallScreen ? 12 : 14,
+            ),
+          ),
+        ),
+      ],
     );
+  }
+
+  Future<void> _openUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Не удалось открыть ссылку'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка открытия ссылки: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildPurchaseButton() {
@@ -531,10 +632,6 @@ class _SubscriptionSelectionScreenState
       return const SizedBox.shrink();
     }
 
-    final selectedPlan = _plans.firstWhere(
-      (plan) => plan.id == _selectedPlanId,
-      orElse: () => _plans.first,
-    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
@@ -546,7 +643,7 @@ class _SubscriptionSelectionScreenState
         style: ElevatedButton.styleFrom(
           backgroundColor: isDark ? Colors.white : Colors.black,
           foregroundColor: isDark ? Colors.black : Colors.white,
-          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -572,27 +669,6 @@ class _SubscriptionSelectionScreenState
                 ),
               ),
       ),
-    );
-  }
-
-  Widget _buildAdditionalInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'subscription.additional_info'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'subscription.additional_info_text'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-        ),
-      ],
     );
   }
 

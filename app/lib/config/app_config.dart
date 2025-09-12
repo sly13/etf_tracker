@@ -11,6 +11,12 @@ class AppConfig {
   // Название Telegram бота по умолчанию
   static const String _defaultTelegramBotName = 'etf_flows_bot';
 
+  // URL-адреса для юридических документов
+  static const String _defaultTermsOfUseUrl =
+      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+  static const String _defaultPrivacyPolicyUrl =
+      'https://www.privacypolicies.com/live/2e0d5b0f-786f-45a6-be4e-e7bc311d30d6';
+
   // Определяем, запущено ли приложение в режиме отладки
   static bool get isDebugMode => !kReleaseMode;
 
@@ -67,6 +73,32 @@ class AppConfig {
     // Используем название по умолчанию
     print('🔧 Используем название бота по умолчанию: $_defaultTelegramBotName');
     return _defaultTelegramBotName;
+  }
+
+  // Получаем URL для Terms of Use
+  static String get termsOfUseUrl {
+    try {
+      final envTermsUrl = dotenv.env['TERMS_OF_USE_URL'];
+      if (envTermsUrl != null && envTermsUrl.isNotEmpty) {
+        return envTermsUrl;
+      }
+    } catch (e) {
+      print('⚠️ Ошибка получения TERMS_OF_USE_URL из .env: $e');
+    }
+    return _defaultTermsOfUseUrl;
+  }
+
+  // Получаем URL для Privacy Policy
+  static String get privacyPolicyUrl {
+    try {
+      final envPrivacyUrl = dotenv.env['PRIVACY_POLICY_URL'];
+      if (envPrivacyUrl != null && envPrivacyUrl.isNotEmpty) {
+        return envPrivacyUrl;
+      }
+    } catch (e) {
+      print('⚠️ Ошибка получения PRIVACY_POLICY_URL из .env: $e');
+    }
+    return _defaultPrivacyPolicyUrl;
   }
 
   // Получаем информацию о текущем окружении

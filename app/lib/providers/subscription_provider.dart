@@ -148,7 +148,7 @@ class SubscriptionProvider extends ChangeNotifier {
     print('🔧 SubscriptionProvider.setPremiumStatus() вызван');
     print('🔧 Текущий статус: $_isPremium');
     print('🔧 Новый статус: $isPremium');
-    
+
     _isPremium = isPremium;
 
     // Сохраняем в кэш
@@ -157,7 +157,7 @@ class SubscriptionProvider extends ChangeNotifier {
     if (kDebugMode) {
       print('🔧 SubscriptionProvider: Установлен премиум статус: $isPremium');
     }
-    
+
     print('🔧 Вызываем notifyListeners()');
     notifyListeners();
     print('🔧 notifyListeners() завершен');

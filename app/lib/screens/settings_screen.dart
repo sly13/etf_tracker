@@ -17,6 +17,8 @@ import '../utils/haptic_feedback.dart';
 import '../widgets/pro_button.dart';
 import '../config/app_config.dart';
 import 'notification_settings_screen.dart';
+import 'theme_selection_screen.dart';
+import 'language_selection_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -61,35 +63,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const ProButton(),
         ],
       ),
-      body: SingleChildScrollView(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Внешний вид
-            _buildAppearanceSection(),
-            const SizedBox(height: 24),
+        children: [
+          // Внешний вид
+          _buildAppearanceSection(),
 
-            // Язык
-            _buildLanguageSection(),
-            const SizedBox(height: 24),
+          // Язык
+          _buildLanguageSection(),
 
-            // Подписка
-            _buildSubscriptionSection(),
-            const SizedBox(height: 24),
+          // Уведомления
+          _buildNotificationSection(),
 
-            // Уведомления
-            _buildNotificationSection(),
-            const SizedBox(height: 24),
+          // Подписка
+          _buildSubscriptionSection(),
 
-            // Device ID
-            _buildDeviceIdSection(),
-            const SizedBox(height: 24),
+          // Device ID
+          _buildDeviceIdSection(),
 
-            // О приложении
-            _buildAboutSection(),
-          ],
-        ),
+          // О приложении
+          _buildAboutSection(),
+        ],
       ),
     );
   }
@@ -98,170 +92,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final currentTheme = themeProvider.currentThemeKey;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'settings.appearance'.tr(),
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 0.5,
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.palette_outlined,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            title: Text(
+              'settings.theme'.tr(),
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.grey.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.3),
-                  width: 0.5,
-                ),
-                boxShadow: isDark
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.grey.withOpacity(0.2),
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.palette_outlined,
-                          color: isDark
-                              ? Colors.grey.withOpacity(0.6)
-                              : Colors.grey.withOpacity(0.7),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'settings.theme'.tr(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: isDark
-                              ? Colors.grey.withOpacity(0.6)
-                              : Colors.grey.withOpacity(0.7),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildThemeOption(
-                          'settings.light_theme'.tr(),
-                          'light',
-                          themeProvider.currentThemeKey,
-                          themeProvider,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildThemeOption(
-                          'settings.dark_theme'.tr(),
-                          'dark',
-                          themeProvider.currentThemeKey,
-                          themeProvider,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            subtitle: Text(
+              currentTheme == 'light'
+                  ? 'settings.light_theme'.tr()
+                  : 'settings.dark_theme'.tr(),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? Colors.grey.withOpacity(0.6)
+                    : Colors.grey.withOpacity(0.5),
               ),
             ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption(
-    String title,
-    String value,
-    String currentValue,
-    ThemeProvider themeProvider,
-  ) {
-    final isSelected = currentValue == value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        HapticUtils.selectionChanged();
-
-        // Логируем изменение темы
-        AnalyticsService.logThemeChange(themeMode: value.toString());
-
-        themeProvider.setTheme(value);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blue.withOpacity(isDark ? 0.1 : 0.05)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? Colors.blue
-                : (isDark
-                      ? Colors.grey.withOpacity(0.3)
-                      : Colors.grey.withOpacity(0.4)),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isSelected
-                  ? Colors.blue
-                  : (isDark
-                        ? Colors.grey.withOpacity(0.6)
-                        : Colors.grey.withOpacity(0.7)),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: isDark
+                  ? Colors.grey.withOpacity(0.6)
+                  : Colors.grey.withOpacity(0.7),
               size: 20,
             ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                color: isSelected
-                    ? (isDark ? Colors.white : Colors.black87)
-                    : (isDark
-                          ? Colors.grey.withOpacity(0.8)
-                          : Colors.grey.withOpacity(0.7)),
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
+            onTap: () {
+              HapticUtils.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ThemeSelectionScreen(),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -279,7 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
@@ -421,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Получать уведомления в Telegram',
+                                'profile.notifications'.tr(),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -430,7 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Получайте обновления ETF прямо в Telegram',
+                                'telegram.get_updates'.tr(),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: isDark
@@ -443,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -452,8 +338,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _openTelegramBot();
                         },
                         icon: const Icon(Icons.telegram, color: Colors.white),
-                        label: const Text(
-                          'Открыть Telegram бота',
+                        label: Text(
+                          'telegram.open_bot'.tr(),
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -482,198 +368,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final currentLanguage = languageProvider.currentLocale.languageCode;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 0.5,
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.language,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            title: Text(
               'settings.language'.tr(),
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.grey.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.3),
-                  width: 0.5,
-                ),
-                boxShadow: isDark
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.grey.withOpacity(0.2),
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.language,
-                          color: isDark
-                              ? Colors.grey.withOpacity(0.6)
-                              : Colors.grey.withOpacity(0.7),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'settings.language'.tr(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: isDark
-                              ? Colors.grey.withOpacity(0.6)
-                              : Colors.grey.withOpacity(0.7),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildLanguageOption(
-                          'settings.english'.tr(),
-                          'English',
-                          'en',
-                          languageProvider.currentLocale.languageCode,
-                          languageProvider,
-                          context,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildLanguageOption(
-                          'settings.russian'.tr(),
-                          'Русский',
-                          'ru',
-                          languageProvider.currentLocale.languageCode,
-                          languageProvider,
-                          context,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            subtitle: Text(
+              currentLanguage == 'en' ? 'English' : 'Русский',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? Colors.grey.withOpacity(0.6)
+                    : Colors.grey.withOpacity(0.5),
               ),
             ),
-          ],
+            trailing: Icon(
+              Icons.chevron_right,
+              color: isDark
+                  ? Colors.grey.withOpacity(0.6)
+                  : Colors.grey.withOpacity(0.7),
+              size: 20,
+            ),
+            onTap: () {
+              HapticUtils.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LanguageSelectionScreen(),
+                ),
+              );
+            },
+          ),
         );
       },
     );
   }
 
-  Widget _buildLanguageOption(
-    String title,
-    String subtitle,
-    String value,
-    String currentValue,
-    LanguageProvider languageProvider,
-    BuildContext context,
-  ) {
-    final isSelected = currentValue == value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        HapticUtils.selectionChanged();
-
-        // Логируем изменение языка
-        AnalyticsService.logLanguageChange(languageCode: value);
-
-        final locale = Locale(value);
-        languageProvider.setLanguage(locale);
-        context.setLocale(locale);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blue.withOpacity(isDark ? 0.1 : 0.05)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? Colors.blue
-                : (isDark
-                      ? Colors.grey.withOpacity(0.3)
-                      : Colors.grey.withOpacity(0.4)),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isSelected
-                  ? Colors.blue
-                  : (isDark
-                        ? Colors.grey.withOpacity(0.6)
-                        : Colors.grey.withOpacity(0.7)),
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isSelected
-                          ? (isDark ? Colors.white : Colors.black87)
-                          : (isDark
-                                ? Colors.grey.withOpacity(0.8)
-                                : Colors.grey.withOpacity(0.7)),
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? Colors.grey.withOpacity(0.6)
-                          : Colors.grey.withOpacity(0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  /// Функция для очистки deviceId от префикса платформы
+  String _cleanDeviceId(String deviceId) {
+    if (deviceId.startsWith('ios_')) {
+      return deviceId.substring(4); // убираем 'ios_'
+    } else if (deviceId.startsWith('android_')) {
+      return deviceId.substring(8); // убираем 'android_'
+    }
+    return deviceId;
   }
 
   Widget _buildDeviceIdSection() {
@@ -683,14 +442,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Device ID',
+          'telegram.device_id'.tr(),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w600,
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
@@ -731,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ваш Device ID',
+                            'telegram.device_id_title'.tr(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -740,7 +499,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Скопируйте этот ID для привязки Telegram',
+                            'telegram.device_id_subtitle'.tr(),
                             style: TextStyle(
                               fontSize: 14,
                               color: isDark
@@ -756,8 +515,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         try {
                           final deviceId =
                               await NotificationService.getDeviceId();
+                          final cleanDeviceId = _cleanDeviceId(deviceId);
                           await Clipboard.setData(
-                            ClipboardData(text: deviceId),
+                            ClipboardData(text: cleanDeviceId),
                           );
                           HapticUtils.lightImpact(); // Добавляем вибрацию
 
@@ -772,7 +532,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       size: 16,
                                     ),
                                     const SizedBox(width: 8),
-                                    Text('Device ID скопирован в буфер обмена'),
+                                    Text('telegram.device_id_copied'.tr()),
                                   ],
                                 ),
                                 backgroundColor: Colors.green,
@@ -785,7 +545,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Ошибка копирования: $e'),
+                                content: Text(
+                                  'telegram.copy_error'.tr() + ': $e',
+                                ),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -793,11 +555,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                       icon: Icon(Icons.copy, color: Colors.blue, size: 20),
-                      tooltip: 'Скопировать Device ID',
+                      tooltip: 'telegram.device_id_subtitle'.tr(),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 FutureBuilder<String>(
                   future: NotificationService.getDeviceId(),
                   builder: (context, snapshot) {
@@ -820,9 +582,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
 
                     final deviceId = snapshot.data ?? 'Ошибка загрузки';
+                    final cleanDeviceId = _cleanDeviceId(deviceId);
                     return Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(12),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isDark
                             ? Colors.grey.withOpacity(0.1)
@@ -838,7 +601,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              deviceId,
+                              cleanDeviceId,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontFamily: 'monospace',
@@ -852,7 +615,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             onTap: () async {
                               try {
                                 await Clipboard.setData(
-                                  ClipboardData(text: deviceId),
+                                  ClipboardData(text: cleanDeviceId),
                                 );
                                 HapticUtils.lightImpact(); // Добавляем вибрацию
 
@@ -867,7 +630,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             size: 16,
                                           ),
                                           const SizedBox(width: 8),
-                                          Text('Device ID скопирован'),
+                                          Text(
+                                            'telegram.device_id_copied_short'
+                                                .tr(),
+                                          ),
                                         ],
                                       ),
                                       backgroundColor: Colors.green,
@@ -880,7 +646,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Ошибка копирования: $e'),
+                                      content: Text(
+                                        'telegram.copy_error'.tr() + ': $e',
+                                      ),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -905,9 +673,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
-                  'Для привязки Telegram:\n1. Скопируйте Device ID\n2. Отправьте команду /link в боте\n3. Вставьте скопированный ID',
+                  'telegram.link_instructions'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark
@@ -938,7 +706,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
@@ -1035,7 +803,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка обновления статуса: $e'),
+            content: Text('errors.subscription_status_error'.tr() + ': $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1135,10 +903,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Telegram откроется автоматически. Отправьте команду /start боту для привязки аккаунта.',
-                ),
+              SnackBar(
+                content: Text('telegram.telegram_opens'.tr()),
                 backgroundColor: Colors.green,
               ),
             );
@@ -1146,10 +912,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Не удалось открыть Telegram. Убедитесь, что приложение установлено.',
-                ),
+              SnackBar(
+                content: Text('telegram.telegram_error'.tr()),
                 backgroundColor: Colors.red,
               ),
             );
@@ -1158,14 +922,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('common.error'.tr() + ': $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('common.error'.tr() + ': $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -1213,63 +983,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildNotificationSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Уведомления',
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? Colors.grey.withOpacity(0.2)
+              : Colors.grey.withOpacity(0.3),
+          width: 0.5,
+        ),
+      ),
+      child: ListTile(
+        leading: Icon(
+          Icons.notifications,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        title: Text(
+          'profile.notifications'.tr(),
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+            fontSize: 16,
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        const SizedBox(height: 20),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark
-                  ? Colors.grey.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.3),
-            ),
-          ),
-          child: ListTile(
-            leading: Icon(
-              Icons.notifications,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-            title: Text(
-              'Настройки уведомлений',
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            subtitle: Text(
-              'Управление пуш-уведомлениями ETF',
-              style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-            onTap: () {
-              HapticUtils.lightImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationSettingsScreen(),
-                ),
-              );
-            },
+        subtitle: Text(
+          'telegram.notification_management'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark
+                ? Colors.grey.withOpacity(0.6)
+                : Colors.grey.withOpacity(0.5),
           ),
         ),
-      ],
+        trailing: Icon(
+          Icons.chevron_right,
+          color: isDark
+              ? Colors.grey.withOpacity(0.6)
+              : Colors.grey.withOpacity(0.7),
+          size: 20,
+        ),
+        onTap: () {
+          HapticUtils.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NotificationSettingsScreen(),
+            ),
+          );
+        },
+      ),
     );
   }
 }

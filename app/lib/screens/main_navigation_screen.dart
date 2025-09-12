@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vibration/vibration.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../utils/haptic_feedback.dart';
 import '../services/analytics_service.dart';
@@ -75,8 +74,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         // Показываем экран загрузки во время инициализации
         if (etfProvider.isInitializing) {
           debugPrint('MainNavigationScreen: Показываем экран инициализации');
-          return const LoadingScreen(
-            message: 'Инициализация приложения...',
+          return LoadingScreen(
+            message: 'loading.initializing_app'.tr(),
             showProgress: true,
             showDetailedProgress: true,
           );
@@ -87,12 +86,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           debugPrint(
             'MainNavigationScreen: Данные не готовы, показываем экран загрузки',
           );
-          String loadingMessage = 'Загрузка данных...';
+          String loadingMessage = 'loading.loading_data'.tr();
 
           if (etfProvider.error != null) {
             debugPrint('MainNavigationScreen: Показываем экран ошибки');
             return LoadingScreen(
-              message: 'Ошибка загрузки данных',
+              message: 'loading.error_loading_data'.tr(),
               showProgress: false,
               error: etfProvider.error,
               showDetailedProgress: true,
@@ -105,13 +104,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
           // Показываем прогресс загрузки с детальной информацией
           if (etfProvider.isEthereumLoaded && !etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'Загрузка данных Bitcoin ETF...';
+            loadingMessage = 'loading.loading_bitcoin_etf'.tr();
           } else if (!etfProvider.isEthereumLoaded &&
               etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'Загрузка данных Ethereum ETF...';
+            loadingMessage = 'loading.loading_ethereum_etf'.tr();
           } else if (!etfProvider.isEthereumLoaded &&
               !etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'Загрузка данных ETF...';
+            loadingMessage = 'loading.loading_etf'.tr();
           }
 
           debugPrint(
@@ -221,9 +220,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         onTap: () {
                           // Добавляем вибрацию при переключении страниц
                           _vibrateOnPageChange();
-                          
+
                           // Логируем событие переключения страницы
-                          final screenNames = ['ETF Tabs', 'Bitcoin ETF', 'Ethereum ETF', 'Fund Holdings', 'Settings'];
+                          final screenNames = [
+                            'analytics.screen_names.etf_tabs'.tr(),
+                            'analytics.screen_names.bitcoin_etf'.tr(),
+                            'analytics.screen_names.ethereum_etf'.tr(),
+                            'analytics.screen_names.fund_holdings'.tr(),
+                            'analytics.screen_names.settings'.tr(),
+                          ];
                           AnalyticsService.logButtonClick(
                             buttonName: 'navigation_tab',
                             screenName: 'main_navigation',
@@ -232,7 +237,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               'tab_name': screenNames[index],
                             },
                           );
-                          
+
                           // Обновляем индекс в Provider
                           etfProvider.switchNavigationTab(index);
                           // Переходим к странице без анимации

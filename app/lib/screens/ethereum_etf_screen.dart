@@ -7,8 +7,6 @@ import '../widgets/etf_flow_bar_chart.dart';
 import '../widgets/premium_chart_overlay.dart';
 
 import '../widgets/ethereum_flow_card.dart';
-import 'settings_screen.dart';
-import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
 import '../widgets/pro_button.dart';
 
@@ -94,7 +92,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                       // Можно добавить дополнительную логику при нажатии
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
                   // График потоков
                   _buildChartSection(etfProvider.ethereumData),
@@ -116,11 +114,12 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
     return PremiumChartOverlay(
       title: 'premium.ethereum_charts_title'.tr(),
       description: 'premium.ethereum_charts_desc'.tr(),
+      lockedHeight: 200, // Высота для заблокированного контента
       child: Card(
         elevation: 2,
         child: Container(
-          height: 450, // Увеличиваем высоту для лучшего отображения
-          padding: const EdgeInsets.all(12), // Увеличиваем отступы
+          height: 450, // Полная высота для разблокированного контента
+          padding: const EdgeInsets.all(16),
           child: ETFFlowBarChart(flowData: data),
         ),
       ),
@@ -275,7 +274,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -367,7 +366,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.blue.withOpacity(0.2)
@@ -445,7 +444,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
         borderRadius: BorderRadius.circular(8),

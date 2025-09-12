@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 
 @Controller('notifications')
@@ -65,6 +65,48 @@ export class NotificationController {
       message: success
         ? 'Тестовое уведомление отправлено'
         : 'Ошибка отправки уведомления',
+    };
+  }
+
+  /**
+   * Получение настроек устройства
+   */
+  @Get('device-settings/:token')
+  async getDeviceSettings(@Param('token') token: string) {
+    const settings = await this.notificationService.getDeviceSettings(token);
+    return {
+      success: settings !== null,
+      settings,
+      message: settings ? 'Настройки получены' : 'Настройки не найдены',
+    };
+  }
+
+  /**
+   * Обновление настроек устройства
+   */
+  @Post('device-settings')
+  async updateDeviceSettings(
+    @Body()
+    body: {
+      token: string;
+      enableETFUpdates?: boolean;
+      enableSignificantFlow?: boolean;
+      enableTestNotifications?: boolean;
+      enableFlowAmount?: boolean;
+      minFlowThreshold?: number;
+      significantChangePercent?: number;
+      flowAmountThreshold?: number;
+      quietHoursStart?: string;
+      quietHoursEnd?: string;
+    },
+  ) {
+    const success = await this.notificationService.updateDeviceSettings(
+      body.token,
+      body,
+    );
+    return {
+      success,
+      message: success ? 'Настройки обновлены' : 'Ошибка обновления настроек',
     };
   }
 }

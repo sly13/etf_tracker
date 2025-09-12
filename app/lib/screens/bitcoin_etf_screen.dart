@@ -7,8 +7,6 @@ import '../widgets/btc_flow_bar_chart.dart';
 import '../widgets/premium_chart_overlay.dart';
 
 import '../widgets/bitcoin_flow_card.dart';
-import 'settings_screen.dart';
-import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
 import '../widgets/pro_button.dart';
 
@@ -94,7 +92,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                       // Можно добавить дополнительную логику при нажатии
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
                   // График потоков
                   _buildChartSection(etfProvider.bitcoinData),
@@ -116,11 +114,12 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
     return PremiumChartOverlay(
       title: 'premium.bitcoin_charts_title'.tr(),
       description: 'premium.bitcoin_charts_desc'.tr(),
+      lockedHeight: 200, // Высота для заблокированного контента
       child: Card(
         elevation: 2,
         child: Container(
-          height: 420,
-          padding: const EdgeInsets.all(8),
+          height: 420, // Полная высота для разблокированного контента
+          padding: const EdgeInsets.all(16),
           child: BTCFlowBarChart(flowData: data),
         ),
       ),
@@ -277,7 +276,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -369,7 +368,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.orange.withOpacity(0.2)
@@ -447,7 +446,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
         borderRadius: BorderRadius.circular(8),

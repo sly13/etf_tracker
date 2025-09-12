@@ -119,10 +119,10 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
       child: Column(
         children: [
           _buildHeader(isDark),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           _buildKeyMetrics(),
-          const SizedBox(height: 16),
-          Expanded(child: _buildChart()),
+          const SizedBox(height: 8),
+          Flexible(child: _buildChart()),
         ],
       ),
     );
@@ -136,11 +136,11 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           'etf.ethereum_flows'.tr(),
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
@@ -151,7 +151,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
                 isDark,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Expanded(
               child: _buildPeriodButton(
                 'etf.weekly'.tr(),
@@ -160,7 +160,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
                 isDark,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Expanded(
               child: _buildPeriodButton(
                 'etf.monthly'.tr(),
@@ -189,7 +189,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
         _filterData();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 3),
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.blue
@@ -203,7 +203,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             color: isSelected
                 ? Colors.white
                 : (isDark ? Colors.grey[400] : Colors.grey[600]),
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -230,7 +230,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             isDark,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Expanded(
           child: _buildMetricCard(
             'etf.assets'.tr(),
@@ -240,7 +240,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
             isDark,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Expanded(
           child: _buildMetricCard(
             'etf.eth_price'.tr(),
@@ -262,31 +262,38 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     bool isDark,
   ) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 14),
-          const SizedBox(height: 4),
+          Icon(icon, color: color, size: 12),
+          const SizedBox(height: 2),
           Text(
             title,
             style: const TextStyle(
               color: Colors.grey,
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             value,
             style: TextStyle(
               color: color,
-              fontSize: 14,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -303,34 +310,60 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
       );
     }
 
-    return AspectRatio(
-      aspectRatio: 1.8, // Увеличиваем соотношение для лучшего отображения
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0, right: 20.0, bottom: 10.0),
-        child: Row(
-          children: [
-            // Фиксированная шкала слева
-            SizedBox(
-              width: 80, // Увеличиваем ширину для лучшей читаемости
-              child: Column(
-                children: [
-                  const SizedBox(height: 25),
-                  Expanded(child: _buildFixedAxis()),
-                ],
-              ),
-            ),
-            // Скроллируемая область с графиком
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: SizedBox(
-                  width: _getChartWidth(),
-                  child: _buildScrollableChart(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight;
+        final minHeight = 60.0; // Минимальная высота для графика
+
+        if (availableHeight < minHeight) {
+          // Если места очень мало, показываем упрощенную версию
+          return _buildCompactChart();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0, right: 8.0),
+          child: Row(
+            children: [
+              // Фиксированная шкала слева (только если достаточно места)
+              if (availableHeight >= 80)
+                SizedBox(
+                  width: 60,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Expanded(child: _buildFixedAxis()),
+                    ],
+                  ),
+                ),
+              // Скроллируемая область с графиком
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: SizedBox(
+                    width: _getChartWidth(),
+                    child: _buildScrollableChart(
+                      showAxis: availableHeight >= 80,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCompactChart() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: SizedBox(
+          width: _getChartWidth(),
+          child: _buildScrollableChart(showAxis: false),
         ),
       ),
     );
@@ -369,7 +402,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     return Column(children: axisLabels);
   }
 
-  Widget _buildScrollableChart() {
+  Widget _buildScrollableChart({bool showAxis = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BarChart(
       BarChartData(
@@ -405,7 +438,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           ),
         ),
         titlesData: FlTitlesData(
-          show: true,
+          show: showAxis,
           rightTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
@@ -417,8 +450,8 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 35, // Увеличиваем место для подписей
+              showTitles: showAxis,
+              reservedSize: showAxis ? 35 : 0, // Увеличиваем место для подписей
               interval: _getInterval(),
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&

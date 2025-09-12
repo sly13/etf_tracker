@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
-import 'package:intl/intl.dart';
 
 class BitcoinFlowCard extends StatelessWidget {
   final BTCFlowData flowData;
@@ -21,12 +20,13 @@ class BitcoinFlowCard extends StatelessWidget {
 
     return Card(
       elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
+          height: 160, // Фиксированная высота
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -37,7 +37,7 @@ class BitcoinFlowCard extends StatelessWidget {
                   : [Colors.orange.shade50, Colors.orange.shade100],
             ),
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -67,7 +67,7 @@ class BitcoinFlowCard extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
 
                   // Заголовок
                   Expanded(
@@ -120,7 +120,7 @@ class BitcoinFlowCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // Подпись "Общий дневной поток"
               Text(
@@ -134,7 +134,7 @@ class BitcoinFlowCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
 
               // Значение потока
               Row(

@@ -214,7 +214,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   }) {
     return Container(
       width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
@@ -704,6 +704,4 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
 
     return '${_sortAscending ? '↑' : '↓'} $sortType';
   }
-
-
 }

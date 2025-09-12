@@ -31,7 +31,147 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   /// Создать скриншот с данными за последнюю доступную дату
   Future<void> _createScreenshot() async {
-    await ScreenshotService.createDailyETFScreenshot(context: context);
+    _showScreenshotDialog();
+  }
+
+  /// Показать диалог с объяснением функции скриншота
+  void _showScreenshotDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.camera_alt, color: Colors.blue, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'screenshot.title'.tr(),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'screenshot.premium_feature'.tr(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'screenshot.description'.tr(),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey[300] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureItem(
+                'screenshot.feature_visualization'.tr(),
+                isDark,
+              ),
+              _buildFeatureItem('screenshot.feature_charts'.tr(), isDark),
+              _buildFeatureItem('screenshot.feature_design'.tr(), isDark),
+              _buildFeatureItem('screenshot.feature_ready'.tr(), isDark),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.blue.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'screenshot.premium_available'.tr(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'common.cancel'.tr(),
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SubscriptionSelectionScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('premium.unlock'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Создать элемент списка функций
+  Widget _buildFeatureItem(String text, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[300] : Colors.grey[600],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -44,12 +184,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          // Кнопка скриншота
-          IconButton(
-            icon: const Icon(Icons.camera_alt),
-            onPressed: () => _createScreenshot(),
-            tooltip: 'Создать скриншот',
-          ),
           // Кнопка Pro
           const ProButton(),
         ],
@@ -119,7 +253,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -247,7 +381,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               child: Image.asset(
                 imageAsset,
                 width: 32,
@@ -309,17 +443,28 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            // Кнопка обновления (показывается только если прошло больше часа)
-            if (_shouldShowRefreshButton(etfProvider))
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  _lastManualRefresh = DateTime.now();
-                  context.read<ETFProvider>().forceRefreshAllData();
-                },
-                tooltip: 'etf.refresh'.tr(),
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+            Row(
+              children: [
+                // Кнопка скриншота
+                IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () => _createScreenshot(),
+                  tooltip: 'screenshot.tooltip'.tr(),
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                // Кнопка обновления (показывается только если прошло больше часа)
+                if (_shouldShowRefreshButton(etfProvider))
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      _lastManualRefresh = DateTime.now();
+                      context.read<ETFProvider>().forceRefreshAllData();
+                    },
+                    tooltip: 'etf.refresh'.tr(),
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 16),

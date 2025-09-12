@@ -20,8 +20,12 @@ export interface UserSettings {
     enableSignificantFlow: boolean;
     enableTestNotifications: boolean;
     enableTelegramNotifications: boolean;
+    enableFlowAmount?: boolean;
     minFlowThreshold: number;
     significantChangePercent: number;
+    flowAmountThreshold?: number;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
   };
   preferences: {
     language?: string;
@@ -149,8 +153,10 @@ export class NotificationService {
           enableSignificantFlow: this.getDefaultSignificantFlow(appName),
           enableTestNotifications: false,
           enableTelegramNotifications: false,
+          enableFlowAmount: false,
           minFlowThreshold: 0.1,
           significantChangePercent: 20.0,
+          flowAmountThreshold: 10.0,
         },
         preferences: {
           language: deviceInfo?.language || 'en',
@@ -473,6 +479,125 @@ export class NotificationService {
         `❌ Ошибка проверки ожидающих Telegram аккаунтов для deviceId ${deviceId}:`,
         error,
       );
+    }
+  }
+
+  /**
+   * Получение настроек устройства
+   */
+  async getDeviceSettings(token: string): Promise<any> {
+    try {
+      this.logger.log(
+        `🔍 Получение настроек для токена: ${token.substring(0, 20)}...`,
+      );
+
+      const user = await this.prismaService.user.findUnique({
+        where: { deviceToken: token },
+      });
+
+      if (!user) {
+        this.logger.log('❌ Пользователь не найден');
+        return null;
+      }
+
+      const settings = (user.settings as UserSettings) || {};
+      const notifications = settings.notifications || {};
+
+      const deviceSettings = {
+        enableETFUpdates: notifications.enableETFUpdates ?? true,
+        enableSignificantFlow: notifications.enableSignificantFlow ?? true,
+        enableTestNotifications: notifications.enableTestNotifications ?? false,
+        enableFlowAmount: notifications.enableFlowAmount ?? false,
+        minFlowThreshold: notifications.minFlowThreshold ?? 0.1,
+        significantChangePercent:
+          notifications.significantChangePercent ?? 20.0,
+        flowAmountThreshold: notifications.flowAmountThreshold ?? 10.0,
+        quietHoursStart: notifications.quietHoursStart,
+        quietHoursEnd: notifications.quietHoursEnd,
+        notificationCount: 0, // Можно добавить счетчик уведомлений
+        lastNotificationSent: null, // Можно добавить время последнего уведомления
+      };
+
+      this.logger.log('✅ Настройки устройства получены:', deviceSettings);
+      return deviceSettings;
+    } catch (error) {
+      this.logger.error('❌ Ошибка получения настроек устройства:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Обновление настроек устройства
+   */
+  async updateDeviceSettings(
+    token: string,
+    newSettings: any,
+  ): Promise<boolean> {
+    try {
+      this.logger.log(
+        `💾 Обновление настроек для токена: ${token.substring(0, 20)}...`,
+      );
+
+      const user = await this.prismaService.user.findUnique({
+        where: { deviceToken: token },
+      });
+
+      if (!user) {
+        this.logger.log('❌ Пользователь не найден');
+        return false;
+      }
+
+      const currentSettings = (user.settings as UserSettings) || {};
+      const currentNotifications = currentSettings.notifications || {};
+
+      // Обновляем только переданные настройки
+      const updatedNotifications = {
+        ...currentNotifications,
+        enableETFUpdates:
+          newSettings.enableETFUpdates ?? currentNotifications.enableETFUpdates,
+        enableSignificantFlow:
+          newSettings.enableSignificantFlow ??
+          currentNotifications.enableSignificantFlow,
+        enableTestNotifications:
+          newSettings.enableTestNotifications ??
+          currentNotifications.enableTestNotifications,
+        enableFlowAmount:
+          newSettings.enableFlowAmount ?? currentNotifications.enableFlowAmount,
+        minFlowThreshold:
+          newSettings.minFlowThreshold ?? currentNotifications.minFlowThreshold,
+        significantChangePercent:
+          newSettings.significantChangePercent ??
+          currentNotifications.significantChangePercent,
+        flowAmountThreshold:
+          newSettings.flowAmountThreshold ??
+          currentNotifications.flowAmountThreshold,
+        quietHoursStart:
+          newSettings.quietHoursStart ?? currentNotifications.quietHoursStart,
+        quietHoursEnd:
+          newSettings.quietHoursEnd ?? currentNotifications.quietHoursEnd,
+      };
+
+      const updatedSettings: UserSettings = {
+        ...currentSettings,
+        notifications: updatedNotifications,
+      };
+
+      await this.prismaService.user.update({
+        where: { deviceToken: token },
+        data: {
+          settings: updatedSettings,
+          lastUsed: new Date(),
+        },
+      });
+
+      this.logger.log(
+        '✅ Настройки устройства обновлены:',
+        updatedNotifications,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error('❌ Ошибка обновления настроек устройства:', error);
+      return false;
     }
   }
 }

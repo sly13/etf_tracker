@@ -136,7 +136,7 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
       children: [
         // Ethereum цена
         _buildPriceRow(
-          'Ethereum (ETH)',
+          'crypto.ethereum_name'.tr(),
           provider.ethereumPrice,
           Colors.blue,
           Icons.currency_bitcoin,
@@ -146,7 +146,7 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
 
         // Bitcoin цена
         _buildPriceRow(
-          'Bitcoin (BTC)',
+          'crypto.bitcoin_name'.tr(),
           provider.bitcoinPrice,
           Colors.orange,
           Icons.currency_bitcoin,
@@ -213,7 +213,7 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
           Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
           const SizedBox(width: 4),
           Text(
-            'Обновлено: ${provider.formatLastUpdateTime()}',
+            '${'crypto.updated'.tr()}: ${provider.formatLastUpdateTime()}',
             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
         ],
@@ -232,7 +232,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
       builder: (context, cryptoProvider, child) {
         if (cryptoProvider.hasError) {
           return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 12.0,
@@ -248,7 +248,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
                 Icon(Icons.error_outline, color: Colors.red, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  'Ошибка загрузки цен',
+                  'crypto.price_load_error'.tr(),
                   style: TextStyle(fontSize: 12, color: Colors.red),
                 ),
               ],
@@ -258,7 +258,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
 
         if (!cryptoProvider.hasData) {
           return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 12.0,
@@ -290,7 +290,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Загрузка цен...',
+                  'crypto.loading_prices'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).brightness == Brightness.dark
@@ -304,7 +304,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
         }
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
@@ -330,7 +330,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
               // Bitcoin
               Expanded(
                 child: _buildCompactPriceItem(
-                  'BTC',
+                  'crypto.btc_symbol'.tr(),
                   cryptoProvider.bitcoinPrice,
                   Colors.orange,
                 ),
@@ -341,7 +341,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
               // Ethereum
               Expanded(
                 child: _buildCompactPriceItem(
-                  'ETH',
+                  'crypto.eth_symbol'.tr(),
                   cryptoProvider.ethereumPrice,
                   Colors.blue,
                 ),
@@ -374,7 +374,7 @@ class CompactCryptoPriceWidget extends StatelessWidget {
       );
       formattedPrice = '\$$priceStr';
     } else {
-      formattedPrice = 'N/A';
+      formattedPrice = 'crypto.not_available'.tr();
     }
 
     return Container(
