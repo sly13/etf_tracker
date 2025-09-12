@@ -9,6 +9,7 @@ module.exports = {
 			env: {
 				NODE_ENV: 'development',
 				PORT: 3066,
+				HOST: '0.0.0.0',
 				// Настройки Puppeteer для сервера
 				PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false',
 				PUPPETEER_EXECUTABLE_PATH: '/usr/bin/google-chrome-stable',
@@ -19,6 +20,7 @@ module.exports = {
 			env_production: {
 				NODE_ENV: 'production',
 				PORT: 3066,
+				HOST: '0.0.0.0',
 				// Настройки Puppeteer для production
 				PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false',
 				PUPPETEER_EXECUTABLE_PATH: '/usr/bin/google-chrome-stable',

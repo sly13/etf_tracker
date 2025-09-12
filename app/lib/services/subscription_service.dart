@@ -150,9 +150,23 @@ class SubscriptionService {
       print('🔍 Получен deviceId: $deviceId');
 
       if (deviceId.isNotEmpty) {
-        // Сначала logout, чтобы очистить кэш
-        await Purchases.logOut();
-        print('🔓 Выполнен logout из RevenueCat');
+        try {
+          // Проверяем, есть ли активный пользователь перед logout
+          final customerInfo = await Purchases.getCustomerInfo();
+          if (customerInfo.originalAppUserId.isNotEmpty &&
+              customerInfo.originalAppUserId != deviceId) {
+            // Сначала logout, чтобы очистить кэш
+            await Purchases.logOut();
+            print('🔓 Выполнен logout из RevenueCat');
+          } else {
+            print(
+              '🔍 Пользователь уже анонимный или тот же, пропускаем logout',
+            );
+          }
+        } catch (e) {
+          print('⚠️ Ошибка при проверке пользователя перед logout: $e');
+          // Продолжаем без logout
+        }
 
         // Затем login с новым ID
         await Purchases.logIn(deviceId);

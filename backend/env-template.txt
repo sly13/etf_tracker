@@ -15,7 +15,8 @@ SHADOW_DATABASE_URL="postgresql://etf_user:etf_password@localhost:5432/etf_flow_
 # DATABASE_URL="postgresql://username:password@host:port/database?schema=public"
 
 # Настройки приложения
-PORT=3000
+PORT=3066
+HOST=0.0.0.0
 NODE_ENV=development
 
 # Firebase Configuration

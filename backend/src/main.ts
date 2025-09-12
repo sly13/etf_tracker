@@ -16,6 +16,7 @@ async function bootstrap() {
       'http://127.0.0.1:3066', // iOS симулятор
       'http://172.20.10.9:3066', // Физическое устройство (ваш IP)
       'https://admin-etf.vadimsemenko.ru', // Админ-панель
+      'https://etf-flow.vadimsemenko.ru', // Основной домен API
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -79,8 +80,11 @@ async function bootstrap() {
     }
   }
 
-  await app.listen(process.env.PORT ?? 3066);
-  console.log(`🌐 Сервер запущен на порту ${process.env.PORT ?? 3066}`);
+  const port = process.env.PORT ?? 3066;
+  const host = process.env.HOST ?? '0.0.0.0';
+
+  await app.listen(port, host);
+  console.log(`🌐 Сервер запущен на ${host}:${port}`);
   console.log('🎯 ETF Flow Tracker готов к работе!');
 
   // Проверяем состояние Telegram бота
