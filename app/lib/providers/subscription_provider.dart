@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../services/subscription_service.dart';
 
 class SubscriptionProvider extends ChangeNotifier {
@@ -28,7 +29,7 @@ class SubscriptionProvider extends ChangeNotifier {
       await _loadCachedStatus();
 
       // Затем проверяем актуальный статус в фоне
-      _checkActualStatusInBackground();
+      await _checkActualStatusInBackground();
 
       _isInitialized = true;
 
@@ -84,6 +85,13 @@ class SubscriptionProvider extends ChangeNotifier {
   // Проверка актуального статуса в фоне
   Future<void> _checkActualStatusInBackground() async {
     try {
+      // Получаем информацию о пользователе из RevenueCat
+      final customerInfo = await SubscriptionService.getCustomerInfo();
+
+      // Сохраняем информацию о подписке
+      await _saveCustomerInfo(customerInfo);
+
+      // Проверяем статус премиум
       final actualIsPremium = await SubscriptionService.isPremium();
 
       // Обновляем статус только если он изменился
@@ -112,6 +120,38 @@ class SubscriptionProvider extends ChangeNotifier {
     } catch (e) {
       if (kDebugMode) {
         print('⚠️ SubscriptionProvider: Ошибка сохранения кэша: $e');
+      }
+    }
+  }
+
+  // Сохранение информации о подписке из RevenueCat
+  Future<void> _saveCustomerInfo(dynamic customerInfo) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Сохраняем JSON информацию о подписке
+      final customerInfoJson = customerInfo.toJson();
+      await prefs.setString('customer_info', json.encode(customerInfoJson));
+
+      // Сохраняем активные entitlements
+      final activeEntitlements = customerInfo.entitlements.active.keys.toList();
+      await prefs.setStringList('active_entitlements', activeEntitlements);
+
+      // Сохраняем дату последнего обновления
+      await prefs.setString(
+        'customer_info_last_update',
+        DateTime.now().toIso8601String(),
+      );
+
+      if (kDebugMode) {
+        print('🔧 SubscriptionProvider: Информация о подписке сохранена');
+        print('🔧 Активные entitlements: $activeEntitlements');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          '⚠️ SubscriptionProvider: Ошибка сохранения информации о подписке: $e',
+        );
       }
     }
   }
@@ -187,5 +227,68 @@ class SubscriptionProvider extends ChangeNotifier {
   // Очистка ошибки (публичный метод)
   void clearError() {
     _clearError();
+  }
+
+  // Получение сохраненной информации о подписке
+  Future<Map<String, dynamic>?> getSavedCustomerInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final customerInfoString = prefs.getString('customer_info');
+
+      if (customerInfoString != null) {
+        // Парсим JSON строку
+        final customerInfo =
+            json.decode(customerInfoString) as Map<String, dynamic>;
+
+        if (kDebugMode) {
+          print(
+            '🔧 SubscriptionProvider: Загружена сохраненная информация о подписке',
+          );
+        }
+
+        return customerInfo;
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print(
+          '⚠️ SubscriptionProvider: Ошибка загрузки информации о подписке: $e',
+        );
+      }
+      return null;
+    }
+  }
+
+  // Получение активных entitlements
+  Future<List<String>> getActiveEntitlements() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final entitlements = prefs.getStringList('active_entitlements') ?? [];
+
+      if (kDebugMode) {
+        print('🔧 SubscriptionProvider: Активные entitlements: $entitlements');
+      }
+
+      return entitlements;
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ SubscriptionProvider: Ошибка загрузки entitlements: $e');
+      }
+      return [];
+    }
+  }
+
+  // Проверка, есть ли активные подписки
+  Future<bool> hasActiveSubscriptions() async {
+    try {
+      final entitlements = await getActiveEntitlements();
+      return entitlements.isNotEmpty;
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ SubscriptionProvider: Ошибка проверки активных подписок: $e');
+      }
+      return false;
+    }
   }
 }

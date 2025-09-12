@@ -316,10 +316,22 @@ class _SubscriptionSelectionScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildBenefitItem('subscription.features.analytics'.tr()),
-              _buildBenefitItem('subscription.features.statistics'.tr()),
-              _buildBenefitItem('subscription.features.notifications'.tr()),
-              _buildBenefitItem('subscription.features.insights'.tr()),
+              _buildBenefitItem(
+                'subscription.features.analytics'.tr(),
+                Icons.analytics_outlined,
+              ),
+              _buildBenefitItem(
+                'subscription.features.statistics'.tr(),
+                Icons.bar_chart_outlined,
+              ),
+              _buildBenefitItem(
+                'subscription.features.notifications'.tr(),
+                Icons.notifications_outlined,
+              ),
+              _buildBenefitItem(
+                'subscription.features.insights'.tr(),
+                Icons.insights_outlined,
+              ),
             ],
           ),
         ),
@@ -327,7 +339,7 @@ class _SubscriptionSelectionScreenState
     );
   }
 
-  Widget _buildBenefitItem(String text) {
+  Widget _buildBenefitItem(String text, IconData icon) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
@@ -336,18 +348,28 @@ class _SubscriptionSelectionScreenState
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(
-            Icons.check,
-            color: isDark ? Colors.white : Colors.black,
-            size: isSmallScreen ? 18 : 20,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.blue.shade900.withOpacity(0.3)
+                  : Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+              size: isSmallScreen ? 18 : 20,
+            ),
           ),
-          SizedBox(width: isSmallScreen ? 10 : 12),
+          SizedBox(width: isSmallScreen ? 12 : 16),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
                 fontSize: isSmallScreen ? 14 : 16,
                 color: isDark ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

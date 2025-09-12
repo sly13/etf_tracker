@@ -68,6 +68,8 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Переключение уведомлений
   Future<void> toggleNotifications(bool enabled) async {
+    debugPrint('🔍 NotificationProvider: Переключаем уведомления на: $enabled');
+
     _notificationsEnabled = enabled;
 
     if (enabled && _isInitialized) {
@@ -76,6 +78,14 @@ class NotificationProvider extends ChangeNotifier {
     } else if (!enabled && _isInitialized) {
       // Отписываемся от топика
       await NotificationService.unsubscribeFromTopic('etf_updates');
+    }
+
+    // Сохраняем настройку на сервере
+    if (_fcmToken != null) {
+      debugPrint(
+        '🔍 NotificationProvider: Сохраняем enableETFUpdates на сервере: $enabled',
+      );
+      await updateDeviceSettings({'enableETFUpdates': enabled});
     }
 
     notifyListeners();
@@ -105,13 +115,26 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Загрузка настроек устройства с сервера
   Future<void> _loadDeviceSettings() async {
-    if (_fcmToken == null) return;
+    if (_fcmToken == null) {
+      debugPrint(
+        '❌ NotificationProvider: FCM токен отсутствует, пропускаем загрузку настроек',
+      );
+      return;
+    }
+
+    debugPrint(
+      '🔍 NotificationProvider: Загружаем настройки для токена: ${_fcmToken!.substring(0, 20)}...',
+    );
 
     try {
       final settings = await DeviceSettingsService.getDeviceSettings(
         _fcmToken!,
       );
       if (settings != null) {
+        debugPrint(
+          '✅ NotificationProvider: Настройки получены с сервера: $settings',
+        );
+
         _enableETFUpdates = settings['enableETFUpdates'] ?? true;
         _enableSignificantFlow = settings['enableSignificantFlow'] ?? true;
         _enableTestNotifications = settings['enableTestNotifications'] ?? false;
@@ -128,17 +151,44 @@ class NotificationProvider extends ChangeNotifier {
             ? DateTime.parse(settings['lastNotificationSent'])
             : null;
 
-        debugPrint('✅ Настройки устройства загружены с сервера');
+        debugPrint(
+          '✅ NotificationProvider: Настройки устройства загружены с сервера',
+        );
+        debugPrint(
+          '📊 NotificationProvider: enableETFUpdates: $_enableETFUpdates',
+        );
+        debugPrint(
+          '📊 NotificationProvider: enableFlowAmount: $_enableFlowAmount',
+        );
+        debugPrint(
+          '📊 NotificationProvider: flowAmountThreshold: $_flowAmountThreshold',
+        );
         notifyListeners();
+      } else {
+        debugPrint(
+          '⚠️ NotificationProvider: Настройки не найдены на сервере, используем значения по умолчанию',
+        );
       }
     } catch (e) {
-      debugPrint('❌ Ошибка загрузки настроек устройства: $e');
+      debugPrint(
+        '❌ NotificationProvider: Ошибка загрузки настроек устройства: $e',
+      );
     }
   }
 
   /// Обновление настроек устройства на сервере
   Future<bool> updateDeviceSettings(Map<String, dynamic> settings) async {
-    if (_fcmToken == null) return false;
+    if (_fcmToken == null) {
+      debugPrint(
+        '❌ NotificationProvider: FCM токен отсутствует, не можем обновить настройки',
+      );
+      return false;
+    }
+
+    debugPrint('🔍 NotificationProvider: Обновляем настройки: $settings');
+    debugPrint(
+      '🔍 NotificationProvider: Токен: ${_fcmToken!.substring(0, 20)}...',
+    );
 
     try {
       final success = await DeviceSettingsService.updateDeviceSettings(
@@ -146,42 +196,81 @@ class NotificationProvider extends ChangeNotifier {
         settings,
       );
       if (success) {
+        debugPrint(
+          '✅ NotificationProvider: Настройки успешно обновлены на сервере',
+        );
+
         // Обновляем локальные настройки
         if (settings.containsKey('enableETFUpdates')) {
           _enableETFUpdates = settings['enableETFUpdates'];
+          debugPrint(
+            '📊 NotificationProvider: enableETFUpdates обновлен: $_enableETFUpdates',
+          );
         }
         if (settings.containsKey('enableSignificantFlow')) {
           _enableSignificantFlow = settings['enableSignificantFlow'];
+          debugPrint(
+            '📊 NotificationProvider: enableSignificantFlow обновлен: $_enableSignificantFlow',
+          );
         }
         if (settings.containsKey('enableTestNotifications')) {
           _enableTestNotifications = settings['enableTestNotifications'];
+          debugPrint(
+            '📊 NotificationProvider: enableTestNotifications обновлен: $_enableTestNotifications',
+          );
         }
         if (settings.containsKey('minFlowThreshold')) {
           _minFlowThreshold = settings['minFlowThreshold'].toDouble();
+          debugPrint(
+            '📊 NotificationProvider: minFlowThreshold обновлен: $_minFlowThreshold',
+          );
         }
         if (settings.containsKey('significantChangePercent')) {
           _significantChangePercent = settings['significantChangePercent']
               .toDouble();
+          debugPrint(
+            '📊 NotificationProvider: significantChangePercent обновлен: $_significantChangePercent',
+          );
         }
         if (settings.containsKey('enableFlowAmount')) {
           _enableFlowAmount = settings['enableFlowAmount'];
+          debugPrint(
+            '📊 NotificationProvider: enableFlowAmount обновлен: $_enableFlowAmount',
+          );
         }
         if (settings.containsKey('flowAmountThreshold')) {
           _flowAmountThreshold = settings['flowAmountThreshold'].toDouble();
+          debugPrint(
+            '📊 NotificationProvider: flowAmountThreshold обновлен: $_flowAmountThreshold',
+          );
         }
         if (settings.containsKey('quietHoursStart')) {
           _quietHoursStart = settings['quietHoursStart'];
+          debugPrint(
+            '📊 NotificationProvider: quietHoursStart обновлен: $_quietHoursStart',
+          );
         }
         if (settings.containsKey('quietHoursEnd')) {
           _quietHoursEnd = settings['quietHoursEnd'];
+          debugPrint(
+            '📊 NotificationProvider: quietHoursEnd обновлен: $_quietHoursEnd',
+          );
         }
 
         notifyListeners();
-        debugPrint('✅ Настройки устройства обновлены');
+        debugPrint(
+          '✅ NotificationProvider: Локальные настройки обновлены и уведомлены слушатели',
+        );
+      } else {
+        debugPrint(
+          '❌ NotificationProvider: Не удалось обновить настройки на сервере',
+        );
       }
       return success;
     } catch (e) {
-      debugPrint('❌ Ошибка обновления настроек устройства: $e');
+      debugPrint(
+        '❌ NotificationProvider: Ошибка обновления настроек устройства: $e',
+      );
       return false;
     }
   }

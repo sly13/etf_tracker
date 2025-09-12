@@ -374,6 +374,10 @@
     "flow_amount_threshold": "Flow Amount Threshold",
     "flow_amount_threshold_desc": "Minimum inflow/outflow amount in millions of dollars for notification",
     "flow_amount_value": "Amount Threshold",
-    "enable_flow_amount": "Enable Flow Amount Notifications"
+    "enable_flow_amount": "Enable Flow Amount Notifications",
+    "flow_amount_info": "Notifications will be sent when the specified amount is exceeded",
+    "premium_required": "Premium Subscription Required",
+    "premium_required_desc": "ETF notifications are available only for premium users. Subscribe to access this feature.",
+    "upgrade": "Upgrade Now"
   }
 }

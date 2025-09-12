@@ -12,17 +12,26 @@ class DeviceSettingsService {
   static Future<Map<String, dynamic>?> getDeviceSettings(String token) async {
     try {
       final url = AppConfig.getApiUrl('/notifications/device-settings/$token');
+      print('🔍 DeviceSettingsService: Запрос настроек по URL: $url');
+      print('🔍 DeviceSettingsService: Токен: ${token.substring(0, 20)}...');
 
       final response = await http.get(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
 
+      print('🔍 DeviceSettingsService: Статус ответа: ${response.statusCode}');
+      print('🔍 DeviceSettingsService: Тело ответа: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print(
+          '✅ DeviceSettingsService: Настройки получены: ${data['settings']}',
+        );
         return data['settings'];
       } else {
         print('❌ Ошибка получения настроек: ${response.statusCode}');
+        print('❌ Тело ответа: ${response.body}');
         return null;
       }
     } catch (e) {
@@ -38,6 +47,9 @@ class DeviceSettingsService {
   ) async {
     try {
       final url = AppConfig.getApiUrl('/notifications/device-settings');
+      print('🔍 DeviceSettingsService: Обновление настроек по URL: $url');
+      print('🔍 DeviceSettingsService: Токен: ${token.substring(0, 20)}...');
+      print('🔍 DeviceSettingsService: Настройки: $settings');
 
       final body = {'token': token, ...settings};
 
@@ -47,11 +59,15 @@ class DeviceSettingsService {
         body: json.encode(body),
       );
 
-      if (response.statusCode == 200) {
+      print('🔍 DeviceSettingsService: Статус ответа: ${response.statusCode}');
+      print('🔍 DeviceSettingsService: Тело ответа: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ Настройки устройства обновлены');
         return true;
       } else {
         print('❌ Ошибка обновления настроек: ${response.statusCode}');
+        print('❌ Тело ответа: ${response.body}');
         return false;
       }
     } catch (e) {
