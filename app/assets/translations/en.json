@@ -156,7 +156,14 @@
     "ethereum_flows": "Ethereum ETF Flows",
     "bitcoin_flows": "Bitcoin ETF Flows",
     "flow_history": "Flow History",
-    "total_daily_net_inflow": "Total Daily\nNet Inflow"
+    "total_daily_net_inflow": "Total Daily\nNet Inflow",
+    "period_changes": "Period of Changes",
+    "for_day": "For Day",
+    "for_week": "For Week",
+    "for_month": "For Month",
+    "for_quarter": "For 3 Months",
+    "for_half_year": "For Half Year",
+    "for_year": "For Year"
   },
   "auth": {
     "sign_in_with_apple": "Sign in with Apple",
@@ -180,6 +187,8 @@
     "by_ethereum": "By Ethereum",
     "by_bitcoin": "By Bitcoin",
     "by_name": "By name",
+    "by_btc": "By Bitcoin",
+    "by_eth": "By Ethereum",
     "date": "Date",
     "total_flow": "Total Flow",
     "blackrock": "BlackRock",
@@ -255,10 +264,18 @@
     "general": "General",
     "ethereum": "Ethereum",
     "bitcoin": "Bitcoin",
+    "company": "Company",
     "general_holdings": "General Holdings",
     "ethereum_holdings": "Ethereum Holdings",
     "bitcoin_holdings": "Bitcoin Holdings",
-    "fund_holdings": "Fund Holdings"
+    "fund_holdings": "Fund Holdings",
+    "period_changes": "Period of Changes",
+    "period_day": "Day",
+    "period_week": "Week",
+    "period_month": "Month",
+    "period_3months": "3 Months",
+    "period_half_year": "Half Year",
+    "period_year": "Year"
   },
   "errors": {
     "timeout": "Request timeout exceeded",
@@ -321,7 +338,13 @@
     "feature_design": "💼 Professional design",
     "feature_ready": "📱 Ready to publish",
     "premium_available": "Available in premium subscription",
-    "tooltip": "Create screenshot"
+    "tooltip": "Create screenshot",
+    "created": "Screenshot created",
+    "ready_to_send": "Image saved and ready to send",
+    "share": "Share",
+    "save_to_gallery": "Save to Gallery",
+    "saved_to_gallery": "Saved to Gallery",
+    "save_error": "Save Error"
   },
   "notifications": {
     "premium_feature": "Premium Feature",

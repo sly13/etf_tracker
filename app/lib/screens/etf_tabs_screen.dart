@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
-import '../providers/crypto_price_provider.dart';
-import '../config/app_config.dart';
+import '../providers/subscription_provider.dart';
 import '../widgets/crypto_price_widget.dart';
 import '../models/etf_flow_data.dart';
-import 'settings_screen.dart';
 import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
 import '../widgets/pro_button.dart';
-import '../widgets/subscription_status_widget.dart';
+import '../utils/haptic_feedback.dart';
 import '../services/screenshot_service.dart';
 
 class ETFTabsScreen extends StatefulWidget {
@@ -22,6 +20,7 @@ class ETFTabsScreen extends StatefulWidget {
 
 class _ETFTabsScreenState extends State<ETFTabsScreen> {
   DateTime? _lastManualRefresh;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -29,9 +28,24 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     // Data is loaded only during app initialization, not here
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   /// Создать скриншот с данными за последнюю доступную дату
   Future<void> _createScreenshot() async {
-    _showScreenshotDialog();
+    final subscriptionProvider = context.read<SubscriptionProvider>();
+
+    // Проверяем статус подписки
+    if (subscriptionProvider.isPremium) {
+      // Если у пользователя есть подписка, создаем скриншот
+      await ScreenshotService.createDailyETFScreenshot(context: context);
+    } else {
+      // Если подписки нет, показываем диалог с предложением подписки
+      _showScreenshotDialog();
+    }
   }
 
   /// Показать диалог с объяснением функции скриншота
@@ -214,9 +228,112 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             );
           }
 
+          // Показываем индикатор загрузки во время обновления данных
+          if (etfProvider.isLoading && etfProvider.isDataReady) {
+            return Stack(
+              children: [
+                // Основной контент
+                RefreshIndicator(
+                  onRefresh: () async {
+                    // Вибрация при начале обновления
+                    HapticUtils.lightImpact();
+                    try {
+                      await etfProvider.forceRefreshAllData();
+                      // Автоматически скроллим вниз после обновления
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                      // Вибрация при успешном обновлении
+                      HapticUtils.notificationSuccess();
+                    } catch (e) {
+                      // Вибрация при ошибке
+                      HapticUtils.notificationError();
+                      rethrow;
+                    }
+                  },
+                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1C1C1E)
+                      : Colors.white,
+                  strokeWidth: 2.5,
+                  displacement: 40.0,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSummaryCard(etfProvider),
+                        const SizedBox(height: 16),
+                        const CompactCryptoPriceWidget(),
+                        const SizedBox(height: 24),
+                        _buildRecentUpdates(etfProvider),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+                // Индикатор загрузки поверх контента
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    width: double.infinity,
+                    height: 3,
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      width: double.infinity,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
           return RefreshIndicator(
-            onRefresh: () => etfProvider.forceRefreshAllData(),
+            onRefresh: () async {
+              // Вибрация при начале обновления
+              HapticUtils.lightImpact();
+
+              try {
+                await etfProvider.forceRefreshAllData();
+                // Автоматически скроллим вниз после обновления
+                if (_scrollController.hasClients) {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeOut,
+                  );
+                }
+                // Вибрация при успешном обновлении
+                HapticUtils.notificationSuccess();
+              } catch (e) {
+                // Вибрация при ошибке
+                HapticUtils.notificationError();
+                rethrow;
+              }
+            },
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1C1C1E)
+                : Colors.white,
+            strokeWidth: 2.5,
+            displacement: 40.0,
             child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,6 +348,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
                   // Последние обновления
                   _buildRecentUpdates(etfProvider),
+
+                  // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -456,9 +576,19 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 if (_shouldShowRefreshButton(etfProvider))
                   IconButton(
                     icon: const Icon(Icons.refresh),
-                    onPressed: () {
+                    onPressed: () async {
+                      // Тактильная обратная связь при нажатии
+                      HapticUtils.lightImpact();
                       _lastManualRefresh = DateTime.now();
-                      context.read<ETFProvider>().forceRefreshAllData();
+
+                      try {
+                        await context.read<ETFProvider>().forceRefreshAllData();
+                        // Успешное обновление
+                        HapticUtils.notificationSuccess();
+                      } catch (e) {
+                        // Ошибка обновления
+                        HapticUtils.notificationError();
+                      }
                     },
                     tooltip: 'etf.refresh'.tr(),
                     color: isDark ? Colors.white : Colors.black87,
@@ -550,10 +680,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                       ),
                     ),
                     Text(
-                      'common.updated'.tr() +
-                          ': ${DateFormat('dd.MM.yyyy').format(DateTime.parse(date))}',
+                      'Updated ${DateFormat('dd.MM.yy HH.mm').format(DateTime.parse(date))}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -570,6 +699,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                       color: adjustedColor,
                     ),
                   ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_upward, size: 16, color: adjustedColor),
                   if (targetTabIndex != null) ...[
                     const SizedBox(width: 8),
                     Icon(

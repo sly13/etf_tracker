@@ -14,30 +14,30 @@ export class SubscriptionController {
     this.logger.log('📦 Purchase Data:', JSON.stringify(body, null, 2));
     this.logger.log('💳 ======================================');
 
+    // Извлекаем данные из запроса (выносим из try блока)
+    const {
+      userId,
+      deviceId,
+      customerInfo,
+      productId,
+      transactionId,
+      originalTransactionId,
+      purchaseDate,
+      expirationDate,
+      isActive,
+      isPremium,
+      autoRenew,
+      environment,
+      platform,
+      price,
+      currency,
+    } = body;
+
+    // Если userId не указан, используем RevenueCat ID или создаем тестового пользователя
+    const finalUserId =
+      userId || customerInfo?.originalAppUserId || 'test_user_' + Date.now();
+
     try {
-      // Извлекаем данные из запроса
-      const {
-        userId,
-        deviceId,
-        customerInfo,
-        productId,
-        transactionId,
-        originalTransactionId,
-        purchaseDate,
-        expirationDate,
-        isActive,
-        isPremium,
-        autoRenew,
-        environment,
-        platform,
-        price,
-        currency,
-      } = body;
-
-      // Если userId не указан, используем RevenueCat ID или создаем тестового пользователя
-      const finalUserId =
-        userId || customerInfo?.originalAppUserId || 'test_user_' + Date.now();
-
       this.logger.log(`🔍 Final User ID: ${finalUserId}`);
       this.logger.log(`🔍 Device ID: ${deviceId}`);
       this.logger.log(`🔍 Device ID type: ${typeof deviceId}`);
@@ -75,6 +75,15 @@ export class SubscriptionController {
       this.logger.log(`🔍 finalUserId type: ${typeof finalUserId}`);
       this.logger.log(`💳 Привязываем покупку к пользователю: ${finalUserId}`);
       this.logger.log(`📦 Продукт: ${productId}, Цена: ${price} ${currency}`);
+      this.logger.log(`📱 Device ID: ${deviceId}`);
+
+      // Проверяем, что deviceId предоставлен
+      if (!deviceId) {
+        this.logger.warn('⚠️ Device ID не предоставлен в запросе');
+        this.logger.warn(
+          '⚠️ Это может привести к проблемам с поиском пользователя',
+        );
+      }
 
       const result = await this.subscriptionService.updateUserSubscription(
         finalUserId,
@@ -86,7 +95,26 @@ export class SubscriptionController {
       return { success: true, subscription: result };
     } catch (error) {
       this.logger.error('❌ Error syncing purchase:', error);
-      return { success: false, error: error.message };
+
+      // Более детальная обработка ошибок
+      if (error.message.includes('не найден')) {
+        this.logger.error(
+          '💡 Рекомендация: Убедитесь, что устройство зарегистрировано через NotificationService',
+        );
+        this.logger.error(
+          '💡 Проверьте, что приложение вызывает registerDevice() при запуске',
+        );
+      }
+
+      return {
+        success: false,
+        error: error.message,
+        details: {
+          deviceId: deviceId,
+          userId: finalUserId,
+          timestamp: new Date().toISOString(),
+        },
+      };
     }
   }
 }

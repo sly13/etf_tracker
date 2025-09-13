@@ -207,6 +207,23 @@ export class NotificationService {
         `✅ Устройство зарегистрировано для приложения ${appName}: ${cleanDeviceId || 'unknown'} (OS: ${os || 'unknown'})`,
       );
 
+      // Дополнительная проверка - убеждаемся, что пользователь действительно создан
+      const createdUser = await this.prismaService.user.findFirst({
+        where: { deviceToken: token },
+      });
+
+      if (createdUser) {
+        this.logger.log(
+          `✅ Подтверждение: Пользователь создан в БД с ID: ${createdUser.id}`,
+        );
+        this.logger.log(`✅ DeviceId в БД: ${createdUser.deviceId}`);
+        this.logger.log(`✅ OS в БД: ${createdUser.os}`);
+      } else {
+        this.logger.error(
+          `❌ ОШИБКА: Пользователь не найден в БД после создания!`,
+        );
+      }
+
       // Проверяем, есть ли ожидающие Telegram аккаунты для этого deviceId
       if (cleanDeviceId) {
         this.checkPendingTelegramAccounts(cleanDeviceId);

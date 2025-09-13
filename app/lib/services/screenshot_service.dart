@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:gal/gal.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../config/app_config.dart';
-import '../models/etf_flow_data.dart';
 
 class ScreenshotService {
   /// Создать красивый скриншот с данными ETF за последнюю доступную дату
@@ -81,28 +82,194 @@ class ScreenshotService {
     BuildContext context,
     File file,
   ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Скриншот создан'),
-        content: const Text('Изображение сохранено и готово к отправке'),
+        backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'screenshot.created'.tr(),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(
+                Icons.close,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                size: 24,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Показываем изображение
+            Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(file, fit: BoxFit.contain),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'screenshot.ready_to_send'.tr(),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[300] : Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Закрыть'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await Share.shareXFiles([
-                XFile(file.path),
-              ], text: 'ETF Tracker - Данные за день');
-            },
-            child: const Text('Поделиться'),
+          // Кнопки действий по центру
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await Share.shareXFiles([
+                    XFile(file.path),
+                  ], text: 'ETF Tracker - ${'common.updated'.tr()}');
+                },
+                icon: const Icon(Icons.share, size: 16),
+                label: Text('screenshot.share'.tr()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await _saveToGallery(file, context);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                icon: const Icon(Icons.save_alt, size: 16),
+                label: Text('screenshot.save_to_gallery'.tr()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  /// Сохранить изображение в галерею
+  static Future<void> _saveToGallery(File file, BuildContext context) async {
+    try {
+      debugPrint('Начинаем сохранение в галерею: ${file.path}');
+
+      // Проверяем, что файл существует
+      if (!await file.exists()) {
+        throw Exception('Файл не найден: ${file.path}');
+      }
+
+      // Проверяем разрешения
+      debugPrint('Проверяем разрешения доступа к галерее...');
+      if (!await Gal.hasAccess()) {
+        debugPrint('Запрашиваем разрешения...');
+        await Gal.requestAccess();
+      }
+
+      debugPrint('Сохраняем изображение в галерею...');
+      // Сохраняем в галерею
+      await Gal.putImage(file.path);
+      debugPrint('Изображение успешно сохранено в галерею');
+
+      // Показываем уведомление об успехе
+      HapticFeedback.lightImpact();
+
+      // Показываем SnackBar с подтверждением
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('screenshot.saved_to_gallery'.tr()),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Ошибка сохранения в галерею: $e');
+      debugPrint('Тип ошибки: ${e.runtimeType}');
+
+      // Показываем ошибку пользователю
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('screenshot.save_error'.tr()),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   /// Показать диалог с ошибкой

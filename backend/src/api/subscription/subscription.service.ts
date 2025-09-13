@@ -73,13 +73,41 @@ export class SubscriptionService {
         }
       }
 
-      // Если не найден по deviceId, ищем по RevenueCat userId
+      // Если не найден по deviceId, ищем по RevenueCat userId как deviceId
       if (!user) {
         this.logger.log(
-          `🔍 Пользователь не найден по deviceId, ищем по RevenueCat userId: ${userId}`,
+          `🔍 Пользователь не найден по deviceId, ищем по RevenueCat userId как deviceId: ${userId}`,
         );
         user = await this.prismaService.user.findFirst({
           where: { deviceId: userId },
+        });
+      }
+
+      // Если все еще не найден, попробуем найти по части deviceId (для случаев когда deviceId содержит timestamp)
+      if (!user && deviceId) {
+        this.logger.log(
+          `🔍 Пользователь не найден, пробуем найти по части deviceId без timestamp`,
+        );
+
+        // Убираем timestamp из deviceId (последние 13 цифр)
+        const cleanDeviceIdForSearch = deviceId.replace(
+          /^(ios_|android_|web_)/,
+          '',
+        );
+        const deviceIdWithoutTimestamp = cleanDeviceIdForSearch.replace(
+          /_\d{13}$/,
+          '',
+        );
+        this.logger.log(
+          `🔍 DeviceId без timestamp: ${deviceIdWithoutTimestamp}`,
+        );
+
+        user = await this.prismaService.user.findFirst({
+          where: {
+            deviceId: {
+              startsWith: deviceIdWithoutTimestamp,
+            },
+          },
         });
       }
 
@@ -95,17 +123,84 @@ export class SubscriptionService {
       }
 
       if (!user) {
-        this.logger.error(`❌ Пользователь не найден! DeviceId: ${deviceId}`);
-        this.logger.error(
-          `❌ Пользователь должен быть зарегистрирован через NotificationService.registerDevice()`,
+        this.logger.warn(`⚠️ Пользователь не найден! DeviceId: ${deviceId}`);
+        this.logger.warn(
+          `⚠️ Пользователь должен быть зарегистрирован через NotificationService.registerDevice()`,
         );
-        this.logger.error(
-          `❌ Проверьте, что приложение зарегистрировало устройство перед покупкой`,
+        this.logger.warn(
+          `⚠️ Проверьте, что приложение зарегистрировало устройство перед покупкой`,
         );
 
-        throw new Error(
-          `Пользователь с deviceId ${deviceId} не найден. Устройство должно быть зарегистрировано перед покупкой.`,
-        );
+        // Попробуем создать пользователя автоматически, если deviceId предоставлен
+        if (deviceId) {
+          this.logger.log(
+            `🔧 Попытка автоматического создания пользователя для deviceId: ${deviceId}`,
+          );
+
+          try {
+            const cleanDeviceId = deviceId.replace(/^(ios_|android_|web_)/, '');
+
+            // Создаем пользователя с минимальными данными
+            user = await this.prismaService.user.create({
+              data: {
+                deviceId: cleanDeviceId,
+                deviceToken: `temp_token_${Date.now()}`, // Временный токен
+                os: deviceId.startsWith('ios_')
+                  ? 'ios'
+                  : deviceId.startsWith('android_')
+                    ? 'android'
+                    : 'unknown',
+                isActive: true,
+                lastUsed: new Date(),
+                settings: {
+                  notifications: {
+                    enableETFUpdates: true,
+                    enableSignificantFlow: true,
+                    enableTestNotifications: false,
+                    enableTelegramNotifications: false,
+                    enableFlowAmount: false,
+                    minFlowThreshold: 0.1,
+                    significantChangePercent: 20.0,
+                    flowAmountThreshold: 10.0,
+                  },
+                  preferences: {
+                    language: 'ru',
+                    timezone: 'UTC',
+                    deviceType: deviceId.startsWith('ios_')
+                      ? 'ios'
+                      : deviceId.startsWith('android_')
+                        ? 'android'
+                        : 'unknown',
+                  },
+                  profile: {},
+                },
+                application: {
+                  connectOrCreate: {
+                    where: { name: 'etf.flow' },
+                    create: {
+                      name: 'etf.flow',
+                      displayName: 'ETF Flow Tracker',
+                      description: 'Приложение для отслеживания потоков ETF',
+                    },
+                  },
+                },
+              },
+            });
+
+            this.logger.log(`✅ Пользователь автоматически создан: ${user.id}`);
+          } catch (createError) {
+            this.logger.error(
+              `❌ Ошибка создания пользователя: ${createError}`,
+            );
+            throw new Error(
+              `Пользователь с deviceId ${deviceId} не найден и не может быть создан. Устройство должно быть зарегистрировано перед покупкой.`,
+            );
+          }
+        } else {
+          throw new Error(
+            `Пользователь с deviceId ${deviceId} не найден. Устройство должно быть зарегистрировано перед покупкой.`,
+          );
+        }
       }
 
       // Ищем существующую подписку по ID найденного пользователя

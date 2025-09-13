@@ -63,11 +63,12 @@ class NotificationSettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Настройка уведомлений о сумме потоков
-                _buildNotificationCard(
+                _buildFlowAmountNotificationCard(
                   context: context,
                   title: 'notifications.flow_amount_notifications'.tr(),
                   description: 'notifications.flow_amount_desc'.tr(),
                   value: status['enableFlowAmount'] ?? false,
+                  subscriptionProvider: subscriptionProvider,
                   onChanged: (value) async {
                     print(
                       '🔍 NotificationSettingsScreen: Переключаем enableFlowAmount на: $value',
@@ -411,6 +412,86 @@ class NotificationSettingsScreen extends StatelessWidget {
               ),
             ),
             Switch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Специальный метод для создания карточки Flow Amount Notifications с проверкой подписки
+  Widget _buildFlowAmountNotificationCard({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required bool value,
+    required SubscriptionProvider subscriptionProvider,
+    required ValueChanged<bool>? onChanged,
+  }) {
+    final isPremium = subscriptionProvider.isPremium;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isPremium ? null : Colors.grey[600],
+                            ),
+                      ),
+                      if (!isPremium) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'PRO',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isPremium ? null : Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: isPremium
+                  ? onChanged
+                  : (value) {
+                      if (value) {
+                        _showPremiumRequiredDialog(context);
+                      }
+                    },
+            ),
           ],
         ),
       ),

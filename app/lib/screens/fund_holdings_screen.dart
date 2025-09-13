@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
-import '../services/fund_logo_service.dart';
-import 'settings_screen.dart';
-import 'subscription_selection_screen.dart';
 import '../widgets/pro_button.dart';
+import '../widgets/holdings_table_widget.dart';
+import '../utils/haptic_feedback.dart';
+import '../services/flow_calculation_service.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -15,14 +15,23 @@ class FundHoldingsScreen extends StatefulWidget {
 }
 
 class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
-  String _sortBy = 'current'; // 'current', 'total', 'eth', 'btc', 'name'
-  bool _sortAscending = false; // false = descending (larger values on top)
-  int _selectedTabIndex = 0; // 0 - General, 1 - Ethereum, 2 - Bitcoin
+  String _sortBy = 'btc'; // 'name', 'btc', 'eth'
+  bool _sortAscending =
+      false; // false = descending (large to small) - по умолчанию BTC от большего к меньшему
+  String _selectedPeriod =
+      'day'; // 'day', 'week', 'month', 'quarter', 'half_year', 'year'
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     // Data is loaded only during app initialization, not here
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,7 +74,8 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
             );
           }
 
-          if (etfProvider.fundHoldings == null) {
+          if (etfProvider.ethereumData.isEmpty &&
+              etfProvider.bitcoinData.isEmpty) {
             return Center(
               child: Text(
                 'common.no_data'.tr(),
@@ -75,488 +85,229 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => etfProvider.forceRefreshAllData(),
+            onRefresh: () async {
+              // Вибрация при начале обновления
+              HapticUtils.lightImpact();
+              try {
+                await etfProvider.forceRefreshAllData();
+                // Автоматически скроллим вниз после обновления
+                if (_scrollController.hasClients) {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeOut,
+                  );
+                }
+                // Вибрация при успешном обновлении
+                HapticUtils.notificationSuccess();
+              } catch (e) {
+                // Вибрация при ошибке
+                HapticUtils.notificationError();
+                rethrow;
+              }
+            },
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1C1C1E)
+                : Colors.white,
+            strokeWidth: 2.5,
+            displacement: 40.0,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [_buildFundHoldingsList(etfProvider.fundHoldings!)],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildFundHoldingsList(Map<String, dynamic> holdings) {
-    final fundHoldings = holdings['fundHoldings'] as Map<String, dynamic>;
-
-    // Фильтруем фонды в зависимости от выбранного таба
-    final filteredEntries = _filterFundHoldings(fundHoldings.entries.toList());
-
-    // Сортируем фонды
-    final sortedEntries = _sortFundHoldings(filteredEntries);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Заголовок, сортировка и табы в одной строке
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _getTabTitle(),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            // Кнопка сортировки
-            GestureDetector(
-              onTap: () {
-                _showSortDialog(context);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.sort,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getSortDescription(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Табы фильтрации
-        _buildCompactTabBar(),
-        const SizedBox(height: 16),
-        ...sortedEntries.map((entry) {
-          final fundName = _getFundDisplayName(entry.key);
-          final fundData = entry.value as Map<String, dynamic>;
-
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      // Логотип фонда
-                      if (FundLogoService.hasLogo(entry.key))
-                        Container(
-                          width: 32,
-                          height: 32,
-                          margin: const EdgeInsets.only(right: 12),
-                          child: FundLogoService.getLogoWidget(
-                            entry.key,
-                            width: 32,
-                            height: 32,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
+                  // Заголовок и кнопка сортировки
+                  _buildHeader(),
+                  const SizedBox(height: 16),
 
-                      // Название фонда
-                      Expanded(
-                        child: Text(
-                          fundName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  // Таблица владений
+                  HoldingsTableWidget(
+                    ethereumData: etfProvider.ethereumData,
+                    bitcoinData: etfProvider.bitcoinData,
+                    sortBy: _sortBy,
+                    sortAscending: _sortAscending,
+                    onSortChanged: (sortBy, ascending) {
+                      setState(() {
+                        _sortBy = sortBy;
+                        _sortAscending = ascending;
+                      });
+                    },
+                    selectedPeriod: _selectedPeriod,
+                    separateFlowChanges:
+                        FlowCalculationService.getSeparateChanges(
+                          etfProvider.ethereumData,
+                          etfProvider.bitcoinData,
+                          _selectedPeriod,
                         ),
-                      ),
-                    ],
+                    totalHoldings: FlowCalculationService.getTotalHoldings(
+                      etfProvider.ethereumData,
+                      etfProvider.bitcoinData,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildTabContent(fundData),
+
+                  // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
           );
-        }).toList(),
-      ],
-    );
-  }
-
-  Widget _buildFundItem(
-    String label,
-    String value,
-    Color color, {
-    bool isFullWidth = false,
-  }) {
-    return Container(
-      width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
+        },
       ),
     );
   }
 
-  /// Форматирует большие числа, конвертируя их в миллиарды для лучшей читаемости
-  String _formatLargeNumber(dynamic number) {
-    if (number == null) return '\$0.0M';
+  Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final double value = number.toDouble();
-
-    // Если значение больше 1000 миллионов (1 миллиард), показываем в миллиардах
-    if (value >= 1000) {
-      final billions = value / 1000;
-      return '\$${billions.toStringAsFixed(1)}B';
-    }
-
-    // Иначе показываем в миллионах
-    return '\$${value.toStringAsFixed(1)}M';
-  }
-
-  String _getFundDisplayName(String fundKey) {
-    return FundLogoService.getFundName(fundKey);
-  }
-
-  // Построить компактные табы рядом с заголовком
-  Widget _buildCompactTabBar() {
     return Row(
       children: [
-        _buildCompactTabItem('holdings.general'.tr(), 0, Icons.account_balance),
-        const SizedBox(width: 8),
-        _buildCompactTabItem(
-          'holdings.ethereum'.tr(),
-          1,
-          Icons.currency_exchange,
+        Expanded(
+          child: Text(
+            'etf.holdings'.tr(),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+        ),
+        // Кнопка выбора периода
+        GestureDetector(
+          onTap: () {
+            HapticUtils.lightImpact();
+            _showPeriodDialog(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _getPeriodDescription(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.secondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(width: 8),
-        _buildCompactTabItem(
-          'holdings.bitcoin'.tr(),
-          2,
-          Icons.currency_bitcoin,
+        // Кнопка сортировки
+        GestureDetector(
+          onTap: () {
+            HapticUtils.lightImpact();
+            _showSortDialog(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.sort,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _getSortDescription(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  // Построить компактный элемент таба
-  Widget _buildCompactTabItem(String title, int index, IconData icon) {
-    final isSelected = _selectedTabIndex == index;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTabIndex = index;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.grey[400] : Colors.grey[600]),
-              size: 16,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.grey[400] : Colors.grey[600]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Построить табы (старый метод, оставляем для совместимости)
-  Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          _buildTabItem('holdings.general'.tr(), 0, Icons.account_balance),
-          _buildTabItem('holdings.ethereum'.tr(), 1, Icons.currency_exchange),
-          _buildTabItem('holdings.bitcoin'.tr(), 2, Icons.currency_bitcoin),
-        ],
-      ),
-    );
-  }
-
-  // Построить элемент таба
-  Widget _buildTabItem(String title, int index, IconData icon) {
-    final isSelected = _selectedTabIndex == index;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedTabIndex = index;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                size: 20,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Получить заголовок таба
-  String _getTabTitle() {
-    switch (_selectedTabIndex) {
-      case 0:
-        return 'holdings.general_holdings'.tr();
-      case 1:
-        return 'holdings.ethereum_holdings'.tr();
-      case 2:
-        return 'holdings.bitcoin_holdings'.tr();
+  String _getSortDescription() {
+    switch (_sortBy) {
+      case 'name':
+        return _sortAscending ? 'A-Z' : 'Z-A';
+      case 'btc':
+        return _sortAscending ? 'BTC ↑' : 'BTC ↓';
+      case 'eth':
+        return _sortAscending ? 'ETH ↑' : 'ETH ↓';
       default:
-        return 'holdings.fund_holdings'.tr();
+        return 'Sort';
     }
   }
 
-  // Построить контент в зависимости от выбранного таба
-  Widget _buildTabContent(Map<String, dynamic> fundData) {
-    switch (_selectedTabIndex) {
-      case 0:
-        // General holdings - show both values
-        return Row(
-          children: [
-            Expanded(
-              child: _buildFundItem(
-                'ETH',
-                _formatLargeNumber(fundData['eth']),
-                Colors.blue,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildFundItem(
-                'BTC',
-                _formatLargeNumber(fundData['btc']),
-                Colors.orange,
-              ),
-            ),
-          ],
-        );
-      case 1:
-        // Только Ethereum
-        return _buildFundItem(
-          'ETH',
-          _formatLargeNumber(fundData['eth']),
-          Colors.blue,
-          isFullWidth: true,
-        );
-      case 2:
-        // Только Bitcoin
-        return _buildFundItem(
-          'BTC',
-          _formatLargeNumber(fundData['btc']),
-          Colors.orange,
-          isFullWidth: true,
-        );
+  String _getPeriodDescription() {
+    switch (_selectedPeriod) {
+      case 'day':
+        return 'holdings.period_day'.tr();
+      case 'week':
+        return 'holdings.period_week'.tr();
+      case 'month':
+        return 'holdings.period_month'.tr();
+      case 'quarter':
+        return 'holdings.period_3months'.tr();
+      case 'half_year':
+        return 'holdings.period_half_year'.tr();
+      case 'year':
+        return 'holdings.period_year'.tr();
       default:
-        return const SizedBox.shrink();
+        return 'holdings.period_day'.tr();
     }
   }
 
-  // Показать диалог сортировки
   void _showSortDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('sorting.title'.tr()),
+          backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'sorting.title'.tr(),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<String>(
-                title: Text('sorting.by_current_tab'.tr()),
-                value: 'current',
-                groupValue: _sortBy,
-                onChanged: (value) {
-                  setState(() {
-                    _sortBy = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('sorting.by_total_holdings'.tr()),
-                value: 'total',
-                groupValue: _sortBy,
-                onChanged: (value) {
-                  setState(() {
-                    _sortBy = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('sorting.by_ethereum'.tr()),
-                value: 'eth',
-                groupValue: _sortBy,
-                onChanged: (value) {
-                  setState(() {
-                    _sortBy = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('sorting.by_bitcoin'.tr()),
-                value: 'btc',
-                groupValue: _sortBy,
-                onChanged: (value) {
-                  setState(() {
-                    _sortBy = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('sorting.by_name'.tr()),
-                value: 'name',
-                groupValue: _sortBy,
-                onChanged: (value) {
-                  setState(() {
-                    _sortBy = value!;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _sortAscending = !_sortAscending;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          _sortAscending
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _sortAscending
-                              ? 'sorting.ascending'.tr()
-                              : 'sorting.descending'.tr(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              _buildSortOption('name', 'sorting.by_name'.tr(), isDark),
+              _buildSortOption('btc', 'sorting.by_btc'.tr(), isDark),
+              _buildSortOption('eth', 'sorting.by_eth'.tr(), isDark),
             ],
           ),
           actions: [
@@ -570,138 +321,130 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     );
   }
 
-  // Фильтрация фондов в зависимости от выбранного таба
-  List<MapEntry<String, dynamic>> _filterFundHoldings(
-    List<MapEntry<String, dynamic>> entries,
-  ) {
-    switch (_selectedTabIndex) {
-      case 0: // Общее - показываем все фонды
-        return entries;
-      case 1: // Ethereum - показываем только Ethereum фонды
-        return entries.where((entry) {
-          final fundKey = entry.key;
-          // Ethereum фонды: blackrock, fidelity, bitwise, twentyOneShares, vanEck, invesco, franklin, grayscale, grayscaleCrypto
-          return [
-            'blackrock',
-            'fidelity',
-            'bitwise',
-            'twentyOneShares',
-            'vanEck',
-            'invesco',
-            'franklin',
-            'grayscale',
-            'grayscaleCrypto',
-          ].contains(fundKey);
-        }).toList();
-      case 2: // Bitcoin - показываем только Bitcoin фонды
-        return entries.where((entry) {
-          final fundKey = entry.key;
-          // Bitcoin фонды: все Ethereum + valkyrie, wisdomTree
-          return [
-            'blackrock',
-            'fidelity',
-            'bitwise',
-            'twentyOneShares',
-            'vanEck',
-            'invesco',
-            'franklin',
-            'grayscale',
-            'grayscaleCrypto',
-            'valkyrie',
-            'wisdomTree',
-          ].contains(fundKey);
-        }).toList();
-      default:
-        return entries;
-    }
-  }
+  Widget _buildSortOption(String value, String title, bool isDark) {
+    final isSelected = _sortBy == value;
 
-  // Сортировка фондов
-  List<MapEntry<String, dynamic>> _sortFundHoldings(
-    List<MapEntry<String, dynamic>> entries,
-  ) {
-    entries.sort((a, b) {
-      final aData = a.value as Map<String, dynamic>;
-      final bData = b.value as Map<String, dynamic>;
-
-      int comparison = 0;
-
-      switch (_sortBy) {
-        case 'total':
-          final aTotal = (aData['eth'] ?? 0) + (aData['btc'] ?? 0);
-          final bTotal = (bData['eth'] ?? 0) + (bData['btc'] ?? 0);
-          comparison = aTotal.compareTo(bTotal);
-          break;
-        case 'eth':
-          comparison = (aData['eth'] ?? 0).compareTo(bData['eth'] ?? 0);
-          break;
-        case 'btc':
-          comparison = (aData['btc'] ?? 0).compareTo(bData['btc'] ?? 0);
-          break;
-        case 'name':
-          final aName = _getFundDisplayName(a.key);
-          final bName = _getFundDisplayName(b.key);
-          comparison = aName.compareTo(bName);
-          break;
-        case 'current':
-          // Сортировка по текущему выбранному табу
-          switch (_selectedTabIndex) {
-            case 0: // Общее
-              final aTotal = (aData['eth'] ?? 0) + (aData['btc'] ?? 0);
-              final bTotal = (bData['eth'] ?? 0) + (bData['btc'] ?? 0);
-              comparison = aTotal.compareTo(bTotal);
-              break;
-            case 1: // Ethereum
-              comparison = (aData['eth'] ?? 0).compareTo(bData['eth'] ?? 0);
-              break;
-            case 2: // Bitcoin
-              comparison = (aData['btc'] ?? 0).compareTo(bData['btc'] ?? 0);
-              break;
-            default:
-              comparison = 0;
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isSelected) ...[
+            Text(
+              _sortAscending ? '↑' : '↓',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Radio<String>(
+            value: value,
+            groupValue: _sortBy,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  if (_sortBy == newValue) {
+                    _sortAscending = !_sortAscending;
+                  } else {
+                    _sortBy = newValue;
+                    _sortAscending = true;
+                  }
+                });
+                Navigator.pop(context);
+              }
+            },
+            activeColor: Theme.of(context).colorScheme.primary,
+          ),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          if (_sortBy == value) {
+            _sortAscending = !_sortAscending;
+          } else {
+            _sortBy = value;
+            _sortAscending = true;
           }
-          break;
-      }
-
-      return _sortAscending ? comparison : -comparison;
-    });
-
-    return entries;
+        });
+        Navigator.pop(context);
+      },
+    );
   }
 
-  // Получить описание текущей сортировки
-  String _getSortDescription() {
-    String sortType = '';
-    switch (_sortBy) {
-      case 'current':
-        switch (_selectedTabIndex) {
-          case 0:
-            sortType = 'holdings.general_holdings'.tr();
-            break;
-          case 1:
-            sortType = 'holdings.ethereum_holdings'.tr();
-            break;
-          case 2:
-            sortType = 'holdings.bitcoin_holdings'.tr();
-            break;
-          default:
-            sortType = 'sorting.by_current_tab'.tr();
-        }
-        break;
-      case 'total':
-        sortType = 'holdings.general_holdings'.tr();
-        break;
-      case 'eth':
-        sortType = 'holdings.ethereum_holdings'.tr();
-        break;
-      case 'btc':
-        sortType = 'holdings.bitcoin_holdings'.tr();
-        break;
-      case 'name':
-        sortType = 'sorting.by_name'.tr();
-        break;
-    }
+  void _showPeriodDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return '${_sortAscending ? '↑' : '↓'} $sortType';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'holdings.period_changes'.tr(),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildPeriodOption('day', 'holdings.period_day'.tr(), isDark),
+              _buildPeriodOption('week', 'holdings.period_week'.tr(), isDark),
+              _buildPeriodOption('month', 'holdings.period_month'.tr(), isDark),
+              _buildPeriodOption(
+                'quarter',
+                'holdings.period_3months'.tr(),
+                isDark,
+              ),
+              _buildPeriodOption(
+                'half_year',
+                'holdings.period_half_year'.tr(),
+                isDark,
+              ),
+              _buildPeriodOption('year', 'holdings.period_year'.tr(), isDark),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('common.cancel'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPeriodOption(String value, String title, bool isDark) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      ),
+      trailing: Radio<String>(
+        value: value,
+        groupValue: _selectedPeriod,
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            setState(() {
+              _selectedPeriod = newValue;
+            });
+            Navigator.pop(context);
+          }
+        },
+        activeColor: Theme.of(context).colorScheme.secondary,
+      ),
+    );
   }
 }
