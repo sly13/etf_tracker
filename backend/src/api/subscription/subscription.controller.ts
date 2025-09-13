@@ -7,6 +7,63 @@ export class SubscriptionController {
 
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
+  @Post('status')
+  async getSubscriptionStatus(@Body() body: any): Promise<any> {
+    this.logger.log('📊 === ПОЛУЧЕНИЕ СТАТУСА ПОДПИСКИ ===');
+    this.logger.log('📦 Request Data:', JSON.stringify(body, null, 2));
+
+    const { deviceId, userId } = body;
+
+    if (!deviceId && !userId) {
+      return {
+        success: false,
+        error: 'DeviceId or UserId is required',
+      };
+    }
+
+    try {
+      let user;
+
+      if (deviceId) {
+        // Ищем пользователя по deviceId
+        const cleanDeviceId = deviceId.replace(/^(ios_|android_|web_)/, '');
+        user = await this.subscriptionService.findUserByDeviceId(cleanDeviceId);
+      } else if (userId) {
+        // Ищем пользователя по userId
+        user = await this.subscriptionService.findUserByDeviceId(userId);
+      }
+
+      if (!user) {
+        this.logger.log('❌ Пользователь не найден');
+        return {
+          success: false,
+          error: 'User not found',
+          subscription: null,
+        };
+      }
+
+      // Получаем статус подписки
+      const subscriptionStatus =
+        await this.subscriptionService.getUserSubscriptionStatus(user.id);
+
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          deviceId: user.deviceId,
+          os: user.os,
+        },
+        subscription: subscriptionStatus,
+      };
+    } catch (error) {
+      this.logger.error('❌ Ошибка получения статуса подписки:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   @Post('check-or-create-user')
   async checkOrCreateUser(@Body() body: any): Promise<any> {
     this.logger.log('👤 === ПРОВЕРКА/СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ ===');

@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { RevenueCatService } from '../revenuecat/revenuecat.service';
 
 @Injectable()
 export class SubscriptionService {
   private readonly logger = new Logger(SubscriptionService.name);
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly revenueCatService: RevenueCatService,
+  ) {}
 
   /**
    * Обновление статуса подписки пользователя
@@ -263,13 +267,72 @@ export class SubscriptionService {
   }
 
   /**
-   * Получение статуса подписки пользователя
+   * Получение статуса подписки пользователя с синхронизацией RevenueCat
    */
   async getUserSubscriptionStatus(userId: string): Promise<any> {
     this.logger.log('🔍 === ПОЛУЧЕНИЕ СТАТУСА ПОДПИСКИ ===');
     this.logger.log(`👤 User ID: ${userId}`);
 
     try {
+      // Сначала получаем пользователя
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          deviceId: true,
+          telegramChatId: true,
+          os: true,
+        },
+      });
+
+      if (!user) {
+        this.logger.log('❌ Пользователь не найден');
+        return null;
+      }
+
+      // Синхронизируем с RevenueCat
+      this.logger.log('🔄 Синхронизация с RevenueCat...');
+      try {
+        if (user.deviceId) {
+          const revenueCatData =
+            await this.revenueCatService.syncUserWithRevenueCat(
+              user.deviceId,
+              user.deviceId, // Используем deviceId как appUserId
+            );
+
+          // Обновляем подписку в БД на основе данных RevenueCat
+          if (revenueCatData.activeSubscriptions.length > 0) {
+            const latestSubscription = revenueCatData.activeSubscriptions[0];
+
+            await this.updateUserSubscription(
+              user.deviceId,
+              {
+                revenueCatUserId: revenueCatData.appUserId,
+                originalTransactionId: latestSubscription.originalPurchaseDate,
+                productId: latestSubscription.productId,
+                isActive: latestSubscription.isActive,
+                isPremium: latestSubscription.isPremium,
+                autoRenew: latestSubscription.autoRenew,
+                purchaseDate: new Date(latestSubscription.purchaseDate),
+                expirationDate: new Date(latestSubscription.expirationDate),
+                originalPurchaseDate: new Date(
+                  latestSubscription.originalPurchaseDate,
+                ),
+                environment: latestSubscription.environment,
+                platform: latestSubscription.platform,
+              },
+              user.deviceId,
+            );
+          }
+        }
+      } catch (revenueCatError) {
+        this.logger.warn(
+          `⚠️ Ошибка синхронизации с RevenueCat: ${revenueCatError.message}`,
+        );
+        // Продолжаем выполнение с данными из БД
+      }
+
+      // Получаем обновленную подписку из БД
       const subscription = await (
         this.prismaService as any
       ).subscription.findFirst({
@@ -306,6 +369,7 @@ export class SubscriptionService {
         return {
           ...subscription,
           isCurrentlyActive,
+          lastSyncWithRevenueCat: new Date(),
         };
       } else {
         this.logger.log('❌ Подписка не найдена');

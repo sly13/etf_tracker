@@ -122,6 +122,41 @@ async function testUserCheckOrCreate() {
 	}
 }
 
+async function testSubscriptionStatus() {
+	console.log('\n📊 === ТЕСТ ПОЛУЧЕНИЯ СТАТУСА ПОДПИСКИ (С СИНХРОНИЗАЦИЕЙ REVENUECAT) ===');
+
+	const statusData = {
+		deviceId: DEVICE_ID
+	};
+
+	try {
+		const result = await makeRequest('/subscription/status', statusData);
+		console.log('📊 Получение статуса подписки:');
+		console.log(`   Статус: ${result.status}`);
+		console.log(`   Ответ: ${JSON.stringify(result.data, null, 2)}`);
+
+		if (result.status >= 200 && result.status < 300 && result.data.success) {
+			console.log('✅ Статус подписки получен успешно');
+
+			// Проверяем, есть ли информация о синхронизации с RevenueCat
+			if (result.data.subscription && result.data.subscription.lastSyncWithRevenueCat) {
+				console.log('✅ Синхронизация с RevenueCat выполнена');
+				console.log(`   Время синхронизации: ${result.data.subscription.lastSyncWithRevenueCat}`);
+			} else {
+				console.log('⚠️ Информация о синхронизации с RevenueCat отсутствует');
+			}
+
+			return true;
+		} else {
+			console.log('❌ Ошибка получения статуса подписки');
+			return false;
+		}
+	} catch (error) {
+		console.log('❌ Ошибка при получении статуса подписки:', error.message);
+		return false;
+	}
+}
+
 async function testSubscriptionSync() {
 	console.log('\n💳 === ТЕСТ СИНХРОНИЗАЦИИ ПОКУПКИ ===');
 
@@ -173,16 +208,20 @@ async function runTests() {
 	// Тест 2: Проверка/создание пользователя
 	const userCheckSuccess = await testUserCheckOrCreate();
 
-	// Тест 3: Синхронизация покупки
+	// Тест 3: Получение статуса подписки
+	const statusSuccess = await testSubscriptionStatus();
+
+	// Тест 4: Синхронизация покупки
 	const subscriptionSuccess = await testSubscriptionSync();
 
 	// Результаты
 	console.log('\n📊 === РЕЗУЛЬТАТЫ ТЕСТОВ ===');
 	console.log(`Регистрация устройства: ${registrationSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
 	console.log(`Проверка/создание пользователя: ${userCheckSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
+	console.log(`Получение статуса подписки: ${statusSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
 	console.log(`Синхронизация покупки: ${subscriptionSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
 
-	if (registrationSuccess && userCheckSuccess && subscriptionSuccess) {
+	if (registrationSuccess && userCheckSuccess && statusSuccess && subscriptionSuccess) {
 		console.log('\n🎉 ВСЕ ТЕСТЫ ПРОШЛИ УСПЕШНО!');
 		console.log('✅ Ошибка "Пользователь не найден" исправлена');
 	} else {

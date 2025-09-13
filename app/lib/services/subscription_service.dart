@@ -8,6 +8,7 @@ import '../models/user.dart';
 import '../config/app_config.dart';
 import 'notification_service.dart';
 import 'user_check_service.dart';
+import 'subscription_status_service.dart';
 
 class SubscriptionService {
   // Получение API ключей из переменных окружения
@@ -325,40 +326,12 @@ class SubscriptionService {
         print('🔧 Debug режим: Проверяем реальный статус премиум');
       }
 
-      final customerInfo = await Purchases.getCustomerInfo();
-
-      print('🔧 Все entitlements: ${customerInfo.entitlements.all.keys}');
-      print(
-        '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
-      );
-
-      // Выводим детальную информацию о каждом entitlement
-      for (final entry in customerInfo.entitlements.all.entries) {
-        print(
-          '🔧 Entitlement "${entry.key}": активен = ${entry.value.isActive}',
-        );
-        if (entry.value.isActive) {
-          print('   - Истекает: ${entry.value.expirationDate}');
-          print('   - Будет продлеваться: ${entry.value.willRenew}');
-        }
-      }
-
-      // Временная логика: если entitlements не настроены, проверяем активные покупки
-      var isPremium = customerInfo.entitlements.active.containsKey('premium');
-
-      // Если entitlements не настроены, проверяем активные покупки
-      if (customerInfo.entitlements.all.isEmpty &&
-          customerInfo.activeSubscriptions.isNotEmpty) {
-        print('🔧 Entitlements не настроены, но есть активные покупки');
-        isPremium = true;
-      }
+      // Используем новый сервис для получения актуального статуса
+      final isPremium =
+          await SubscriptionStatusService.getCurrentSubscriptionStatus();
 
       if (kDebugMode) {
         print('🔧 Статус премиум: $isPremium');
-        print('🔧 Проверяем entitlement "premium"');
-        print(
-          '🔧 Активные покупки: ${customerInfo.activeSubscriptions.length}',
-        );
       }
 
       return isPremium;
@@ -395,14 +368,12 @@ class SubscriptionService {
         print('🔧 Принудительное обновление статуса подписки');
       }
 
-      final customerInfo = await Purchases.getCustomerInfo();
-      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+      // Используем новый сервис для обновления статуса
+      final isPremium =
+          await SubscriptionStatusService.refreshSubscriptionStatus();
 
       if (kDebugMode) {
         print('🔧 Обновленный статус: ${isPremium ? "Premium" : "Basic"}');
-        print(
-          '🔧 Активные entitlements: ${customerInfo.entitlements.active.keys}',
-        );
       }
 
       return isPremium;
