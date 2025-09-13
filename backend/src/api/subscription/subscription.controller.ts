@@ -7,6 +7,60 @@ export class SubscriptionController {
 
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
+  @Post('check-or-create-user')
+  async checkOrCreateUser(@Body() body: any): Promise<any> {
+    this.logger.log('👤 === ПРОВЕРКА/СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ ===');
+    this.logger.log('📦 Request Data:', JSON.stringify(body, null, 2));
+
+    const { deviceId } = body;
+
+    if (!deviceId) {
+      return {
+        success: false,
+        error: 'DeviceId is required',
+      };
+    }
+
+    try {
+      // Проверяем, существует ли пользователь
+      const cleanDeviceId = deviceId.replace(/^(ios_|android_|web_)/, '');
+
+      let user =
+        await this.subscriptionService.findUserByDeviceId(cleanDeviceId);
+
+      if (!user) {
+        this.logger.log(
+          `🔧 Пользователь не найден, создаем нового для deviceId: ${cleanDeviceId}`,
+        );
+
+        // Создаем пользователя
+        user = await this.subscriptionService.createUserForDevice(deviceId);
+
+        return {
+          success: true,
+          user: user,
+          created: true,
+          message: 'Пользователь создан успешно',
+        };
+      } else {
+        this.logger.log(`✅ Пользователь найден: ${user.id}`);
+
+        return {
+          success: true,
+          user: user,
+          created: false,
+          message: 'Пользователь уже существует',
+        };
+      }
+    } catch (error) {
+      this.logger.error('❌ Ошибка проверки/создания пользователя:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   @Post('sync-purchase')
   async syncPurchase(@Body() body: any): Promise<any> {
     this.logger.log('💳 === СИНХРОНИЗАЦИЯ ПОКУПКИ ===');
@@ -83,6 +137,31 @@ export class SubscriptionController {
         this.logger.warn(
           '⚠️ Это может привести к проблемам с поиском пользователя',
         );
+      } else {
+        // Сначала проверяем/создаем пользователя
+        this.logger.log(
+          '🔍 Проверяем существование пользователя перед синхронизацией покупки',
+        );
+
+        try {
+          const cleanDeviceId = deviceId.replace(/^(ios_|android_|web_)/, '');
+          let user =
+            await this.subscriptionService.findUserByDeviceId(cleanDeviceId);
+
+          if (!user) {
+            this.logger.log('🔧 Пользователь не найден, создаем автоматически');
+            user = await this.subscriptionService.createUserForDevice(deviceId);
+            this.logger.log(`✅ Пользователь создан: ${user.id}`);
+          } else {
+            this.logger.log(`✅ Пользователь найден: ${user.id}`);
+          }
+        } catch (userError) {
+          this.logger.error(
+            '❌ Ошибка при проверке/создании пользователя:',
+            userError,
+          );
+          // Продолжаем выполнение, так как updateUserSubscription тоже может создать пользователя
+        }
       }
 
       const result = await this.subscriptionService.updateUserSubscription(

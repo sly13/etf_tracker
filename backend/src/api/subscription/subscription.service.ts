@@ -318,6 +318,94 @@ export class SubscriptionService {
   }
 
   /**
+   * Поиск пользователя по deviceId
+   */
+  async findUserByDeviceId(deviceId: string): Promise<any> {
+    this.logger.log(`🔍 Поиск пользователя по deviceId: ${deviceId}`);
+
+    try {
+      // Ищем пользователя по deviceId
+      const user = await this.prismaService.user.findFirst({
+        where: { deviceId: deviceId },
+      });
+
+      if (user) {
+        this.logger.log(`✅ Пользователь найден: ${user.id}`);
+        return user;
+      } else {
+        this.logger.log(`❌ Пользователь не найден по deviceId: ${deviceId}`);
+        return null;
+      }
+    } catch (error) {
+      this.logger.error(`❌ Ошибка поиска пользователя: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Создание пользователя для устройства
+   */
+  async createUserForDevice(deviceId: string): Promise<any> {
+    this.logger.log(`🔧 Создание пользователя для deviceId: ${deviceId}`);
+
+    try {
+      const cleanDeviceId = deviceId.replace(/^(ios_|android_|web_)/, '');
+
+      const user = await this.prismaService.user.create({
+        data: {
+          deviceId: cleanDeviceId,
+          deviceToken: `temp_token_${Date.now()}`,
+          os: deviceId.startsWith('ios_')
+            ? 'ios'
+            : deviceId.startsWith('android_')
+              ? 'android'
+              : 'unknown',
+          isActive: true,
+          lastUsed: new Date(),
+          settings: {
+            notifications: {
+              enableETFUpdates: true,
+              enableSignificantFlow: true,
+              enableTestNotifications: false,
+              enableTelegramNotifications: false,
+              enableFlowAmount: false,
+              minFlowThreshold: 0.1,
+              significantChangePercent: 20.0,
+              flowAmountThreshold: 10.0,
+            },
+            preferences: {
+              language: 'ru',
+              timezone: 'UTC',
+              deviceType: deviceId.startsWith('ios_')
+                ? 'ios'
+                : deviceId.startsWith('android_')
+                  ? 'android'
+                  : 'unknown',
+            },
+            profile: {},
+          },
+          application: {
+            connectOrCreate: {
+              where: { name: 'etf.flow' },
+              create: {
+                name: 'etf.flow',
+                displayName: 'ETF Flow Tracker',
+                description: 'Приложение для отслеживания потоков ETF',
+              },
+            },
+          },
+        },
+      });
+
+      this.logger.log(`✅ Пользователь создан: ${user.id}`);
+      return user;
+    } catch (error) {
+      this.logger.error(`❌ Ошибка создания пользователя: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
    * Логирование данных от RevenueCat (для отладки)
    */
   logRevenueCatData(data: any): void {

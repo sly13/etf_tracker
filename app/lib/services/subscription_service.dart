@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import '../models/user.dart';
 import '../config/app_config.dart';
 import 'notification_service.dart';
+import 'user_check_service.dart';
 
 class SubscriptionService {
   // Получение API ключей из переменных окружения
@@ -611,6 +612,17 @@ class SubscriptionService {
   ) async {
     try {
       print('💳 === СИНХРОНИЗАЦИЯ ПОКУПКИ С БЭКЕНДОМ ===');
+
+      // Сначала проверяем/создаем пользователя
+      print(
+        '👤 Проверяем существование пользователя перед синхронизацией покупки...',
+      );
+      final userReady = await UserCheckService.checkUserBeforePurchase();
+
+      if (!userReady) {
+        print('⚠️ Пользователь не готов, но продолжаем синхронизацию...');
+        // Не прерываем процесс, так как бэкенд может создать пользователя автоматически
+      }
 
       // Получаем активную подписку
       final activeEntitlements = customerInfo.entitlements.active;

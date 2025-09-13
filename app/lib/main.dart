@@ -14,6 +14,7 @@ import 'providers/notification_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/subscription_service.dart';
 import 'services/notification_service.dart';
+import 'services/user_check_service.dart';
 import 'utils/revenuecat_checker.dart';
 
 void main() async {
@@ -58,6 +59,15 @@ void main() async {
   try {
     await NotificationService.initialize();
     print('✅ NotificationService инициализирован');
+
+    // Проверяем/создаем пользователя после регистрации устройства
+    try {
+      await UserCheckService.registerDeviceWithFullData();
+      print('✅ Пользователь проверен/создан');
+    } catch (e) {
+      print('⚠️ Ошибка проверки пользователя: $e');
+      print('🔧 Продолжаем работу...');
+    }
   } catch (e) {
     print('❌ Ошибка инициализации NotificationService: $e');
     print('🔧 Приложение будет работать без пуш-уведомлений');

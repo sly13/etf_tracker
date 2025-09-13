@@ -91,6 +91,37 @@ async function testDeviceRegistration() {
 	}
 }
 
+async function testUserCheckOrCreate() {
+	console.log('\n👤 === ТЕСТ ПРОВЕРКИ/СОЗДАНИЯ ПОЛЬЗОВАТЕЛЯ ===');
+
+	const checkData = {
+		deviceId: DEVICE_ID,
+		userId: 'test_user_' + Date.now()
+	};
+
+	try {
+		const result = await makeRequest('/subscription/check-or-create-user', checkData);
+		console.log('👤 Проверка/создание пользователя:');
+		console.log(`   Статус: ${result.status}`);
+		console.log(`   Ответ: ${JSON.stringify(result.data, null, 2)}`);
+
+		if (result.status >= 200 && result.status < 300 && result.data.success) {
+			if (result.data.created) {
+				console.log('✅ Пользователь создан успешно');
+			} else {
+				console.log('✅ Пользователь уже существует');
+			}
+			return true;
+		} else {
+			console.log('❌ Ошибка проверки/создания пользователя');
+			return false;
+		}
+	} catch (error) {
+		console.log('❌ Ошибка при проверке пользователя:', error.message);
+		return false;
+	}
+}
+
 async function testSubscriptionSync() {
 	console.log('\n💳 === ТЕСТ СИНХРОНИЗАЦИИ ПОКУПКИ ===');
 
@@ -139,15 +170,19 @@ async function runTests() {
 	// Тест 1: Регистрация устройства
 	const registrationSuccess = await testDeviceRegistration();
 
-	// Тест 2: Синхронизация покупки
+	// Тест 2: Проверка/создание пользователя
+	const userCheckSuccess = await testUserCheckOrCreate();
+
+	// Тест 3: Синхронизация покупки
 	const subscriptionSuccess = await testSubscriptionSync();
 
 	// Результаты
 	console.log('\n📊 === РЕЗУЛЬТАТЫ ТЕСТОВ ===');
 	console.log(`Регистрация устройства: ${registrationSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
+	console.log(`Проверка/создание пользователя: ${userCheckSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
 	console.log(`Синхронизация покупки: ${subscriptionSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);
 
-	if (registrationSuccess && subscriptionSuccess) {
+	if (registrationSuccess && userCheckSuccess && subscriptionSuccess) {
 		console.log('\n🎉 ВСЕ ТЕСТЫ ПРОШЛИ УСПЕШНО!');
 		console.log('✅ Ошибка "Пользователь не найден" исправлена');
 	} else {
