@@ -143,7 +143,8 @@ struct SmallWidgetView: View {
     var entry: Provider.Entry
     
     var body: some View {
-        VStack(spacing: 8) {
+        Link(destination: URL(string: "etfapp://open")!) {
+            VStack(spacing: 8) {
             // Заголовок
             HStack {
                 Image(systemName: "chart.line.uptrend.xyaxis")
@@ -211,6 +212,7 @@ struct SmallWidgetView: View {
             }
         }
         .padding(12)
+        }
     }
 }
 
@@ -219,7 +221,8 @@ struct MediumWidgetView: View {
     var entry: Provider.Entry
     
     var body: some View {
-        HStack(spacing: 16) {
+        Link(destination: URL(string: "etfapp://open")!) {
+            HStack(spacing: 16) {
             // Левая часть - основная информация
             VStack(alignment: .leading, spacing: 8) {
                 // Заголовок
@@ -289,6 +292,7 @@ struct MediumWidgetView: View {
             }
         }
         .padding(16)
+        }
     }
 }
 

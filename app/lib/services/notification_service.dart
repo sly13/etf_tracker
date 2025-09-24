@@ -223,7 +223,7 @@ class NotificationService {
   /// Получение имени устройства
   static Future<String> _getDeviceName() async {
     // В реальном приложении можно использовать device_info_plus
-    return 'ETF Tracker Device';
+    return 'ETF Flow Device';
   }
 
   /// Создание канала уведомлений для Android

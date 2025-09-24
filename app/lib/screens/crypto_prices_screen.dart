@@ -5,7 +5,7 @@ import '../providers/crypto_price_provider.dart';
 import '../widgets/crypto_price_widget.dart';
 
 class CryptoPricesScreen extends StatefulWidget {
-  const CryptoPricesScreen({Key? key}) : super(key: key);
+  const CryptoPricesScreen({super.key});
 
   @override
   State<CryptoPricesScreen> createState() => _CryptoPricesScreenState();

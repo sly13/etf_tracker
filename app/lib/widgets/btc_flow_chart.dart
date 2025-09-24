@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
-import 'package:intl/intl.dart';
 
 enum ChartPeriod { daily, weekly, monthly }
 
@@ -452,14 +451,17 @@ class _BTCFlowChartState extends State<BTCFlowChart> {
   }
 
   String _formatCurrency(double value) {
-    if (value.abs() >= 1e9) {
-      return '${(value / 1e9).toStringAsFixed(2)}B';
-    } else if (value.abs() >= 1e6) {
-      return '${(value / 1e6).toStringAsFixed(2)}M';
-    } else if (value.abs() >= 1e3) {
-      return '${(value / 1e3).toStringAsFixed(2)}K';
+    final absValue = value.abs();
+    final prefix = value < 0 ? '-' : '';
+
+    if (absValue >= 1e9) {
+      return '$prefix${(absValue / 1e9).toStringAsFixed(2)}B';
+    } else if (absValue >= 1e6) {
+      return '$prefix${(absValue / 1e6).toStringAsFixed(2)}M';
+    } else if (absValue >= 1e3) {
+      return '$prefix${(absValue / 1e3).toStringAsFixed(2)}K';
     } else {
-      return value.toStringAsFixed(2);
+      return '$prefix${absValue.toStringAsFixed(2)}';
     }
   }
 }

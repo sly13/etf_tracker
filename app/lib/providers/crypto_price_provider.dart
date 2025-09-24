@@ -37,7 +37,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       _lastUpdateTime = await _cryptoPriceService.getLastPriceUpdateTime();
       notifyListeners();
     } catch (e) {
-      _setError('errors.price_load_error'.tr() + ': $e');
+      _setError('${'errors.price_load_error'.tr()}: $e');
     } finally {
       _setLoading(false);
     }
@@ -56,7 +56,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       _lastUpdateTime = DateTime.now();
       notifyListeners();
     } catch (e) {
-      _setError('errors.price_refresh_error'.tr() + ': $e');
+      _setError('${'errors.price_refresh_error'.tr()}: $e');
     } finally {
       _setLoading(false);
     }
@@ -84,7 +84,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       notifyListeners();
       return price;
     } catch (e) {
-      _setError('errors.ethereum_price_error'.tr() + ': $e');
+      _setError('${'errors.ethereum_price_error'.tr()}: $e');
       rethrow;
     }
   }
@@ -98,7 +98,7 @@ class CryptoPriceProvider extends ChangeNotifier {
       notifyListeners();
       return price;
     } catch (e) {
-      _setError('errors.bitcoin_price_error'.tr() + ': $e');
+      _setError('${'errors.bitcoin_price_error'.tr()}: $e');
       rethrow;
     }
   }

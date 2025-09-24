@@ -5,9 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/subscription_plan.dart';
 import '../services/subscription_service.dart';
 import '../providers/subscription_provider.dart';
+import '../providers/onboarding_provider.dart';
 import '../widgets/loading_screen.dart';
 import '../config/app_config.dart';
 import '../utils/haptic_feedback.dart';
+import 'main_navigation_screen.dart';
 
 class SubscriptionSelectionScreen extends StatefulWidget {
   const SubscriptionSelectionScreen({super.key});
@@ -91,49 +93,237 @@ class _SubscriptionSelectionScreenState
               message: 'subscription.processing'.tr(),
               showProgress: true,
             )
-          : Stack(
-              children: [
-                _buildContent(),
-                // Кнопка восстановления покупок в левом верхнем углу
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 16,
-                  left: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.restore, color: Colors.white),
-                    onPressed: _handleRestorePurchases,
-                    tooltip: 'Restore purchases',
-                  ),
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF1A1A2E), // Темно-синий
+                    const Color(0xFF16213E), // Темно-синий с фиолетовым
+                    const Color(0xFF0F3460), // Синий
+                    const Color(0xFF533483), // Фиолетовый
+                    const Color(0xFF7209B7), // Яркий фиолетовый
+                  ],
+                  stops: const [0.0, 0.3, 0.6, 0.8, 1.0],
                 ),
-                // Кнопка закрытия в правом верхнем углу
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 16,
-                  right: 16,
-                  child: IconButton(
-                    icon: _isCloseButtonLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: AnimatedBuilder(
-                              animation: _closeButtonAnimationController,
-                              builder: (context, child) {
-                                return CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.grey[400]!,
-                                  ),
-                                  value: _closeButtonAnimationController.value,
-                                );
-                              },
+              ),
+              child: Stack(
+                children: [
+                  // Декоративные элементы фона
+                  _buildBackgroundDecorations(),
+                  _buildContent(),
+                  // Верхняя панель с кнопками и заголовком
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 16,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          // Кнопка восстановления покупок
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          )
-                        : const Icon(Icons.close, color: Colors.white),
-                    onPressed: _isCloseButtonLoading
-                        ? null
-                        : () => Navigator.of(context).pop(),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.restore,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                              onPressed: _handleRestorePurchases,
+                              tooltip: 'subscription.restore_purchases'.tr(),
+                            ),
+                          ),
+
+                          // Заголовок по центру
+                          Expanded(
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'subscription.unlock_premium_today'.tr(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // Кнопка закрытия
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: _isCloseButtonLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: AnimatedBuilder(
+                                        animation:
+                                            _closeButtonAnimationController,
+                                        builder: (context, child) {
+                                          return CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white.withOpacity(0.8),
+                                                ),
+                                            value:
+                                                _closeButtonAnimationController
+                                                    .value,
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.close,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                              onPressed: _isCloseButtonLoading
+                                  ? null
+                                  : () async {
+                                      // Отмечаем paywall как пропущенный
+                                      final onboardingProvider =
+                                          Provider.of<OnboardingProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                      await onboardingProvider
+                                          .markPaywallAsSkipped();
+
+                                      // Закрываем paywall и переходим к основному приложению
+                                      if (mounted) {
+                                        Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const MainNavigationScreen(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                              tooltip: 'subscription.skip_subscription'.tr(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+    );
+  }
+
+  Widget _buildBackgroundDecorations() {
+    return Stack(
+      children: [
+        // Большие декоративные круги
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [Colors.purple.withOpacity(0.1), Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          left: -150,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [Colors.blue.withOpacity(0.08), Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+        // Средние декоративные элементы
+        Positioned(
+          top: 100,
+          left: -50,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.purple.withOpacity(0.05),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 200,
+          right: -80,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue.withOpacity(0.06),
+            ),
+          ),
+        ),
+        // Линии и формы
+        Positioned(
+          top: 0,
+          left: 0,
+          child: Container(
+            width: 2,
+            height: 200,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.purple.withOpacity(0.3), Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            width: 150,
+            height: 2,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.blue.withOpacity(0.2), Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -143,133 +333,79 @@ class _SubscriptionSelectionScreenState
 
     return Column(
       children: [
+        // Отступ сверху для основного контента
+        SizedBox(height: MediaQuery.of(context).padding.top + 80),
+
         // Изображение сверху
         _buildHeroImage(),
 
-        // Основной контент
+        // Основной контент - адаптивный
         Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Заголовок
-                _buildHeader(),
-                SizedBox(height: isSmallScreen ? 8 : 12),
+          child: isSmallScreen
+              ? SingleChildScrollView(
+                  padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Заголовок
+                      _buildHeader(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
 
-                // Преимущества
-                _buildBenefits(),
-                SizedBox(height: isSmallScreen ? 8 : 12),
+                      // Преимущества
+                      _buildBenefits(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
 
-                // Планы подписок
-                _buildSubscriptionPlans(),
-                SizedBox(height: isSmallScreen ? 8 : 12),
+                      // Планы подписок
+                      _buildSubscriptionPlans(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
 
-                // Кнопка покупки
-                _buildPurchaseButton(),
-                SizedBox(height: isSmallScreen ? 6 : 8),
+                      // Кнопка покупки
+                      _buildPurchaseButton(),
+                      SizedBox(height: isSmallScreen ? 2 : 4),
 
-                // Ссылки на Terms of Use и Privacy Policy
-                _buildLegalLinks(),
-              ],
-            ),
-          ),
+                      // Ссылки на Terms of Use и Privacy Policy
+                      _buildLegalLinks(),
+                    ],
+                  ),
+                )
+              : Padding(
+                  padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Заголовок
+                      _buildHeader(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
+
+                      // Преимущества
+                      _buildBenefits(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
+
+                      // Планы подписок
+                      _buildSubscriptionPlans(),
+                      SizedBox(height: isSmallScreen ? 4 : 6),
+
+                      // Кнопка покупки
+                      _buildPurchaseButton(),
+                      SizedBox(height: isSmallScreen ? 2 : 4),
+
+                      // Ссылки на Terms of Use и Privacy Policy
+                      _buildLegalLinks(),
+                    ],
+                  ),
+                ),
         ),
       ],
     );
   }
 
   Widget _buildHeroImage() {
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Адаптивная высота: больше на больших экранах, меньше на маленьких
-    final heroHeight = screenHeight > 800
-        ? 220.0
-        : (screenHeight > 600 ? 180.0 : 140.0);
-
-    return Container(
-      height: heroHeight,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withOpacity(0.8),
-            Theme.of(context).colorScheme.secondary,
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Фоновые элементы
-          Positioned(
-            top: 20,
-            left: 20,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Icon(Icons.trending_up, color: Colors.white, size: 30),
-            ),
-          ),
-          Positioned(
-            top: 40,
-            right: 30,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(Icons.analytics, color: Colors.white, size: 20),
-            ),
-          ),
-          Positioned(
-            bottom: 30,
-            left: 40,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Icon(Icons.insights, color: Colors.white, size: 25),
-            ),
-          ),
-          // Центральный текст
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.workspace_premium, color: Colors.white, size: 48),
-                const SizedBox(height: 8),
-                Text(
-                  'Unlock Premium Today',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
@@ -277,19 +413,19 @@ class _SubscriptionSelectionScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Unlock Premium Today',
+          'subscription.whats_included'.tr(),
           style: TextStyle(
-            fontSize: isSmallScreen ? 20 : 24,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
+            color: Colors.white,
           ),
         ),
-        SizedBox(height: isSmallScreen ? 4 : 6),
+        SizedBox(height: isSmallScreen ? 8 : 12),
         Text(
-          'Get access to all subscriber benefits',
+          'subscription.get_access_description'.tr(),
           style: TextStyle(
             fontSize: isSmallScreen ? 14 : 16,
-            color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
+            color: Colors.white.withOpacity(0.8),
           ),
         ),
       ],
@@ -297,7 +433,6 @@ class _SubscriptionSelectionScreenState
   }
 
   Widget _buildBenefits() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
@@ -305,36 +440,25 @@ class _SubscriptionSelectionScreenState
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'subscription.features.title'.tr(),
-          style: TextStyle(
-            fontSize: isSmallScreen ? 16 : 18,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        SizedBox(height: isSmallScreen ? 8 : 10),
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildBenefitItem(
-              'subscription.features.analytics'.tr(),
+              'subscription.advanced_analytics'.tr(),
               Icons.analytics_outlined,
+              Colors.blue,
             ),
-            SizedBox(height: isSmallScreen ? 6 : 8),
+            SizedBox(height: isSmallScreen ? 8 : 12),
             _buildBenefitItem(
-              'subscription.features.statistics'.tr(),
-              Icons.bar_chart_outlined,
-            ),
-            SizedBox(height: isSmallScreen ? 6 : 8),
-            _buildBenefitItem(
-              'subscription.features.notifications'.tr(),
+              'subscription.notifications_app_telegram'.tr(),
               Icons.notifications_outlined,
+              Colors.green,
             ),
-            SizedBox(height: isSmallScreen ? 6 : 8),
+            SizedBox(height: isSmallScreen ? 8 : 12),
             _buildBenefitItem(
-              'subscription.features.insights'.tr(),
+              'subscription.daily_weekly_monthly'.tr(),
               Icons.insights_outlined,
+              Colors.purple,
             ),
           ],
         ),
@@ -342,28 +466,27 @@ class _SubscriptionSelectionScreenState
     );
   }
 
-  Widget _buildBenefitItem(String text, IconData icon) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildBenefitItem(String text, IconData icon, Color iconColor) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: isSmallScreen ? 8 : 10),
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.blue.shade900.withOpacity(0.3)
-                  : Colors.blue.shade50,
+              color: iconColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: iconColor.withOpacity(0.3), width: 1),
             ),
-            child: Icon(
-              icon,
-              color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-              size: isSmallScreen ? 16 : 18,
-            ),
+            child: Icon(icon, color: iconColor, size: isSmallScreen ? 16 : 18),
           ),
           SizedBox(width: isSmallScreen ? 10 : 12),
           Expanded(
@@ -371,7 +494,7 @@ class _SubscriptionSelectionScreenState
               text,
               style: TextStyle(
                 fontSize: isSmallScreen ? 13 : 15,
-                color: isDark ? Colors.white : Colors.black87,
+                color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -382,7 +505,6 @@ class _SubscriptionSelectionScreenState
   }
 
   Widget _buildSubscriptionPlans() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
@@ -391,20 +513,24 @@ class _SubscriptionSelectionScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Choose Plan',
+          'subscription.choose_plan_title'.tr(),
           style: TextStyle(
-            fontSize: 18,
+            fontSize: isSmallScreen ? 18 : 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
+            color: Colors.white,
           ),
         ),
-        SizedBox(height: isSmallScreen ? 8 : 10),
+        SizedBox(height: isSmallScreen ? 12 : 16),
         if (_isLoadingPrices)
-          const Center(child: CircularProgressIndicator())
+          Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          )
         else
           ..._plans.map((plan) {
             return _buildPlanCard(plan);
-          }).toList(),
+          }),
       ],
     );
   }
@@ -416,13 +542,15 @@ class _SubscriptionSelectionScreenState
     final isSmallScreen = screenHeight < 700;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isSmallScreen ? 6 : 8),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 8 : 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSelected ? Colors.white : Colors.transparent,
-          width: 2,
+          color: isSelected
+              ? Colors.white.withOpacity(0.5)
+              : Colors.white.withOpacity(0.1),
+          width: isSelected ? 2 : 1,
         ),
       ),
       child: InkWell(
@@ -431,9 +559,9 @@ class _SubscriptionSelectionScreenState
             _selectedPlanId = plan.id;
           });
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
+          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
           child: Row(
             children: [
               // Радио кнопка
@@ -442,14 +570,19 @@ class _SubscriptionSelectionScreenState
                 height: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey[400]!, width: 1),
+                  border: Border.all(
+                    color: isSelected
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.3),
+                    width: 2,
+                  ),
                   color: isSelected ? Colors.white : Colors.transparent,
                 ),
                 child: isSelected
                     ? Icon(Icons.check, color: Colors.black, size: 14)
                     : null,
               ),
-              SizedBox(width: isSmallScreen ? 8 : 12),
+              SizedBox(width: isSmallScreen ? 10 : 12),
 
               // Контент плана
               Expanded(
@@ -461,7 +594,9 @@ class _SubscriptionSelectionScreenState
                       children: [
                         Expanded(
                           child: Text(
-                            plan.id == 'yearly' ? 'Year' : 'Week',
+                            plan.id == 'yearly'
+                                ? 'subscription.yearly'.tr()
+                                : 'subscription.monthly'.tr(),
                             style: TextStyle(
                               fontSize: isSmallScreen ? 14 : 16,
                               fontWeight: FontWeight.bold,
@@ -472,25 +607,27 @@ class _SubscriptionSelectionScreenState
                         if (isPopular)
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 4 : 6,
-                              vertical: isSmallScreen ? 1 : 2,
+                              horizontal: isSmallScreen ? 6 : 8,
+                              vertical: isSmallScreen ? 3 : 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
+                              gradient: LinearGradient(
+                                colors: [Colors.pink, Colors.purple],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               _getDiscountText(plan),
                               style: TextStyle(
-                                color: Colors.black,
-                                fontSize: isSmallScreen ? 8 : 10,
+                                color: Colors.white,
+                                fontSize: isSmallScreen ? 9 : 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    SizedBox(height: isSmallScreen ? 2 : 4),
+                    SizedBox(height: isSmallScreen ? 4 : 6),
                     if (plan.id == 'yearly')
                       Row(
                         children: [
@@ -498,13 +635,13 @@ class _SubscriptionSelectionScreenState
                             _getOriginalPrice(plan),
                             style: TextStyle(
                               fontSize: isSmallScreen ? 10 : 12,
-                              color: Colors.grey[400],
+                              color: Colors.white.withOpacity(0.6),
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
                           SizedBox(width: isSmallScreen ? 4 : 6),
                           Text(
-                            plan.price,
+                            '${plan.price}/year',
                             style: TextStyle(
                               fontSize: isSmallScreen ? 12 : 14,
                               fontWeight: FontWeight.bold,
@@ -515,7 +652,7 @@ class _SubscriptionSelectionScreenState
                       )
                     else
                       Text(
-                        '3 Days free then ${plan.price}',
+                        '3 Days free then ${plan.price}/month',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 12 : 14,
                           color: Colors.white,
@@ -570,12 +707,15 @@ class _SubscriptionSelectionScreenState
           SnackBar(
             content: Text(
               isPremium
-                  ? 'Покупки восстановлены! Премиум активирован.'
-                  : 'Покупки восстановлены, но активных подписок не найдено.',
+                  ? 'subscription.restore_success'.tr()
+                  : 'subscription.restore_no_active'.tr(),
             ),
             backgroundColor: isPremium ? Colors.green : Colors.orange,
           ),
         );
+
+        // Если покупки восстановлены и пользователь стал премиум,
+        // AppInitializer автоматически покажет основное приложение
       }
     } catch (e) {
       print('❌ Ошибка восстановления покупок: $e');
@@ -591,41 +731,56 @@ class _SubscriptionSelectionScreenState
   }
 
   Widget _buildLegalLinks() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
       children: [
-        TextButton(
-          onPressed: () => _openUrl(AppConfig.termsOfUseUrl),
-          child: Text(
-            'Terms of Use',
-            style: TextStyle(
-              color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
-              decoration: TextDecoration.underline,
-              fontSize: isSmallScreen ? 12 : 14,
-            ),
-          ),
-        ),
+        // Показываем разные сообщения в зависимости от выбранного плана
         Text(
-          ' • ',
+          _selectedPlanId == 'monthly'
+              ? 'subscription.cancel_anytime'.tr()
+              : 'subscription.cancel_anytime_short'.tr(),
           style: TextStyle(
-            color: isDark ? Colors.white.withOpacity(0.5) : Colors.grey[500],
-            fontSize: isSmallScreen ? 12 : 14,
+            color: Colors.white.withOpacity(0.7),
+            fontSize: isSmallScreen ? 10 : 12,
           ),
+          textAlign: TextAlign.center,
         ),
-        TextButton(
-          onPressed: () => _openUrl(AppConfig.privacyPolicyUrl),
-          child: Text(
-            'Privacy Policy',
-            style: TextStyle(
-              color: isDark ? Colors.white.withOpacity(0.7) : Colors.grey[600],
-              decoration: TextDecoration.underline,
-              fontSize: isSmallScreen ? 12 : 14,
+        SizedBox(height: isSmallScreen ? 6 : 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => _openUrl(AppConfig.termsOfUseUrl),
+              child: Text(
+                'subscription.terms_of_use'.tr(),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  decoration: TextDecoration.underline,
+                  fontSize: isSmallScreen ? 10 : 12,
+                ),
+              ),
             ),
-          ),
+            Text(
+              ' • ',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: isSmallScreen ? 10 : 12,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _openUrl(AppConfig.privacyPolicyUrl),
+              child: Text(
+                'subscription.privacy_policy'.tr(),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  decoration: TextDecoration.underline,
+                  fontSize: isSmallScreen ? 10 : 12,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -663,18 +818,33 @@ class _SubscriptionSelectionScreenState
       return const SizedBox.shrink();
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.pink, Colors.purple, Colors.blue],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.pink.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handlePurchase,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDark ? Colors.white : Colors.black,
-          foregroundColor: isDark ? Colors.black : Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -686,17 +856,18 @@ class _SubscriptionSelectionScreenState
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isDark ? Colors.black : Colors.white,
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
             : Text(
-                _selectedPlanId == 'yearly' ? 'Continue' : 'Try for Free',
+                _selectedPlanId == 'yearly'
+                    ? 'subscription.continue'.tr()
+                    : 'subscription.try_for_free'.tr(),
                 style: TextStyle(
                   fontSize: isSmallScreen ? 14 : 16,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.black : Colors.white,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
                 ),
               ),
       ),
@@ -716,14 +887,18 @@ class _SubscriptionSelectionScreenState
             final originalPrice = monthlyPrice * 12;
             final discount =
                 ((originalPrice - yearlyPrice) / originalPrice * 100).round();
-            return 'SAVE ${discount}%';
+            return 'subscription.save_percent'.tr(
+              namedArgs: {'percent': discount.toString()},
+            );
           }
         }
       } catch (e) {
         print('Ошибка расчета скидки: $e');
       }
     }
-    return 'SAVE 91%'; // Fallback
+    return 'subscription.save_percent'.tr(
+      namedArgs: {'percent': '91'},
+    ); // Fallback
   }
 
   String _getOriginalPrice(SubscriptionPlan plan) {
@@ -847,14 +1022,15 @@ class _SubscriptionSelectionScreenState
       print('🔧 Статус принудительно обновлен из RevenueCat');
 
       if (mounted) {
-        Navigator.of(context).pop();
+        // После успешной покупки AppInitializer автоматически покажет основное приложение
+        // так как пользователь теперь премиум
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('subscription.success'.tr()),
             backgroundColor: Colors.green,
           ),
         );
-        print('✅ Экран закрыт, показано уведомление об успехе');
+        print('✅ Покупка завершена, показано уведомление об успехе');
       }
     } catch (e) {
       print('❌ Ошибка покупки: $e');

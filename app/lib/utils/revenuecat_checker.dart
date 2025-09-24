@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import '../services/subscription_service.dart';
 
 class RevenueCatChecker {
   /// Быстрая проверка статуса RevenueCat

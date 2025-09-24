@@ -200,24 +200,30 @@ class ETFCard extends StatelessWidget {
   }
 
   String _formatVolume(double volume) {
-    if (volume >= 1000000000) {
-      return '${(volume / 1000000000).toStringAsFixed(1)}B';
-    } else if (volume >= 1000000) {
-      return '${(volume / 1000000).toStringAsFixed(1)}M';
-    } else if (volume >= 1000) {
-      return '${(volume / 1000).toStringAsFixed(1)}K';
+    final absVolume = volume.abs();
+    final prefix = volume < 0 ? '-' : '';
+
+    if (absVolume >= 1000000000) {
+      return '$prefix${(absVolume / 1000000000).toStringAsFixed(1)}B';
+    } else if (absVolume >= 1000000) {
+      return '$prefix${(absVolume / 1000000).toStringAsFixed(1)}M';
+    } else if (absVolume >= 1000) {
+      return '$prefix${(absVolume / 1000).toStringAsFixed(1)}K';
     }
-    return volume.toStringAsFixed(0);
+    return '$prefix${absVolume.toStringAsFixed(0)}';
   }
 
   String _formatCurrency(double amount) {
-    if (amount >= 1000000000) {
-      return '\$${(amount / 1000000000).toStringAsFixed(1)}B';
-    } else if (amount >= 1000000) {
-      return '\$${(amount / 1000000).toStringAsFixed(1)}M';
-    } else if (amount >= 1000) {
-      return '\$${(amount / 1000).toStringAsFixed(1)}K';
+    final absAmount = amount.abs();
+    final prefix = amount < 0 ? '\$-' : '\$';
+
+    if (absAmount >= 1000000000) {
+      return '$prefix${(absAmount / 1000000000).toStringAsFixed(1)}B';
+    } else if (absAmount >= 1000000) {
+      return '$prefix${(absAmount / 1000000).toStringAsFixed(1)}M';
+    } else if (absAmount >= 1000) {
+      return '$prefix${(absAmount / 1000).toStringAsFixed(1)}K';
     }
-    return '\$${amount.toStringAsFixed(0)}';
+    return '$prefix${absAmount.toStringAsFixed(0)}';
   }
 }

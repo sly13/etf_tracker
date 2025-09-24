@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:app_links/app_links.dart';
 import 'providers/etf_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/crypto_price_provider.dart';
@@ -11,7 +12,10 @@ import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
 import 'providers/subscription_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/onboarding_provider.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'widgets/app_initializer.dart';
 import 'services/subscription_service.dart';
 import 'services/notification_service.dart';
 import 'services/user_check_service.dart';
@@ -85,7 +89,49 @@ void main() async {
     print('🔧 Приложение будет работать без функций подписки');
   }
 
+  // Инициализируем App Links для обработки deep links
+  try {
+    await _initializeAppLinks();
+    print('✅ App Links инициализирован');
+  } catch (e) {
+    print('❌ Ошибка инициализации App Links: $e');
+  }
+
   runApp(const MyApp());
+}
+
+// Инициализация App Links
+Future<void> _initializeAppLinks() async {
+  final appLinks = AppLinks();
+
+  // Обработка deep links когда приложение запущено
+  appLinks.uriLinkStream.listen((uri) {
+    print('🔗 Получен deep link: $uri');
+    _handleDeepLink(uri);
+  });
+
+  // Обработка deep links когда приложение закрыто
+  final initialUri = await appLinks.getInitialLink();
+  if (initialUri != null) {
+    print('🔗 Получен initial deep link: $initialUri');
+    _handleDeepLink(initialUri);
+  }
+}
+
+// Обработка deep links
+void _handleDeepLink(Uri uri) {
+  print('🔗 Обрабатываем deep link: ${uri.toString()}');
+
+  if (uri.scheme == 'etfapp') {
+    switch (uri.host) {
+      case 'open':
+        print('🔗 Открываем главный экран приложения');
+        // Здесь можно добавить логику навигации к определенному экрану
+        break;
+      default:
+        print('🔗 Неизвестный deep link: ${uri.host}');
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -137,6 +183,14 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = OnboardingProvider();
+            // Инициализируем онбординг при создании провайдера
+            provider.initialize();
+            return provider;
+          },
+        ),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('ru')],
@@ -152,7 +206,7 @@ class MyApp extends StatelessWidget {
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,
               locale: context.locale,
-              home: const MainNavigationScreen(),
+              home: const AppInitializer(),
               debugShowCheckedModeBanner: false,
             );
           },

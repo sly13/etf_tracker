@@ -28,14 +28,14 @@ class ETFService {
         return jsonData.map((json) => ETFFlowData.fromJson(json)).toList();
       } else {
         throw Exception(
-          'errors.ethereum_load_error'.tr() + ': ${response.statusCode}',
+          '${'errors.ethereum_load_error'.tr()}: ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
         throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('errors.network_error'.tr() + ': $e');
+      throw Exception('${'errors.network_error'.tr()}: $e');
     }
   }
 
@@ -58,14 +58,14 @@ class ETFService {
         return jsonData.map((json) => BTCFlowData.fromJson(json)).toList();
       } else {
         throw Exception(
-          'errors.bitcoin_load_error'.tr() + ': ${response.statusCode}',
+          '${'errors.bitcoin_load_error'.tr()}: ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
         throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('errors.network_error'.tr() + ': $e');
+      throw Exception('${'errors.network_error'.tr()}: $e');
     }
   }
 
@@ -88,14 +88,14 @@ class ETFService {
         return data;
       } else {
         throw Exception(
-          'errors.summary_load_error'.tr() + ': ${response.statusCode}',
+          '${'errors.summary_load_error'.tr()}: ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is TimeoutException) {
         throw Exception('errors.server_unavailable'.tr());
       }
-      throw Exception('errors.network_error'.tr() + ': $e');
+      throw Exception('${'errors.network_error'.tr()}: $e');
     }
   }
 

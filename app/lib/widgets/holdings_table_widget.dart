@@ -280,10 +280,13 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
   }
 
   String _formatValue(double value) {
-    if (value >= 1000) {
-      return '\$${(value / 1000).toStringAsFixed(1)}B';
+    final absValue = value.abs();
+    final prefix = value < 0 ? '\$-' : '\$';
+
+    if (absValue >= 1000) {
+      return '$prefix${(absValue / 1000).toStringAsFixed(1)}B';
     } else {
-      return '\$${value.toStringAsFixed(1)}M';
+      return '$prefix${absValue.toStringAsFixed(1)}M';
     }
   }
 
@@ -357,11 +360,11 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
 
     if (change == null || change == 0) {
       return Text(
-        'Нет данных',
+        '0.0',
         style: TextStyle(
           fontSize: 10,
           color: Colors.grey[600],
-          fontStyle: FontStyle.italic,
+          fontWeight: FontWeight.w500,
         ),
         textAlign: TextAlign.center,
       );
@@ -372,7 +375,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
 
     final isPositive = change > 0;
     final color = isPositive ? Colors.green : Colors.red;
-    final sign = isPositive ? '+' : '';
+    final sign = isPositive ? '+' : '-';
 
     return Text(
       '$sign${_formatValue(change.abs())}',

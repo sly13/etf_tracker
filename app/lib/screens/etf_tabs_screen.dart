@@ -20,7 +20,7 @@ class ETFTabsScreen extends StatefulWidget {
 
 class _ETFTabsScreenState extends State<ETFTabsScreen> {
   DateTime? _lastManualRefresh;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -197,6 +197,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ? const Color(0xFF0A0A0A)
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Скрываем кнопку "назад"
         actions: [
           // Кнопка Pro
           const ProButton(),
@@ -211,7 +212,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'common.error'.tr() + ': ${etfProvider.error}',
+                    '${'common.error'.tr()}: ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -284,7 +285,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     height: 3,
                     child: AnimatedContainer(
@@ -422,8 +423,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
             const SizedBox(height: 16),
             Text(
-              'common.updated'.tr() +
-                  ': ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+              '${'common.updated'.tr()}: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
               style: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 12,
@@ -467,10 +467,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   // Функция для умного форматирования чисел
   String _formatLargeNumber(double value) {
-    if (value >= 1000) {
-      return '\$${(value / 1000).toStringAsFixed(1)}B';
+    final absValue = value.abs();
+    final prefix = value < 0 ? '\$-' : '\$';
+
+    if (absValue >= 1000) {
+      return '$prefix${(absValue / 1000).toStringAsFixed(1)}B';
     } else {
-      return '\$${value.toStringAsFixed(1)}M';
+      return '$prefix${absValue.toStringAsFixed(1)}M';
     }
   }
 

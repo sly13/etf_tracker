@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "ETF Tracker",
+    "title": "ETF Flow",
     "description": "Application for tracking Bitcoin and Ethereum ETF flows in real-time"
   },
   "navigation": {
@@ -23,6 +23,7 @@
     "next": "Next",
     "previous": "Previous",
     "done": "Done",
+    "start": "Start",
     "yes": "Yes",
     "no": "No",
     "ok": "OK",
@@ -32,7 +33,18 @@
     "no_data": "No data found",
     "load_more": "Load more",
     "remaining": "remaining",
-    "dev": "Dev"
+    "dev": "Dev",
+    "filter": "Filter",
+    "sort": "Sort",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "company": "Company",
+    "btc": "BTC",
+    "eth": "ETH"
   },
   "settings": {
     "title": "Settings",
@@ -76,7 +88,26 @@
     "try_free_and_subscribe": "Try Free and Subscribe",
     "restore_purchases": "Restore purchases",
     "restore_success": "Purchases restored successfully!",
+    "restore_no_active": "Purchases restored, but no active subscriptions found.",
     "restore_error": "Error restoring purchases",
+    "no_active_entitlements": "No active entitlements to sync",
+    "unlock_premium_today": "Unlock Premium Today",
+    "whats_included": "What's included in subscription:",
+    "get_access_description": "Get access to advanced ETF analytics and premium features",
+    "advanced_analytics": "Advanced analytics & charts",
+    "notifications_app_telegram": "Notifications in app & Telegram",
+    "daily_weekly_monthly": "Daily, weekly & monthly reports",
+    "choose_plan_title": "Choose Plan",
+    "yearly": "Yearly",
+    "monthly": "Monthly",
+    "continue": "Continue",
+    "try_for_free": "Try for Free",
+    "save_percent": "SAVE {percent}%",
+    "cancel_anytime": "Subscriptions auto-renew unless canceled at least 24 hours before the end of the period. Manage or cancel anytime in your App Store settings.",
+    "cancel_anytime_short": "Cancel anytime in App Store settings",
+    "terms_of_use": "Terms of Use",
+    "privacy_policy": "Privacy Policy",
+    "skip_subscription": "Skip subscription",
     "monthly_plan": "Monthly ETF Flow Plan",
     "yearly_plan": "Yearly ETF Flow Plan",
     "features": {
@@ -99,12 +130,12 @@
     "popular": "Popular",
     "selected": "Selected",
     "restored": "Purchases restored!",
-    "restore_error": "Restore error",
     "current_plan": "Current Plan",
     "premium": "Premium",
     "basic": "Basic",
     "one_month": "1 month",
     "one_year": "1 year",
+    "month": "Month",
     "feature_analytics": "📊 Advanced ETF flow analytics",
     "feature_statistics": "📈 Detailed fund statistics",
     "feature_notifications": "🔔 Important event notifications",
@@ -129,7 +160,13 @@
     "bitcoin_charts_title": "Detailed Bitcoin ETF Charts",
     "bitcoin_charts_desc": "Get access to advanced analytics of Bitcoin ETF flows",
     "ethereum_charts_title": "Detailed Ethereum ETF Charts",
-    "ethereum_charts_desc": "Get access to advanced analytics of Ethereum ETF flows"
+    "ethereum_charts_desc": "Get access to advanced analytics of Ethereum ETF flows",
+    "pro": "Pro",
+    "pro_badge": "Pro",
+    "premium_badge": "Premium",
+    "upgrade_to_pro": "Upgrade to Pro",
+    "pro_features": "Pro Features",
+    "unlock_pro": "Unlock Pro"
   },
   "etf": {
     "flows": "ETF Flows",
@@ -275,7 +312,25 @@
     "period_month": "Month",
     "period_3months": "3 Months",
     "period_half_year": "Half Year",
-    "period_year": "Year"
+    "period_year": "Year",
+    "title": "Fund Holdings",
+    "sort_by_company": "By Company",
+    "sort_by_btc": "By BTC",
+    "sort_by_eth": "By ETH",
+    "sort_ascending": "Ascending",
+    "sort_descending": "Descending",
+    "daily_change": "Daily Change",
+    "no_data": "No Data",
+    "pro_feature": "Pro Feature",
+    "total_holdings": "Total Holdings",
+    "btc_holdings": "BTC Holdings",
+    "eth_holdings": "ETH Holdings",
+    "sort_company_up": "Company ↑",
+    "sort_company_down": "Company ↓",
+    "sort_btc_up": "BTC ↑",
+    "sort_btc_down": "BTC ↓",
+    "sort_eth_up": "ETH ↑",
+    "sort_eth_down": "ETH ↓"
   },
   "errors": {
     "timeout": "Request timeout exceeded",
@@ -345,6 +400,28 @@
     "save_to_gallery": "Save to Gallery",
     "saved_to_gallery": "Saved to Gallery",
     "save_error": "Save Error"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Crypto ETF Flow",
+      "description": "Track Bitcoin & Ethereum ETF inflows and outflows in real time."
+    },
+    "notifications": {
+      "title": "Instant Notifications",
+      "description": "All events come directly to the application and are duplicated in Telegram, so you don't miss anything."
+    },
+    "speed": {
+      "title": "Get data faster than anyone",
+      "description": "Information about inflows and outflows appears in your application earlier than in news and Telegram bots."
+    },
+    "analytics": {
+      "title": "Statistics & Analytics",
+      "description": "Advanced statistics and analytics for ETF flows"
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Weekly, monthly and annual reports on ETF flows"
+    }
   },
   "notifications": {
     "premium_feature": "Premium Feature",

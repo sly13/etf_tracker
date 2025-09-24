@@ -1,0 +1,12 @@
+{
+  "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/ETFTrackerMacWidget/ETFTrackerWidget.swift" : {
+    "abi-baseline-json" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension.abi.json",
+    "const-values" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.d",
+    "diagnostics" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.dia",
+    "objc-header" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-Swift.h",
+    "swiftdoc" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension.swiftdoc",
+    "swiftmodule" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension.swiftmodule",
+    "swiftsourceinfo" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension.swiftsourceinfo"
+  }
+}

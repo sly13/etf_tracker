@@ -10,12 +10,12 @@ class CryptoPriceWidget extends StatefulWidget {
   final double? borderRadius;
 
   const CryptoPriceWidget({
-    Key? key,
+    super.key,
     this.showRefreshButton = true,
     this.showLastUpdateTime = true,
     this.padding,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   State<CryptoPriceWidget> createState() => _CryptoPriceWidgetState();
@@ -224,7 +224,7 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
 
 // Компактный виджет для отображения только цен
 class CompactCryptoPriceWidget extends StatelessWidget {
-  const CompactCryptoPriceWidget({Key? key}) : super(key: key);
+  const CompactCryptoPriceWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

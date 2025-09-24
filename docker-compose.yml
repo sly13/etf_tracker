@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:17-alpine
+    container_name: etf_postgres
+    environment:
+      POSTGRES_DB: etf_tracker
+      POSTGRES_USER: etf_user
+      POSTGRES_PASSWORD: etf_password
+    ports:
+      - "3080:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - etf_network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: etf_backend
+    env_file:
+      - docker.env
+    ports:
+      - "3066:3000"
+    depends_on:
+      - postgres
+    networks:
+      - etf_network
+    restart: unless-stopped
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+
+  # Admin панель
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: etf_admin
+    environment:
+      - NODE_ENV=production
+      - PORT=3065
+      - REACT_APP_API_URL=http://localhost:3066
+    ports:
+      - "3065:3065"
+    depends_on:
+      - backend
+    networks:
+      - etf_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  etf_network:
+    driver: bridge

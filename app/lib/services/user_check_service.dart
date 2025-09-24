@@ -16,7 +16,7 @@ class UserCheckService {
       final deviceId = await NotificationService.getDeviceId();
       print('📱 Device ID: $deviceId');
 
-      if (deviceId == null || deviceId.isEmpty) {
+      if (deviceId.isEmpty) {
         print('❌ Device ID не получен');
         return false;
       }
@@ -96,10 +96,6 @@ class UserCheckService {
 
       // Получаем deviceId
       final deviceId = await NotificationService.getDeviceId();
-      if (deviceId == null) {
-        print('❌ Device ID не получен');
-        return false;
-      }
 
       print('🔑 FCM Token: ${fcmToken.substring(0, 20)}...');
       print('📱 Device ID: $deviceId');
@@ -116,7 +112,7 @@ class UserCheckService {
         'osVersion': Platform.operatingSystemVersion,
         'language': 'ru',
         'timezone': DateTime.now().timeZoneName,
-        'deviceName': 'ETF Tracker Device',
+        'deviceName': 'ETF Flow Device',
         'firstName': 'Пользователь',
         'lastName': 'ETF',
         'email': 'user@etftracker.com',

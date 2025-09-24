@@ -20,7 +20,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
       false; // false = descending (large to small) - по умолчанию BTC от большего к меньшему
   String _selectedPeriod =
       'day'; // 'day', 'week', 'month', 'quarter', 'half_year', 'year'
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -43,6 +43,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
             ? const Color(0xFF0A0A0A)
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Скрываем кнопку "назад"
         actions: [
           // Блок Pro
           const ProButton(),
@@ -57,7 +58,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'common.error'.tr() + ': ${etfProvider.error}',
+                    '${'common.error'.tr()}: ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),

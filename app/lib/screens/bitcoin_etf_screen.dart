@@ -19,10 +19,10 @@ class BitcoinETFScreen extends StatefulWidget {
 
 class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
   int _displayedItems = 10;
-  Map<int, bool> _expandedStates = {};
+  final Map<int, bool> _expandedStates = {};
   String _sortBy = 'date'; // 'date', 'total', 'blackrock', 'fidelity', etc.
   bool _sortAscending = false;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -45,6 +45,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
             ? const Color(0xFF0A0A0A)
             : Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Скрываем кнопку "назад"
         actions: [
           // Блок Pro
           const ProButton(),
@@ -59,7 +60,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'common.error'.tr() + ': ${etfProvider.error}',
+                    '${'common.error'.tr()}: ${etfProvider.error}',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -153,7 +154,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     height: 3,
                     child: AnimatedContainer(
@@ -356,10 +357,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   ),
                 ),
                 child: Text(
-                  'common.load_more'.tr() +
-                      ' (${data.length - _displayedItems} ' +
-                      'common.remaining'.tr() +
-                      ')',
+                  '${'common.load_more'.tr()} (${data.length - _displayedItems} ${'common.remaining'.tr()})',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -475,7 +473,9 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '\$${total.toStringAsFixed(1)}M',
+                              total >= 0
+                                  ? '\$${total.toStringAsFixed(1)}M'
+                                  : '\$-${total.abs().toStringAsFixed(1)}M',
                               style: TextStyle(
                                 color: totalColor,
                                 fontWeight: FontWeight.bold,
@@ -529,14 +529,6 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
   }
 
   // Общая статистика по компаниям
-  // Функция для умного форматирования чисел
-  String _formatLargeNumber(double value) {
-    if (value >= 1000) {
-      return '\$${(value / 1000).toStringAsFixed(1)}B';
-    } else {
-      return '\$${value.toStringAsFixed(1)}M';
-    }
-  }
 
   // Сетка с данными по компаниям
   Widget _buildCompanyGrid(BTCFlowData flowData) {
@@ -594,7 +586,9 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '\$${displayValue}M',
+            value != null && value < 0
+                ? '\$-${value.abs().toStringAsFixed(1)}M'
+                : '\$${displayValue}M',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

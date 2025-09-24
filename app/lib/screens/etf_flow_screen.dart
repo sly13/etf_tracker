@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../models/etf_flow_data.dart';
-import 'package:intl/intl.dart';
 
 class ETFFlowScreen extends StatefulWidget {
   const ETFFlowScreen({super.key});
@@ -116,7 +115,9 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
                     border: Border.all(color: totalColor),
                   ),
                   child: Text(
-                    '\$${(flowData.total ?? 0).toStringAsFixed(1)}M',
+                    (flowData.total ?? 0) >= 0
+                        ? '\$${(flowData.total ?? 0).toStringAsFixed(1)}M'
+                        : '\$-${(flowData.total ?? 0).abs().toStringAsFixed(1)}M',
                     style: TextStyle(
                       color: totalColor,
                       fontWeight: FontWeight.bold,
@@ -185,7 +186,9 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '\$${displayValue}M',
+            value != null && value < 0
+                ? '\$-${value.abs().toStringAsFixed(1)}M'
+                : '\$${displayValue}M',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,

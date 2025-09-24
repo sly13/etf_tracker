@@ -14,7 +14,7 @@ class SubscriptionStatusService {
 
       // Получаем deviceId
       final deviceId = await NotificationService.getDeviceId();
-      if (deviceId == null || deviceId.isEmpty) {
+      if (deviceId.isEmpty) {
         print('❌ Device ID не получен');
         return null;
       }
@@ -112,12 +112,10 @@ class SubscriptionStatusService {
 
           // Получаем deviceId для синхронизации
           final deviceId = await NotificationService.getDeviceId();
-          if (deviceId != null) {
-            // Здесь можно вызвать синхронизацию покупки
-            // await SubscriptionService.syncSubscriptionsOnStartup();
-            print('✅ Синхронизация инициирована');
-          }
-        }
+          // Здесь можно вызвать синхронизацию покупки
+          // await SubscriptionService.syncSubscriptionsOnStartup();
+          print('✅ Синхронизация инициирована');
+                }
       } else {
         print('✅ Статусы совпадают, синхронизация не требуется');
       }

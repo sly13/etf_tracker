@@ -1,0 +1,248 @@
+{
+  "source": "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/ETFTrackerMacWidget/ETFTrackerWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ETF Flow",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Flow",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Inflow",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outflow",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updated: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "ETF Flow Tracker",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Flow",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "Inflow",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outflow",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updated: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bitcoin",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ethereum",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "ETF Flow Tracker",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 290
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Flow",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 303
+        }
+      },
+      {
+        "comment": "",
+        "key": "Inflow",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outflow",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bitcoin",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ethereum",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.1fM",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 339
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updated: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "ETF Flow Tracker",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Отслеживает потоки Bitcoin и Ethereum ETF",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 375
+        }
+      }
+    ]
+  },
+  "version": 1
+}

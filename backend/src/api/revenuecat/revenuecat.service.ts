@@ -39,7 +39,7 @@ export class RevenueCatService {
       );
 
       this.logger.log('✅ Данные пользователя получены из RevenueCat');
-      return response.data;
+      return (response as any).data;
     } catch (error) {
       this.logger.error(
         `❌ Ошибка получения данных пользователя из RevenueCat: ${error.message}`,
@@ -60,7 +60,7 @@ export class RevenueCatService {
         return [];
       }
 
-      const activeSubscriptions = [];
+      const activeSubscriptions: any[] = [];
       const entitlements = userInfo.subscriber.entitlements || {};
 
       // Проверяем все entitlements

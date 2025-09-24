@@ -1,4 +1,3 @@
-import 'package:purchases_flutter/purchases_flutter.dart';
 import 'subscription_service.dart';
 
 class SubscriptionTest {

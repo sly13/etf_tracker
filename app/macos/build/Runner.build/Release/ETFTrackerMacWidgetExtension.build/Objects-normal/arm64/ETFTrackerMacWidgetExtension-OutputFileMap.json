@@ -1,0 +1,26 @@
+{
+  "" : {
+    "const-values" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.d",
+    "diagnostics" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.dia",
+    "emit-module-dependencies" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary-emit-module.dia",
+    "pch" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerMacWidgetExtension-primary.swiftdeps"
+  },
+  "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/ETFTrackerMacWidget/ETFTrackerWidget.swift" : {
+    "index-unit-output-path" : "/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidget.o",
+    "llvm-bc" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidget.bc",
+    "object" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidget.o"
+  },
+  "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/ETFTrackerMacWidget/ETFTrackerWidgetBundle.swift" : {
+    "index-unit-output-path" : "/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidgetBundle.o",
+    "llvm-bc" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidgetBundle.bc",
+    "object" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/ETFTrackerWidgetBundle.o"
+  },
+  "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/vadimsemenko/Programming/ideas/etf_app/app/macos/build/Runner.build/Release/ETFTrackerMacWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

@@ -8,7 +8,7 @@ struct ETFTrackerWidget: Widget {
         StaticConfiguration(kind: kind, provider: ETFTrackerTimelineProvider()) { entry in
             ETFTrackerWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("ETF Tracker")
+        .configurationDisplayName("ETF Flow")
         .description("Отслеживает потоки ETF Bitcoin и Ethereum")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
@@ -128,7 +128,7 @@ struct SmallWidgetView: View {
         VStack(spacing: 8) {
             // Заголовок
             HStack {
-                Text("ETF Tracker")
+                Text("ETF Flow")
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -190,7 +190,7 @@ struct MediumWidgetView: View {
         HStack(spacing: 16) {
             // Левая часть - общий поток
             VStack(alignment: .leading, spacing: 8) {
-                Text("ETF Tracker")
+                Text("ETF Flow")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)

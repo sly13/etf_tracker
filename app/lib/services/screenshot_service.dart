@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -155,7 +154,7 @@ class ScreenshotService {
                   Navigator.of(context).pop();
                   await Share.shareXFiles([
                     XFile(file.path),
-                  ], text: 'ETF Tracker - ${'common.updated'.tr()}');
+                  ], text: 'ETF Flow - ${'common.updated'.tr()}');
                 },
                 icon: const Icon(Icons.share, size: 16),
                 label: Text('screenshot.share'.tr()),

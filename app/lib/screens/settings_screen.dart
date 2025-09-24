@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -10,6 +11,8 @@ import 'dart:convert';
 import 'dart:io' show HttpClient, ContentType;
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
+import '../providers/onboarding_provider.dart';
+import '../providers/subscription_provider.dart';
 import '../services/subscription_service.dart';
 import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
@@ -30,6 +33,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isCheckingSubscription = false;
   bool? _cachedSubscriptionStatus;
+  int _versionTapCount = 0;
 
   @override
   void initState() {
@@ -274,6 +278,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Restore Purchases Button
+              GestureDetector(
+                onTap: _isCheckingSubscription
+                    ? null
+                    : () async {
+                        HapticUtils.lightImpact();
+                        await _handleRestorePurchases();
+                      },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.grey.withOpacity(0.2),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.restore, color: Colors.green, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'subscription.restore_purchases'.tr(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.green,
                         ),
                       ),
                     ],
@@ -546,7 +583,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'telegram.copy_error'.tr() + ': $e',
+                                  '${'telegram.copy_error'.tr()}: $e',
                                 ),
                                 backgroundColor: Colors.red,
                               ),
@@ -564,7 +601,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   future: NotificationService.getDeviceId(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
+                      return SizedBox(
                         height: 20,
                         child: Center(
                           child: SizedBox(
@@ -647,7 +684,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'telegram.copy_error'.tr() + ': $e',
+                                        '${'telegram.copy_error'.tr()}: $e',
                                       ),
                                       backgroundColor: Colors.red,
                                     ),
@@ -755,13 +792,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'settings.version'.tr() + ' 1.0.0',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark
-                                  ? Colors.grey.withOpacity(0.6)
-                                  : Colors.grey.withOpacity(0.5),
+                          GestureDetector(
+                            onTap: _onVersionTap,
+                            child: Text(
+                              '${'settings.version'.tr()} 1.0.0',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.grey.withOpacity(0.6)
+                                    : Colors.grey.withOpacity(0.5),
+                              ),
                             ),
                           ),
                         ],
@@ -788,6 +828,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _onVersionTap() async {
+    setState(() {
+      _versionTapCount++;
+    });
+
+    if (_versionTapCount >= 5) {
+      // Сбрасываем счетчик
+      _versionTapCount = 0;
+
+      // Сбрасываем онбординг
+      final onboardingProvider = Provider.of<OnboardingProvider>(
+        context,
+        listen: false,
+      );
+      await onboardingProvider.resetOnboarding();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Онбординг сброшен. Перезапустите приложение.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _refreshSubscriptionStatus() async {
     setState(() {
       _isCheckingSubscription = true;
@@ -803,7 +870,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('errors.subscription_status_error'.tr() + ': $e'),
+            content: Text('${'errors.subscription_status_error'.tr()}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -812,6 +879,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _isCheckingSubscription = false;
       });
+    }
+  }
+
+  Future<void> _handleRestorePurchases() async {
+    setState(() {
+      _isCheckingSubscription = true;
+    });
+
+    try {
+      print('🔄 Начинаем восстановление покупок...');
+
+      // Восстанавливаем покупки
+      final customerInfo = await SubscriptionService.restorePurchases();
+      print('✅ Покупки восстановлены');
+
+      // Проверяем статус подписки после восстановления
+      final isPremium = customerInfo.entitlements.active.containsKey('premium');
+      print(
+        '🔍 Статус подписки после восстановления: ${isPremium ? "Premium" : "Basic"}',
+      );
+      print(
+        '🔍 Активные entitlements: ${customerInfo.entitlements.active.keys}',
+      );
+
+      // Обновляем статус в SubscriptionProvider
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(
+        context,
+        listen: false,
+      );
+      subscriptionProvider.setPremiumStatus(isPremium);
+
+      // Принудительно обновляем статус из RevenueCat
+      await subscriptionProvider.refreshSubscriptionStatus();
+      print('✅ Статус подписки обновлен в провайдере');
+
+      // Синхронизируем с бэкендом
+      await SubscriptionService.syncSubscriptions();
+      print('✅ Синхронизация с бэкендом завершена');
+
+      // Обновляем локальный кэш
+      _cachedSubscriptionStatus = isPremium;
+      setState(() {});
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isPremium
+                  ? 'subscription.restore_success'.tr()
+                  : 'subscription.restore_no_active'.tr(),
+            ),
+            backgroundColor: isPremium ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Ошибка восстановления покупок: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('subscription.restore_error'.tr()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingSubscription = false;
+        });
+      }
     }
   }
 
@@ -923,7 +1061,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('common.error'.tr() + ': $e'),
+              content: Text('${'common.error'.tr()}: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -933,7 +1071,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('common.error'.tr() + ': $e'),
+            content: Text('${'common.error'.tr()}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -968,7 +1106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
 
       print('   Тело запроса:');
-      print('   ${requestBody}');
+      print('   $requestBody');
       print('=====================================');
 
       response.write(requestBody);

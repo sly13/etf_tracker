@@ -647,7 +647,7 @@ class SubscriptionService {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         print('✅ Данные о покупке успешно синхронизированы с бэкендом');
-        print('📦 Ответ бэкенда: ${responseData}');
+        print('📦 Ответ бэкенда: $responseData');
       } else {
         print('❌ Ошибка синхронизации с бэкендом: ${response.statusCode}');
         print('📦 Ответ бэкенда: ${response.body}');

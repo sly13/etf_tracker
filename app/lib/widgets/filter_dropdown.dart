@@ -38,7 +38,7 @@ class FilterDropdown extends StatelessWidget {
                 value: assetClass,
                 child: Text(assetClass),
               );
-            }).toList(),
+            }),
           ],
           onChanged: onChanged,
           style: const TextStyle(fontSize: 16),
