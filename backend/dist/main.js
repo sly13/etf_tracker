@@ -4,7 +4,6 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const universal_etf_flow_service_1 = require("./api/etf/universal-etf-flow.service");
 const admin_service_1 = require("./admin-panel/admin/admin.service");
-const telegram_bot_service_1 = require("./api/telegram-bot/telegram-bot.service");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
@@ -32,7 +31,6 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     const etfFlowService = app.get(universal_etf_flow_service_1.UniversalETFFlowService);
     const adminService = app.get(admin_service_1.AdminService);
-    const telegramBotService = app.get(telegram_bot_service_1.TelegramBotService);
     console.log('🚀 Запуск ETF Flow Tracker сервера...');
     console.log('👤 Инициализация администратора...');
     try {
@@ -69,18 +67,6 @@ async function bootstrap() {
     await app.listen(port, host);
     console.log(`🌐 Сервер запущен на ${host}:${port}`);
     console.log('🎯 ETF Flow Tracker готов к работе!');
-    console.log('📱 Состояние Telegram бота:');
-    try {
-        if (telegramBotService.isBotInitialized()) {
-            console.log('   ✅ Telegram бот инициализирован');
-        }
-        else {
-            console.log('   ❌ Бот не инициализирован');
-        }
-    }
-    catch (error) {
-        console.log(`   ⚠️ Ошибка проверки бота: ${error.message}`);
-    }
 }
 void bootstrap();
 //# sourceMappingURL=main.js.map
