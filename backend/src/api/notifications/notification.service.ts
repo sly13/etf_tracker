@@ -1,8 +1,8 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
-import { TelegramBotService } from '../telegram-bot/telegram-bot.service';
+// import { TelegramBotService } from '../telegram-bot/telegram-bot.service';
 
 export interface ETFNotificationData {
   bitcoinFlow: number;
@@ -52,7 +52,7 @@ export class NotificationService {
     private readonly firebaseAdminService: FirebaseAdminService,
     private readonly prismaService: PrismaService,
     private readonly telegramService: TelegramService,
-    @Optional() private readonly telegramBotService?: TelegramBotService,
+    // @Optional() private readonly telegramBotService?: TelegramBotService,
   ) {}
 
   /**
@@ -317,13 +317,13 @@ export class NotificationService {
       }
 
       // Отправляем Telegram уведомления
-      if (this.telegramBotService) {
-        const telegramUsers =
-          await this.getUsersWithTelegramNotifications(appName);
-        for (let i = 0; i < telegramUsers.length; i++) {
-          await this.telegramBotService.sendETFUpdateNotification(data);
-        }
-      }
+      // if (this.telegramBotService) {
+      //   const telegramUsers =
+      //     await this.getUsersWithTelegramNotifications(appName);
+      //   for (let i = 0; i < telegramUsers.length; i++) {
+      //     await this.telegramBotService.sendETFUpdateNotification(data);
+      //   }
+      // }
 
       this.logger.log(
         `✅ ETF уведомления отправлены для ${appName}: ${users.length} пользователей`,
