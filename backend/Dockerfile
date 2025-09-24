@@ -1,10 +1,10 @@
-# Используем официальный Node.js образ
-FROM node:18-alpine
+# Используем официальный Node.js образ с версией 20
+FROM node:20-alpine
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Устанавливаем системные зависимости для Puppeteer и Canvas
+# Устанавливаем системные зависимости для Puppeteer, Canvas и инструменты сборки
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -21,7 +21,12 @@ RUN apk add --no-cache \
     pixman-dev \
     pangomm-dev \
     libjpeg-turbo-dev \
-    freetype-dev
+    freetype-dev \
+    make \
+    g++ \
+    python3 \
+    py3-pip \
+    build-base
 
 # Устанавливаем переменную окружения для Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
