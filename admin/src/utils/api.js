@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем экземпляр axios с базовой конфигурацией
 const api = axios.create({
-	baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3066/api',
+	baseURL: process.env.REACT_APP_API_URL || 'https://etf-flow.vadimsemenko.ru/api',
 	timeout: 10000,
 });
 

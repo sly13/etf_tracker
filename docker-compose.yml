@@ -46,7 +46,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3065
-      - REACT_APP_API_URL=http://localhost:3066
+      # - REACT_APP_API_URL=http://localhost:3066
+      - REACT_APP_API_URL=https://etf-flow.vadimsemenko.ru/api
     ports:
       - "3065:3065"
     depends_on:
