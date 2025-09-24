@@ -36,7 +36,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm ci
+RUN npm install
 
 # Копируем исходный код
 COPY . .
