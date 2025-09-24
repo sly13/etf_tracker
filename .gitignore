@@ -6,3 +6,7 @@
 *.apk
 .DS_Store
 admin/etf-flow-firebase.json
+
+# Build directories
+build/
+**/build/
