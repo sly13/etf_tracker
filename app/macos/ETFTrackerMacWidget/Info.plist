@@ -26,6 +26,8 @@
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2025. All rights reserved.</string>
+	<string>Copyright © 2025 Vadim Semenko. All rights reserved.</string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>This widget needs network access to fetch ETF flow data.</string>
 </dict>
 </plist>
