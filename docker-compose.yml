@@ -22,6 +22,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: etf_backend
+    env_file:
+      - ./backend/.env
     ports:
       - "3066:3000"
     depends_on:

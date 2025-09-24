@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { TelegramService } from '../telegram/telegram.service';
+// import { TelegramService } from '../telegram/telegram.service';
 // import { TelegramBotService } from '../telegram-bot/telegram-bot.service';
 
 export interface ETFNotificationData {
@@ -51,7 +51,7 @@ export class NotificationService {
   constructor(
     private readonly firebaseAdminService: FirebaseAdminService,
     private readonly prismaService: PrismaService,
-    private readonly telegramService: TelegramService,
+    // private readonly telegramService: TelegramService,
     // @Optional() private readonly telegramBotService?: TelegramBotService,
   ) {}
 
