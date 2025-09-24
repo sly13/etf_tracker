@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm install --omit=dev
+RUN npm install --omit=dev \
+  && npm install -g serve
 
 # Копируем исходный код
 COPY . .
@@ -19,5 +20,5 @@ RUN npm run build
 # Открываем порт
 EXPOSE 3065
 
-# Запускаем приложение
-CMD ["npm", "start"]
+# Запускаем prod-сервер статики
+CMD ["serve", "-s", "build", "-l", "3065"]
