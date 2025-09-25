@@ -541,7 +541,7 @@ class SubscriptionService {
       print('📦 Данные для отправки: $subscriptionData');
 
       final backendUrl = AppConfig.getApiUrl('/subscription/sync-purchase');
-      print('🔧 Используем BACKEND_URL из .env: $backendUrl');
+      print('🔧 Используем BACKEND_API_URL  из .env: $backendUrl');
 
       final response = await http.post(
         Uri.parse(backendUrl),

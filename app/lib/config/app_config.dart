@@ -24,13 +24,13 @@ class AppConfig {
   static String get backendBaseUrl {
     try {
       // Сначала проверяем переменную окружения
-      final envBackendUrl = dotenv.env['BACKEND_URL'];
+      final envBackendUrl = dotenv.env['BACKEND_API_URL'];
       if (envBackendUrl != null && envBackendUrl.isNotEmpty) {
-        print('🔧 Используем BACKEND_URL из .env: $envBackendUrl');
+        print('🔧 Используем BACKEND_API_URL из .env: $envBackendUrl');
         return envBackendUrl;
       }
     } catch (e) {
-      print('⚠️ Ошибка получения BACKEND_URL из .env: $e');
+      print('⚠️ Ошибка получения BACKEND_API_URL из .env: $e');
     }
 
     // В режиме отладки используем локальный URL, иначе - продакшн

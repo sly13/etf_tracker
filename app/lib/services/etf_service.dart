@@ -43,6 +43,7 @@ class ETFService {
   Future<List<BTCFlowData>> getBitcoinData() async {
     try {
       final url = AppConfig.getApiUrl('/etf-flow/bitcoin');
+      print('🔧 ETFService: Bitcoin request to URL: $url');
 
       final response = await http
           .get(Uri.parse(url))
@@ -55,13 +56,21 @@ class ETFService {
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
+        print(
+          '🔧 ETFService: Bitcoin data received: ${jsonData.length} records',
+        );
         return jsonData.map((json) => BTCFlowData.fromJson(json)).toList();
       } else {
+        print(
+          '🔧 ETFService: Bitcoin request failed with status: ${response.statusCode}',
+        );
+        print('🔧 ETFService: Response body: ${response.body}');
         throw Exception(
           '${'errors.bitcoin_load_error'.tr()}: ${response.statusCode}',
         );
       }
     } catch (e) {
+      print('🔧 ETFService: Bitcoin request error: $e');
       if (e is TimeoutException) {
         throw Exception('errors.server_unavailable'.tr());
       }

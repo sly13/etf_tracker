@@ -10,7 +10,7 @@
 
 const http = require('http');
 
-const BACKEND_URL = 'http://localhost:3000'; // Измените на ваш URL
+const BACKEND_API_URL = 'http://localhost:3000'; // Измените на ваш URL
 const DEVICE_ID = 'ios_B0E7A43F-99A2-4208-A3C1-00FA74596AA1_1757260864303';
 
 async function makeRequest(path, data) {

@@ -95,7 +95,7 @@ static const String baseUrl = 'http://your-backend-url:port';
 Создайте файл `.env` в корне проекта для настройки переменных окружения:
 
 ```env
-BACKEND_URL=http://localhost:3000
+BACKEND_API_URL =http://localhost:3000
 API_TIMEOUT=30000
 ```
 
