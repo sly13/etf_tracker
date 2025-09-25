@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Logger, Optional } from '@nestjs/common';
 import { NotificationService } from './notifications/notification.service';
-// import { TelegramBotService } from './telegram-bot/telegram-bot.service';
+import { TelegramBotService } from './telegram-bot/telegram-bot.service';
 import { PrismaService } from '../shared/prisma/prisma.service';
 
 @Controller('notifications')
@@ -9,8 +9,8 @@ export class TestNotificationController {
 
   constructor(
     private readonly notificationService: NotificationService,
-    // @Optional() private readonly telegramBotService?: TelegramBotService,
     private readonly prismaService: PrismaService,
+    @Optional() private readonly telegramBotService?: TelegramBotService,
   ) {}
 
   @Post('send-test-telegram')
@@ -43,11 +43,11 @@ export class TestNotificationController {
       }
 
       // Отправляем тестовое сообщение через TelegramBotService
-      // const success = await this.telegramBotService.sendTestMessage(
-      //   user.telegramChatId,
-      //   body.message || 'Тестовое уведомление из админской панели',
-      // );
-      const success = false; // Telegram бот отключен
+      const success =
+        (await this.telegramBotService?.sendTestMessage(
+          user.telegramChatId,
+          body.message || 'Тестовое уведомление из админской панели',
+        )) || false;
 
       if (success) {
         this.logger.log(
