@@ -30,7 +30,7 @@ struct ETFMacWidgetData {
 // Сервис для загрузки данных
 class ETFMacWidgetService {
     static let shared = ETFMacWidgetService()
-    private let baseURL = "https://etf-flow.vadimsemenko.ru"
+    private let baseURL = "https://api-etf.vadimsemenko.ru"
     
     func fetchETFData() async -> ETFMacWidgetData? {
         guard let url = URL(string: "\(baseURL)/api/etf-flow/summary") else {

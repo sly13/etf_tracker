@@ -19,7 +19,7 @@ module.exports = {
 			env_production: {
 				PORT: 3065,
 				NODE_ENV: "production",
-				REACT_APP_API_URL: "https://etf-flow.vadimsemenko.ru/api"
+				REACT_APP_API_URL: "https://api-etf.vadimsemenko.ru/api"
 			}
 		}
 	]

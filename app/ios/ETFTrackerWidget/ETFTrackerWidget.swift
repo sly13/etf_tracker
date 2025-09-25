@@ -30,7 +30,7 @@ struct ETFWidgetData {
 // Сервис для загрузки данных
 class ETFWidgetService {
     static let shared = ETFWidgetService()
-    private let baseURL = "https://etf-flow.vadimsemenko.ru"
+    private let baseURL = "https://api-etf.vadimsemenko.ru"
     
     func fetchETFData() async -> ETFWidgetData? {
         guard let url = URL(string: "\(baseURL)/api/etf-flow/summary") else {

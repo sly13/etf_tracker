@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
-  static const String _defaultBackendUrl = 'https://etf-flow.vadimsemenko.ru';
+  static const String _defaultBackendUrl = 'https://api-etf.vadimsemenko.ru';
   static const String _defaultLocalBackendUrl = 'http://localhost:3066';
 
   // Название приложения для регистрации в бэкенде

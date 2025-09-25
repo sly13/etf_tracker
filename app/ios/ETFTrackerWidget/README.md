@@ -31,7 +31,7 @@
 
 ## Источник данных
 
-Виджет получает данные с API: `https://etf-flow.vadimsemenko.ru/etf-flow/summary`
+Виджет получает данные с API: `https://api-etf.vadimsemenko.ru/api/etf-flow/summary`
 
 ## Структура данных
 

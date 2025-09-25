@@ -63,7 +63,7 @@ ETFTrackerMacWidget/
 
 ## API Endpoint
 
-Виджет использует API endpoint: `https://etf-flow.vadimsemenko.ru/etf-flow/summary`
+Виджет использует API endpoint: `https://api-etf.vadimsemenko.ru/api/etf-flow/summary`
 
 ## Размеры виджета
 

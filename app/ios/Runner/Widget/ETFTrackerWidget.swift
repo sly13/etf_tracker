@@ -52,7 +52,7 @@ struct ETFTrackerTimelineProvider: TimelineProvider {
     }
     
     private func fetchETFData() async -> ETFTrackerEntry {
-        guard let url = URL(string: "https://etf-flow.vadimsemenko.ru/api/etf-flow/summary") else {
+        guard let url = URL(string: "https://api-etf.vadimsemenko.ru/api/etf-flow/summary") else {
             return ETFTrackerEntry(
                 date: Date(),
                 ethereumTotal: 0,
