@@ -14,7 +14,7 @@ export class ETFService {
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
       return `${day}.${month}.${year}`;
-    } catch (error) {
+    } catch {
       return dateString; // Возвращаем исходную строку если не удалось распарсить
     }
   }
@@ -30,39 +30,86 @@ export class ETFService {
       const latestData = ethereumData[0] as any;
       const totalFlow = latestData.total || 0;
 
-      // Calculate 7-day average
+      // Calculate 7-day total
       const sevenDayData = ethereumData.slice(0, 7);
-      const sevenDayAverage =
-        sevenDayData.reduce((sum, day) => sum + (day.total || 0), 0) /
-        sevenDayData.length;
+      const sevenDayTotal = sevenDayData.reduce(
+        (sum, day) => (sum as number) + Number(day.total || 0),
+        0 as number,
+      );
+
+      // Calculate 30-day total
+      const thirtyDayData = ethereumData.slice(0, 30);
+      const thirtyDayTotal = thirtyDayData.reduce(
+        (sum, day) => sum + Number(day.total || 0),
+        0 as number,
+      );
+
+      // Calculate total for all days for each fund
+      const totalBlackrock = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.blackrock || 0),
+        0 as any,
+      );
+      const totalFidelity = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.fidelity || 0),
+        0 as any,
+      );
+      const totalBitwise = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.bitwise || 0),
+        0 as any,
+      );
+      const totalTwentyOneShares = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.twentyOneShares || 0),
+        0 as number,
+      );
+      const totalVanEck = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.vanEck || 0),
+        0 as number,
+      );
+      const totalInvesco = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.invesco || 0),
+        0 as number,
+      );
+      const totalFranklin = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.franklin || 0),
+        0 as number,
+      );
+      const totalGrayscale = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.grayscale || 0),
+        0 as number,
+      );
+      const totalGrayscaleCrypto = ethereumData.reduce(
+        (sum, day) => (sum as number) + Number(day.grayscaleCrypto || 0),
+        0 as number,
+      );
 
       return `
 📊 <b>Ethereum ETF Flow Data</b>
 
 📅 <b>Latest Data (${this.formatDate(latestData.date)}):</b>
-💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M ETH</b>
+💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
 
-📈 <b>7-Day Average:</b>
-📊 Average Flow: <b>${(sevenDayAverage / 1000000).toFixed(1)}M ETH</b>
+📈 <b>7-Day Total:</b>
+📊 Total Flow: <b>${(Number(sevenDayTotal) / 1000000).toFixed(1)}M</b>
+
+📅 <b>30-Day Total:</b>
+📊 Total Flow: <b>${(Number(thirtyDayTotal) / 1000000).toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M ETH
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M ETH
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M ETH
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M ETH
+• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
+• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M
+• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M
+• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
 
-📊 <b>All Funds:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M ETH
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M ETH
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M ETH
-• 21Shares: ${((latestData.twentyOneShares || 0) / 1000000).toFixed(1)}M ETH
-• VanEck: ${((latestData.vanEck || 0) / 1000000).toFixed(1)}M ETH
-• Invesco: ${((latestData.invesco || 0) / 1000000).toFixed(1)}M ETH
-• Franklin: ${((latestData.franklin || 0) / 1000000).toFixed(1)}M ETH
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M ETH
-• Grayscale ETH: ${((latestData.grayscaleCrypto || 0) / 1000000).toFixed(1)}M ETH
-
-<i>Data source: Farside.co.uk</i>
+📊 <b>All Funds (Total):</b>
+• BlackRock: ${(Number(totalBlackrock) / 1000000).toFixed(1)}M
+• Fidelity: ${(Number(totalFidelity) / 1000000).toFixed(1)}M
+• Bitwise: ${(Number(totalBitwise) / 1000000).toFixed(1)}M
+• 21Shares: ${(Number(totalTwentyOneShares) / 1000000).toFixed(1)}M
+• VanEck: ${(Number(totalVanEck) / 1000000).toFixed(1)}M
+• Invesco: ${(Number(totalInvesco) / 1000000).toFixed(1)}M
+• Franklin: ${(Number(totalFranklin) / 1000000).toFixed(1)}M
+• Grayscale: ${(Number(totalGrayscale) / 1000000).toFixed(1)}M
+• Grayscale ETH: ${(Number(totalGrayscaleCrypto) / 1000000).toFixed(1)}M
       `.trim();
     } catch (error) {
       this.logger.error('❌ Error getting Ethereum ETF data:', error);
@@ -81,41 +128,96 @@ export class ETFService {
       const latestData = bitcoinData[0] as any;
       const totalFlow = latestData.total || 0;
 
-      // Calculate 7-day average
+      // Calculate 7-day total
       const sevenDayData = bitcoinData.slice(0, 7);
-      const sevenDayAverage =
-        sevenDayData.reduce((sum, day) => sum + (day.total || 0), 0) /
-        sevenDayData.length;
+      const sevenDayTotal = sevenDayData.reduce(
+        (sum, day) => (sum as number) + Number(day.total || 0),
+        0 as number,
+      );
+
+      // Calculate 30-day total
+      const thirtyDayData = bitcoinData.slice(0, 30);
+      const thirtyDayTotal = thirtyDayData.reduce(
+        (sum, day) => (sum as number) + Number(day.total || 0),
+        0 as number,
+      );
+
+      // Calculate total for all days for each fund
+      const totalBlackrock = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.blackrock || 0),
+        0 as number,
+      );
+      const totalFidelity = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.fidelity || 0),
+        0 as number,
+      );
+      const totalBitwise = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.bitwise || 0),
+        0 as number,
+      );
+      const totalTwentyOneShares = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.twentyOneShares || 0),
+        0 as number,
+      );
+      const totalVanEck = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.vanEck || 0),
+        0 as number,
+      );
+      const totalInvesco = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.invesco || 0),
+        0 as number,
+      );
+      const totalFranklin = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.franklin || 0),
+        0 as number,
+      );
+      const totalValkyrie = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.valkyrie || 0),
+        0 as number,
+      );
+      const totalWisdomTree = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.wisdomTree || 0),
+        0 as number,
+      );
+      const totalGrayscale = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.grayscale || 0),
+        0 as number,
+      );
+      const totalGrayscaleBtc = bitcoinData.reduce(
+        (sum, day) => (sum as number) + Number(day.grayscaleBtc || 0),
+        0 as number,
+      );
 
       return `
 📊 <b>Bitcoin ETF Flow Data</b>
 
 📅 <b>Latest Data (${this.formatDate(latestData.date)}):</b>
-💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M BTC</b>
+💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
 
-📈 <b>7-Day Average:</b>
-📊 Average Flow: <b>${(sevenDayAverage / 1000000).toFixed(1)}M BTC</b>
+📈 <b>7-Day Total:</b>
+📊 Total Flow: <b>${(Number(sevenDayTotal) / 1000000).toFixed(1)}M</b>
+
+📅 <b>30-Day Total:</b>
+📊 Total Flow: <b>${(Number(thirtyDayTotal) / 1000000).toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M BTC
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M BTC
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M BTC
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M BTC
+• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
+• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M
+• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M
+• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
 
-📊 <b>All Funds:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M BTC
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M BTC
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M BTC
-• 21Shares: ${((latestData.twentyOneShares || 0) / 1000000).toFixed(1)}M BTC
-• VanEck: ${((latestData.vanEck || 0) / 1000000).toFixed(1)}M BTC
-• Invesco: ${((latestData.invesco || 0) / 1000000).toFixed(1)}M BTC
-• Franklin: ${((latestData.franklin || 0) / 1000000).toFixed(1)}M BTC
-• Valkyrie: ${((latestData.valkyrie || 0) / 1000000).toFixed(1)}M BTC
-• WisdomTree: ${((latestData.wisdomTree || 0) / 1000000).toFixed(1)}M BTC
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M BTC
-• Grayscale BTC: ${((latestData.grayscaleBtc || 0) / 1000000).toFixed(1)}M BTC
-
-<i>Data source: Farside.co.uk</i>
+📊 <b>All Funds (Total):</b>
+• BlackRock: ${(Number(totalBlackrock) / 1000000).toFixed(1)}M
+• Fidelity: ${(Number(totalFidelity) / 1000000).toFixed(1)}M
+• Bitwise: ${(Number(totalBitwise) / 1000000).toFixed(1)}M
+• 21Shares: ${(Number(totalTwentyOneShares) / 1000000).toFixed(1)}M
+• VanEck: ${(Number(totalVanEck) / 1000000).toFixed(1)}M
+• Invesco: ${(Number(totalInvesco) / 1000000).toFixed(1)}M
+• Franklin: ${(Number(totalFranklin) / 1000000).toFixed(1)}M
+• Valkyrie: ${(Number(totalValkyrie) / 1000000).toFixed(1)}M
+• WisdomTree: ${(Number(totalWisdomTree) / 1000000).toFixed(1)}M
+• Grayscale: ${(Number(totalGrayscale) / 1000000).toFixed(1)}M
+• Grayscale BTC: ${(Number(totalGrayscaleBtc) / 1000000).toFixed(1)}M
       `.trim();
     } catch (error) {
       this.logger.error('❌ Error getting Bitcoin ETF data:', error);
@@ -145,12 +247,12 @@ export class ETFService {
         const btcTotal = latestBtc.total || 0;
         const btcSevenDay = bitcoinData.slice(0, 7);
         const btcAverage =
-          btcSevenDay.reduce((sum, day) => sum + (day.total || 0), 0) /
+          btcSevenDay.reduce((sum, day) => sum + Number(day.total || 0), 0) /
           btcSevenDay.length;
 
         message += `🟠 <b>Bitcoin ETF (${this.formatDate(latestBtc.date)}):</b>\n`;
-        message += `💰 Total Flow: <b>${(btcTotal / 1000000).toFixed(1)}M BTC</b>\n`;
-        message += `📈 7-Day Avg: <b>${(btcAverage / 1000000).toFixed(1)}M BTC</b>\n\n`;
+        message += `💰 Total Flow: <b>${(btcTotal / 1000000).toFixed(1)}M</b>\n`;
+        message += `📈 7-Day Avg: <b>${(btcAverage / 1000000).toFixed(1)}M</b>\n\n`;
       }
 
       // Ethereum data
@@ -159,16 +261,15 @@ export class ETFService {
         const ethTotal = latestEth.total || 0;
         const ethSevenDay = ethereumData.slice(0, 7);
         const ethAverage =
-          ethSevenDay.reduce((sum, day) => sum + (day.total || 0), 0) /
+          ethSevenDay.reduce((sum, day) => sum + Number(day.total || 0), 0) /
           ethSevenDay.length;
 
         message += `🔵 <b>Ethereum ETF (${this.formatDate(latestEth.date)}):</b>\n`;
-        message += `💰 Total Flow: <b>${(ethTotal / 1000000).toFixed(1)}M ETH</b>\n`;
-        message += `📈 7-Day Avg: <b>${(ethAverage / 1000000).toFixed(1)}M ETH</b>\n\n`;
+        message += `💰 Total Flow: <b>${(ethTotal / 1000000).toFixed(1)}M</b>\n`;
+        message += `📈 7-Day Avg: <b>${(ethAverage / 1000000).toFixed(1)}M</b>\n\n`;
       }
 
-      message += '💡 <i>Use /bitcoin or /ethereum for detailed breakdown</i>\n';
-      message += '<i>Data source: Farside.co.uk</i>';
+      message += '💡 <i>Use /bitcoin or /ethereum for detailed breakdown</i>';
 
       return message;
     } catch (error) {
