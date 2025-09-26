@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UniversalETFFlowService } from '../../etf/universal-etf-flow.service';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ETFService {
   private readonly logger = new Logger(ETFService.name);
 
-  constructor(private etfFlowService: UniversalETFFlowService) {}
+  constructor(private httpService: HttpService) {}
 
   private formatDate(dateString: string): string {
     try {
@@ -21,27 +22,32 @@ export class ETFService {
 
   async getEthereumData(): Promise<string> {
     try {
-      const ethereumData = await this.etfFlowService.getETFFlowData('ethereum');
+      const response = await firstValueFrom(
+        this.httpService.get(
+          'https://api-etf.vadimsemenko.ru/api/etf/ethereum',
+        ),
+      );
+      const ethereumData = response.data;
 
       if (!ethereumData || ethereumData.length === 0) {
         return '📊 <b>Ethereum ETF Data</b>\n\n❌ No data available at the moment.';
       }
 
-      const latestData = ethereumData[0] as any;
+      const latestData = ethereumData[0];
       const totalFlow = latestData.total || 0;
 
       // Calculate 7-day total
       const sevenDayData = ethereumData.slice(0, 7);
       const sevenDayTotal = sevenDayData.reduce(
-        (sum, day) => (sum as any) + Number(day.total || 0),
-        0 as any,
+        (sum, day) => sum + Number(day.total || 0),
+        0,
       );
 
       // Calculate 30-day total
       const thirtyDayData = ethereumData.slice(0, 30);
       const thirtyDayTotal = thirtyDayData.reduce(
         (sum, day) => sum + Number(day.total || 0),
-        0 as any,
+        0,
       );
 
       // Calculate total for all days for each fund
@@ -89,10 +95,10 @@ export class ETFService {
 💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
 
 📈 <b>7-Day Total:</b>
-📊 Total Flow: <b>${(Number(sevenDayTotal) / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${(sevenDayTotal / 1000000).toFixed(1)}M</b>
 
 📅 <b>30-Day Total:</b>
-📊 Total Flow: <b>${(Number(thirtyDayTotal) / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${(thirtyDayTotal / 1000000).toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
 • BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
@@ -101,15 +107,15 @@ export class ETFService {
 • Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
 
 📊 <b>All Funds (Total):</b>
-• BlackRock: ${(Number(totalBlackrock) / 1000000).toFixed(1)}M
-• Fidelity: ${(Number(totalFidelity) / 1000000).toFixed(1)}M
-• Bitwise: ${(Number(totalBitwise) / 1000000).toFixed(1)}M
-• 21Shares: ${(Number(totalTwentyOneShares) / 1000000).toFixed(1)}M
-• VanEck: ${(Number(totalVanEck) / 1000000).toFixed(1)}M
-• Invesco: ${(Number(totalInvesco) / 1000000).toFixed(1)}M
-• Franklin: ${(Number(totalFranklin) / 1000000).toFixed(1)}M
-• Grayscale: ${(Number(totalGrayscale) / 1000000).toFixed(1)}M
-• Grayscale ETH: ${(Number(totalGrayscaleCrypto) / 1000000).toFixed(1)}M
+• BlackRock: ${(totalBlackrock / 1000000).toFixed(1)}M
+• Fidelity: ${(totalFidelity / 1000000).toFixed(1)}M
+• Bitwise: ${(totalBitwise / 1000000).toFixed(1)}M
+• 21Shares: ${(totalTwentyOneShares / 1000000).toFixed(1)}M
+• VanEck: ${(totalVanEck / 1000000).toFixed(1)}M
+• Invesco: ${(totalInvesco / 1000000).toFixed(1)}M
+• Franklin: ${(totalFranklin / 1000000).toFixed(1)}M
+• Grayscale: ${(totalGrayscale / 1000000).toFixed(1)}M
+• Grayscale ETH: ${(totalGrayscaleCrypto / 1000000).toFixed(1)}M
       `.trim();
     } catch (error) {
       this.logger.error('❌ Error getting Ethereum ETF data:', error);
@@ -119,27 +125,30 @@ export class ETFService {
 
   async getBitcoinData(): Promise<string> {
     try {
-      const bitcoinData = await this.etfFlowService.getETFFlowData('bitcoin');
+      const response = await firstValueFrom(
+        this.httpService.get('https://api-etf.vadimsemenko.ru/api/etf/bitcoin'),
+      );
+      const bitcoinData = response.data;
 
       if (!bitcoinData || bitcoinData.length === 0) {
         return '📊 <b>Bitcoin ETF Data</b>\n\n❌ No data available at the moment.';
       }
 
-      const latestData = bitcoinData[0] as any;
+      const latestData = bitcoinData[0];
       const totalFlow = latestData.total || 0;
 
       // Calculate 7-day total
       const sevenDayData = bitcoinData.slice(0, 7);
       const sevenDayTotal = sevenDayData.reduce(
-        (sum, day) => (sum as any) + Number(day.total || 0),
-        0 as any,
+        (sum, day) => sum + Number(day.total || 0),
+        0,
       );
 
       // Calculate 30-day total
       const thirtyDayData = bitcoinData.slice(0, 30);
       const thirtyDayTotal = thirtyDayData.reduce(
-        (sum, day) => (sum as any) + Number(day.total || 0),
-        0 as any,
+        (sum, day) => sum + Number(day.total || 0),
+        0,
       );
 
       // Calculate total for all days for each fund
@@ -173,11 +182,11 @@ export class ETFService {
       }
       let totalValkyrie = 0;
       for (const day of bitcoinData) {
-        totalValkyrie += Number((day as any).valkyrie || 0);
+        totalValkyrie += Number(day.valkyrie || 0);
       }
       let totalWisdomTree = 0;
       for (const day of bitcoinData) {
-        totalWisdomTree += Number((day as any).wisdomTree || 0);
+        totalWisdomTree += Number(day.wisdomTree || 0);
       }
       let totalGrayscale = 0;
       for (const day of bitcoinData) {
@@ -185,7 +194,7 @@ export class ETFService {
       }
       let totalGrayscaleBtc = 0;
       for (const day of bitcoinData) {
-        totalGrayscaleBtc += Number((day as any).grayscaleBtc || 0);
+        totalGrayscaleBtc += Number(day.grayscaleBtc || 0);
       }
 
       return `
@@ -195,10 +204,10 @@ export class ETFService {
 💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
 
 📈 <b>7-Day Total:</b>
-📊 Total Flow: <b>${(Number(sevenDayTotal) / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${(sevenDayTotal / 1000000).toFixed(1)}M</b>
 
 📅 <b>30-Day Total:</b>
-📊 Total Flow: <b>${(Number(thirtyDayTotal) / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${(thirtyDayTotal / 1000000).toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
 • BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
@@ -207,16 +216,16 @@ export class ETFService {
 • Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
 
 📊 <b>All Funds (Total):</b>
-• BlackRock: ${(Number(totalBlackrock) / 1000000).toFixed(1)}M
-• Fidelity: ${(Number(totalFidelity) / 1000000).toFixed(1)}M
-• Bitwise: ${(Number(totalBitwise) / 1000000).toFixed(1)}M
-• 21Shares: ${(Number(totalTwentyOneShares) / 1000000).toFixed(1)}M
-• VanEck: ${(Number(totalVanEck) / 1000000).toFixed(1)}M
-• Invesco: ${(Number(totalInvesco) / 1000000).toFixed(1)}M
-• Franklin: ${(Number(totalFranklin) / 1000000).toFixed(1)}M
-• Valkyrie: ${(Number(totalValkyrie) / 1000000).toFixed(1)}M
-• WisdomTree: ${(Number(totalWisdomTree) / 1000000).toFixed(1)}M
-• Grayscale: ${(Number(totalGrayscale) / 1000000).toFixed(1)}M
+• BlackRock: ${(totalBlackrock / 1000000).toFixed(1)}M
+• Fidelity: ${(totalFidelity / 1000000).toFixed(1)}M
+• Bitwise: ${(totalBitwise / 1000000).toFixed(1)}M
+• 21Shares: ${(totalTwentyOneShares / 1000000).toFixed(1)}M
+• VanEck: ${(totalVanEck / 1000000).toFixed(1)}M
+• Invesco: ${(totalInvesco / 1000000).toFixed(1)}M
+• Franklin: ${(totalFranklin / 1000000).toFixed(1)}M
+• Valkyrie: ${(totalValkyrie / 1000000).toFixed(1)}M
+• WisdomTree: ${(totalWisdomTree / 1000000).toFixed(1)}M
+• Grayscale: ${(totalGrayscale / 1000000).toFixed(1)}M
 • Grayscale BTC: ${(Number(totalGrayscaleBtc) / 1000000).toFixed(1)}M
       `.trim();
     } catch (error) {
@@ -227,10 +236,21 @@ export class ETFService {
 
   async getSummaryData(): Promise<string> {
     try {
-      const [bitcoinData, ethereumData] = await Promise.all([
-        this.etfFlowService.getETFFlowData('bitcoin'),
-        this.etfFlowService.getETFFlowData('ethereum'),
+      const [bitcoinResponse, ethereumResponse] = await Promise.all([
+        firstValueFrom(
+          this.httpService.get(
+            'https://api-etf.vadimsemenko.ru/api/etf/bitcoin',
+          ),
+        ),
+        firstValueFrom(
+          this.httpService.get(
+            'https://api-etf.vadimsemenko.ru/api/etf/ethereum',
+          ),
+        ),
       ]);
+
+      const bitcoinData = bitcoinResponse.data;
+      const ethereumData = ethereumResponse.data;
 
       if (
         (!bitcoinData || bitcoinData.length === 0) &&
@@ -243,7 +263,7 @@ export class ETFService {
 
       // Bitcoin data
       if (bitcoinData && bitcoinData.length > 0) {
-        const latestBtc = bitcoinData[0] as any;
+        const latestBtc = bitcoinData[0];
         const btcTotal = latestBtc.total || 0;
         const btcSevenDay = bitcoinData.slice(0, 7);
         const btcAverage =
@@ -262,7 +282,7 @@ export class ETFService {
 
       // Ethereum data
       if (ethereumData && ethereumData.length > 0) {
-        const latestEth = ethereumData[0] as any;
+        const latestEth = ethereumData[0];
         const ethTotal = latestEth.total || 0;
         const ethSevenDay = ethereumData.slice(0, 7);
         const ethAverage =

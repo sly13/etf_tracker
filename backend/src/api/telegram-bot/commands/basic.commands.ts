@@ -637,8 +637,6 @@ Failed to link Telegram to Device ID.
       // Паттерн для UUID_timestamp или platform_id_timestamp
       const deviceIdPattern = /^[A-F0-9-]+_\d+$/i;
 
-      // Также проверяем более общий паттерн для Device ID
-      const generalDeviceIdPattern = /^[A-F0-9-]+_\d+$/i;
       if (deviceIdPattern.test(messageText.trim())) {
         // Это похоже на Device ID, пытаемся привязать
         this.logger.log(

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { UniversalETFFlowService } from '../etf/universal-etf-flow.service';
 import { BotService } from './services/bot.service';
@@ -11,7 +12,7 @@ import { BotHandler } from './handlers/bot.handler';
 import { TelegramBotService } from './telegram-bot.service';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, HttpModule],
   providers: [
     PrismaService,
     UniversalETFFlowService,
