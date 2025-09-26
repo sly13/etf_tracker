@@ -17,10 +17,9 @@ export class BotService {
     private etfFlowService: UniversalETFFlowService,
   ) {
     this.logger.log('🚀 BotService constructor called');
-    void this.initializeBot();
   }
 
-  private initializeBot() {
+  initializeBot() {
     this.logger.log('🔧 Initializing Telegram bot...');
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
 

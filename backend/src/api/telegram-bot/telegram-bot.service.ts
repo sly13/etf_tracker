@@ -15,6 +15,9 @@ export class TelegramBotService implements OnModuleInit {
   onModuleInit() {
     this.logger.log('🚀 Initializing Telegram Bot Service...');
 
+    // Initialize bot first
+    this.botService.initializeBot();
+
     if (this.botService.isBotInitialized()) {
       this.botHandler.setupHandlers();
       this.logger.log('✅ Telegram Bot Service initialized successfully');
