@@ -572,6 +572,126 @@ Once you register in the app, your Telegram account will be automatically linked
       })();
     });
 
+    // /start command without parameters
+    this.bot.onText(/^\/start$/, async (msg) => {
+      const chatId = msg.chat.id;
+      const userName = msg.from?.first_name || 'User';
+
+      this.logger.log(
+        `🚀 Обработка команды /start без параметров от ${userName} (${chatId})`,
+      );
+
+      try {
+        // Проверяем, есть ли уже пользователь с таким Telegram Chat ID
+        const existingUser = await this.prismaService.user.findUnique({
+          where: { telegramChatId: chatId.toString() },
+          include: { application: true },
+        });
+
+        if (existingUser) {
+          // Пользователь уже зарегистрирован
+          const welcomeMessage = `
+🤖 <b>Welcome back to ETF Tracker!</b>
+
+👋 Hello, ${userName}!
+
+🔔 <b>Telegram notifications are active!</b>
+
+📋 <b>Available commands:</b>
+
+<b>Basic Commands:</b>
+/start - Subscribe to ETF notifications
+/stop - Unsubscribe from notifications
+/status - Check subscription status
+/help - Show detailed help
+/app - Get app installation instructions
+/link - Link Telegram to mobile app
+
+<b>ETF Data Commands:</b>
+/bitcoin - Get Bitcoin ETF flow data
+/ethereum - Get Ethereum ETF flow data
+/summary - Get both Bitcoin & Ethereum summary
+
+<b>About the bot:</b>
+I send notifications about new ETF flow data:
+• Bitcoin ETF flows
+• Ethereum ETF flows
+• Significant changes (>20%)
+
+🔔 Notifications are sent automatically when new data appears.
+
+<i>Use /help for detailed information about each command!</i>
+          `.trim();
+
+          await this.bot.sendMessage(chatId, welcomeMessage, {
+            parse_mode: 'HTML',
+          });
+
+          this.logger.log(
+            `✅ Existing user ${userName} (${chatId}) received welcome message`,
+          );
+        } else {
+          // Новый пользователь - показываем инструкции по привязке
+          const linkMessage = `
+🤖 <b>Welcome to ETF Tracker Bot!</b>
+
+👋 Hello, ${userName}!
+
+📱 To receive notifications, you need to first register in the ETF Flow Tracker application.
+
+🔗 <b>How to link Telegram:</b>
+1. Open the ETF Flow Tracker application
+2. Go to settings
+3. Find the "Device ID" section
+4. Copy your Device ID
+5. Send command: <code>/link YOUR_DEVICE_ID</code>
+
+📋 <b>Available commands:</b>
+
+<b>Basic Commands:</b>
+/start - Subscribe to ETF notifications
+/stop - Unsubscribe from notifications
+/status - Check subscription status
+/help - Show detailed help
+/app - Get app installation instructions
+/link - Link Telegram to mobile app
+
+<b>ETF Data Commands:</b>
+/bitcoin - Get Bitcoin ETF flow data
+/ethereum - Get Ethereum ETF flow data
+/summary - Get both Bitcoin & Ethereum summary
+
+<b>About the bot:</b>
+I send notifications about new ETF flow data:
+• Bitcoin ETF flows
+• Ethereum ETF flows
+• Significant changes (>20%)
+
+🔔 Notifications are sent automatically when new data appears.
+
+<i>After linking, you will receive notifications automatically!</i>
+          `.trim();
+
+          await this.bot.sendMessage(chatId, linkMessage, {
+            parse_mode: 'HTML',
+          });
+
+          this.logger.log(
+            `📝 New user ${userName} (${chatId}) received linking instructions`,
+          );
+        }
+      } catch (error) {
+        this.logger.error(
+          '❌ Error processing /start command without parameters:',
+          error,
+        );
+        await this.bot.sendMessage(
+          chatId,
+          '❌ Error processing command. Please try again later.',
+        );
+      }
+    });
+
     // /stop command
     this.bot.onText(/\/stop/, async (msg) => {
       const chatId = msg.chat.id;

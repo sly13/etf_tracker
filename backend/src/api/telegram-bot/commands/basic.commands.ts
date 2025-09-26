@@ -68,14 +68,29 @@ export class BasicCommands {
 🔔 <b>Telegram notifications are active!</b>
 
 📋 <b>Available commands:</b>
-/help - Show all commands
-/status - Check your status
-/link - Link Telegram to mobile app
-/bitcoin - Get Bitcoin ETF data
-/ethereum - Get Ethereum ETF data
-/summary - Get ETF summary
 
-<i>You'll receive notifications automatically when new ETF data appears!</i>
+<b>Basic Commands:</b>
+/start - Subscribe to ETF notifications
+/stop - Unsubscribe from notifications
+/status - Check subscription status
+/help - Show detailed help
+/app - Get app installation instructions
+/link - Link Telegram to mobile app
+
+<b>ETF Data Commands:</b>
+/bitcoin - Get Bitcoin ETF flow data
+/ethereum - Get Ethereum ETF flow data
+/summary - Get both Bitcoin & Ethereum summary
+
+<b>About the bot:</b>
+I send notifications about new ETF flow data:
+• Bitcoin ETF flows
+• Ethereum ETF flows
+• Significant changes (>20%)
+
+🔔 Notifications are sent automatically when new data appears.
+
+<i>Use /help for detailed information about each command!</i>
         `.trim();
 
         await bot.sendMessage(chatId, welcomeMessage, {
@@ -97,11 +112,27 @@ export class BasicCommands {
 5. Send command: <code>/link YOUR_DEVICE_ID</code>
 
 📋 <b>Available commands:</b>
-/help - Show all commands
+
+<b>Basic Commands:</b>
+/start - Subscribe to ETF notifications
+/stop - Unsubscribe from notifications
+/status - Check subscription status
+/help - Show detailed help
+/app - Get app installation instructions
 /link - Link Telegram to mobile app
-/bitcoin - Get Bitcoin ETF data
-/ethereum - Get Ethereum ETF data
-/summary - Get ETF summary
+
+<b>ETF Data Commands:</b>
+/bitcoin - Get Bitcoin ETF flow data
+/ethereum - Get Ethereum ETF flow data
+/summary - Get both Bitcoin & Ethereum summary
+
+<b>About the bot:</b>
+I send notifications about new ETF flow data:
+• Bitcoin ETF flows
+• Ethereum ETF flows
+• Significant changes (>20%)
+
+🔔 Notifications are sent automatically when new data appears.
 
 <i>After linking, you will receive notifications automatically!</i>
         `.trim();
