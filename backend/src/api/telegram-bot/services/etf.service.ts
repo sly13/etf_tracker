@@ -33,54 +33,54 @@ export class ETFService {
       // Calculate 7-day total
       const sevenDayData = ethereumData.slice(0, 7);
       const sevenDayTotal = sevenDayData.reduce(
-        (sum, day) => (sum as number) + Number(day.total || 0),
-        0 as number,
+        (sum, day) => (sum as any) + Number(day.total || 0),
+        0 as any,
       );
 
       // Calculate 30-day total
       const thirtyDayData = ethereumData.slice(0, 30);
       const thirtyDayTotal = thirtyDayData.reduce(
         (sum, day) => sum + Number(day.total || 0),
-        0 as number,
+        0 as any,
       );
 
       // Calculate total for all days for each fund
-      const totalBlackrock = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.blackrock || 0),
-        0 as any,
-      );
-      const totalFidelity = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.fidelity || 0),
-        0 as any,
-      );
-      const totalBitwise = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.bitwise || 0),
-        0 as any,
-      );
-      const totalTwentyOneShares = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.twentyOneShares || 0),
-        0 as number,
-      );
-      const totalVanEck = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.vanEck || 0),
-        0 as number,
-      );
-      const totalInvesco = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.invesco || 0),
-        0 as number,
-      );
-      const totalFranklin = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.franklin || 0),
-        0 as number,
-      );
-      const totalGrayscale = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.grayscale || 0),
-        0 as number,
-      );
-      const totalGrayscaleCrypto = ethereumData.reduce(
-        (sum, day) => (sum as number) + Number(day.grayscaleCrypto || 0),
-        0 as number,
-      );
+      let totalBlackrock = 0;
+      for (const day of ethereumData) {
+        totalBlackrock += Number(day.blackrock || 0);
+      }
+      let totalFidelity = 0;
+      for (const day of ethereumData) {
+        totalFidelity += Number(day.fidelity || 0);
+      }
+      let totalBitwise = 0;
+      for (const day of ethereumData) {
+        totalBitwise += Number(day.bitwise || 0);
+      }
+      let totalTwentyOneShares = 0;
+      for (const day of ethereumData) {
+        totalTwentyOneShares += Number(day.twentyOneShares || 0);
+      }
+      let totalVanEck = 0;
+      for (const day of ethereumData) {
+        totalVanEck += Number(day.vanEck || 0);
+      }
+      let totalInvesco = 0;
+      for (const day of ethereumData) {
+        totalInvesco += Number(day.invesco || 0);
+      }
+      let totalFranklin = 0;
+      for (const day of ethereumData) {
+        totalFranklin += Number(day.franklin || 0);
+      }
+      let totalGrayscale = 0;
+      for (const day of ethereumData) {
+        totalGrayscale += Number(day.grayscale || 0);
+      }
+      let totalGrayscaleCrypto = 0;
+      for (const day of ethereumData) {
+        totalGrayscaleCrypto += Number(day.grayscaleCrypto || 0);
+      }
 
       return `
 📊 <b>Ethereum ETF Flow Data</b>
@@ -131,62 +131,62 @@ export class ETFService {
       // Calculate 7-day total
       const sevenDayData = bitcoinData.slice(0, 7);
       const sevenDayTotal = sevenDayData.reduce(
-        (sum, day) => (sum as number) + Number(day.total || 0),
-        0 as number,
+        (sum, day) => (sum as any) + Number(day.total || 0),
+        0 as any,
       );
 
       // Calculate 30-day total
       const thirtyDayData = bitcoinData.slice(0, 30);
       const thirtyDayTotal = thirtyDayData.reduce(
-        (sum, day) => (sum as number) + Number(day.total || 0),
-        0 as number,
+        (sum, day) => (sum as any) + Number(day.total || 0),
+        0 as any,
       );
 
       // Calculate total for all days for each fund
-      const totalBlackrock = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.blackrock || 0),
-        0 as number,
-      );
-      const totalFidelity = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.fidelity || 0),
-        0 as number,
-      );
-      const totalBitwise = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.bitwise || 0),
-        0 as number,
-      );
-      const totalTwentyOneShares = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.twentyOneShares || 0),
-        0 as number,
-      );
-      const totalVanEck = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.vanEck || 0),
-        0 as number,
-      );
-      const totalInvesco = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.invesco || 0),
-        0 as number,
-      );
-      const totalFranklin = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.franklin || 0),
-        0 as number,
-      );
-      const totalValkyrie = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.valkyrie || 0),
-        0 as number,
-      );
-      const totalWisdomTree = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.wisdomTree || 0),
-        0 as number,
-      );
-      const totalGrayscale = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.grayscale || 0),
-        0 as number,
-      );
-      const totalGrayscaleBtc = bitcoinData.reduce(
-        (sum, day) => (sum as number) + Number(day.grayscaleBtc || 0),
-        0 as number,
-      );
+      let totalBlackrock = 0;
+      for (const day of bitcoinData) {
+        totalBlackrock += Number(day.blackrock || 0);
+      }
+      let totalFidelity = 0;
+      for (const day of bitcoinData) {
+        totalFidelity += Number(day.fidelity || 0);
+      }
+      let totalBitwise = 0;
+      for (const day of bitcoinData) {
+        totalBitwise += Number(day.bitwise || 0);
+      }
+      let totalTwentyOneShares = 0;
+      for (const day of bitcoinData) {
+        totalTwentyOneShares += Number(day.twentyOneShares || 0);
+      }
+      let totalVanEck = 0;
+      for (const day of bitcoinData) {
+        totalVanEck += Number(day.vanEck || 0);
+      }
+      let totalInvesco = 0;
+      for (const day of bitcoinData) {
+        totalInvesco += Number(day.invesco || 0);
+      }
+      let totalFranklin = 0;
+      for (const day of bitcoinData) {
+        totalFranklin += Number(day.franklin || 0);
+      }
+      let totalValkyrie = 0;
+      for (const day of bitcoinData) {
+        totalValkyrie += Number((day as any).valkyrie || 0);
+      }
+      let totalWisdomTree = 0;
+      for (const day of bitcoinData) {
+        totalWisdomTree += Number((day as any).wisdomTree || 0);
+      }
+      let totalGrayscale = 0;
+      for (const day of bitcoinData) {
+        totalGrayscale += Number(day.grayscale || 0);
+      }
+      let totalGrayscaleBtc = 0;
+      for (const day of bitcoinData) {
+        totalGrayscaleBtc += Number((day as any).grayscaleBtc || 0);
+      }
 
       return `
 📊 <b>Bitcoin ETF Flow Data</b>
@@ -247,8 +247,13 @@ export class ETFService {
         const btcTotal = latestBtc.total || 0;
         const btcSevenDay = bitcoinData.slice(0, 7);
         const btcAverage =
-          btcSevenDay.reduce((sum, day) => sum + Number(day.total || 0), 0) /
-          btcSevenDay.length;
+          (() => {
+            let sum = 0;
+            for (const day of btcSevenDay) {
+              sum += Number(day.total || 0);
+            }
+            return sum;
+          })() / btcSevenDay.length;
 
         message += `🟠 <b>Bitcoin ETF (${this.formatDate(latestBtc.date)}):</b>\n`;
         message += `💰 Total Flow: <b>${(btcTotal / 1000000).toFixed(1)}M</b>\n`;
@@ -261,8 +266,13 @@ export class ETFService {
         const ethTotal = latestEth.total || 0;
         const ethSevenDay = ethereumData.slice(0, 7);
         const ethAverage =
-          ethSevenDay.reduce((sum, day) => sum + Number(day.total || 0), 0) /
-          ethSevenDay.length;
+          (() => {
+            let sum = 0;
+            for (const day of ethSevenDay) {
+              sum += Number(day.total || 0);
+            }
+            return sum;
+          })() / ethSevenDay.length;
 
         message += `🔵 <b>Ethereum ETF (${this.formatDate(latestEth.date)}):</b>\n`;
         message += `💰 Total Flow: <b>${(ethTotal / 1000000).toFixed(1)}M</b>\n`;
