@@ -3,10 +3,10 @@ import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 import { FirebaseAdminService } from './firebase-admin.service';
 import { PrismaModule } from '../../shared/prisma/prisma.module';
-import { TelegramModule } from '../telegram/telegram.module';
+import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
 
 @Module({
-  imports: [PrismaModule, TelegramModule],
+  imports: [PrismaModule, TelegramBotModule],
   controllers: [NotificationController],
   providers: [NotificationService, FirebaseAdminService],
   exports: [NotificationService, FirebaseAdminService],

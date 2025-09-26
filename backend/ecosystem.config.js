@@ -10,6 +10,8 @@ module.exports = {
 				NODE_ENV: 'development',
 				PORT: 3066,
 				HOST: '0.0.0.0',
+				// Telegram Bot Configuration
+				TELEGRAM_BOT_TOKEN: 'YOUR_BOT_TOKEN_HERE',
 				// Настройки Puppeteer для сервера
 				PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false',
 				PUPPETEER_EXECUTABLE_PATH: '/usr/bin/google-chrome-stable',
