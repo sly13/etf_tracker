@@ -50,6 +50,11 @@ export class ETFFlowController {
     return await this.etfFlowService.getETFFlowData('ethereum');
   }
 
+  @Get('ethereum')
+  async getEthereumETFFlowDataAlt() {
+    return await this.etfFlowService.getETFFlowData('ethereum');
+  }
+
   @Get('bitcoin')
   async getBitcoinETFFlowData() {
     return await this.etfFlowService.getETFFlowData('bitcoin');

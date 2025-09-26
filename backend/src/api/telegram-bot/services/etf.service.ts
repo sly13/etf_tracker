@@ -24,7 +24,7 @@ export class ETFService {
     try {
       const response = await firstValueFrom(
         this.httpService.get(
-          'https://api-etf.vadimsemenko.ru/api/etf/ethereum',
+          'https://api-etf.vadimsemenko.ru/api/etf-flow/eth',
         ),
       );
       const ethereumData = response.data;
@@ -248,7 +248,7 @@ export class ETFService {
         ),
         firstValueFrom(
           this.httpService.get(
-            'https://api-etf.vadimsemenko.ru/api/etf/ethereum',
+            'https://api-etf.vadimsemenko.ru/api/etf-flow/eth',
           ),
         ),
       ]);
