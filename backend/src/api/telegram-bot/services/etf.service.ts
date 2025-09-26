@@ -92,30 +92,30 @@ export class ETFService {
 📊 <b>Ethereum ETF Flow Data</b>
 
 📅 <b>Latest Data (${this.formatDate(latestData.date)}):</b>
-💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
+💰 Total Flow: <b>${totalFlow.toFixed(1)}M</b>
 
 📈 <b>7-Day Total:</b>
-📊 Total Flow: <b>${(sevenDayTotal / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${sevenDayTotal.toFixed(1)}M</b>
 
 📅 <b>30-Day Total:</b>
-📊 Total Flow: <b>${(thirtyDayTotal / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${thirtyDayTotal.toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
+• BlackRock: ${(latestData.blackrock || 0).toFixed(1)}M
+• Fidelity: ${(latestData.fidelity || 0).toFixed(1)}M
+• Bitwise: ${(latestData.bitwise || 0).toFixed(1)}M
+• Grayscale: ${(latestData.grayscale || 0).toFixed(1)}M
 
 📊 <b>All Funds (Total):</b>
-• BlackRock: ${(totalBlackrock / 1000000).toFixed(1)}M
-• Fidelity: ${(totalFidelity / 1000000).toFixed(1)}M
-• Bitwise: ${(totalBitwise / 1000000).toFixed(1)}M
-• 21Shares: ${(totalTwentyOneShares / 1000000).toFixed(1)}M
-• VanEck: ${(totalVanEck / 1000000).toFixed(1)}M
-• Invesco: ${(totalInvesco / 1000000).toFixed(1)}M
-• Franklin: ${(totalFranklin / 1000000).toFixed(1)}M
-• Grayscale: ${(totalGrayscale / 1000000).toFixed(1)}M
-• Grayscale ETH: ${(totalGrayscaleCrypto / 1000000).toFixed(1)}M
+• BlackRock: ${totalBlackrock.toFixed(1)}M
+• Fidelity: ${totalFidelity.toFixed(1)}M
+• Bitwise: ${totalBitwise.toFixed(1)}M
+• 21Shares: ${totalTwentyOneShares.toFixed(1)}M
+• VanEck: ${totalVanEck.toFixed(1)}M
+• Invesco: ${totalInvesco.toFixed(1)}M
+• Franklin: ${totalFranklin.toFixed(1)}M
+• Grayscale: ${totalGrayscale.toFixed(1)}M
+• Grayscale ETH: ${totalGrayscaleCrypto.toFixed(1)}M
       `.trim();
     } catch (error) {
       this.logger.error('❌ Error getting Ethereum ETF data:', error);
@@ -129,6 +129,10 @@ export class ETFService {
         this.httpService.get('https://api-etf.vadimsemenko.ru/api/etf/bitcoin'),
       );
       const bitcoinData = response.data;
+
+      this.logger.log(
+        `Bitcoin API response: ${JSON.stringify(bitcoinData?.slice(0, 2))}`,
+      );
 
       if (!bitcoinData || bitcoinData.length === 0) {
         return '📊 <b>Bitcoin ETF Data</b>\n\n❌ No data available at the moment.';
@@ -201,32 +205,32 @@ export class ETFService {
 📊 <b>Bitcoin ETF Flow Data</b>
 
 📅 <b>Latest Data (${this.formatDate(latestData.date)}):</b>
-💰 Total Flow: <b>${(totalFlow / 1000000).toFixed(1)}M</b>
+💰 Total Flow: <b>${totalFlow.toFixed(1)}M</b>
 
 📈 <b>7-Day Total:</b>
-📊 Total Flow: <b>${(sevenDayTotal / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${sevenDayTotal.toFixed(1)}M</b>
 
 📅 <b>30-Day Total:</b>
-📊 Total Flow: <b>${(thirtyDayTotal / 1000000).toFixed(1)}M</b>
+📊 Total Flow: <b>${thirtyDayTotal.toFixed(1)}M</b>
 
 🏢 <b>Top Performers:</b>
-• BlackRock: ${((latestData.blackrock || 0) / 1000000).toFixed(1)}M
-• Fidelity: ${((latestData.fidelity || 0) / 1000000).toFixed(1)}M
-• Bitwise: ${((latestData.bitwise || 0) / 1000000).toFixed(1)}M
-• Grayscale: ${((latestData.grayscale || 0) / 1000000).toFixed(1)}M
+• BlackRock: ${(latestData.blackrock || 0).toFixed(1)}M
+• Fidelity: ${(latestData.fidelity || 0).toFixed(1)}M
+• Bitwise: ${(latestData.bitwise || 0).toFixed(1)}M
+• Grayscale: ${(latestData.grayscale || 0).toFixed(1)}M
 
 📊 <b>All Funds (Total):</b>
-• BlackRock: ${(totalBlackrock / 1000000).toFixed(1)}M
-• Fidelity: ${(totalFidelity / 1000000).toFixed(1)}M
-• Bitwise: ${(totalBitwise / 1000000).toFixed(1)}M
-• 21Shares: ${(totalTwentyOneShares / 1000000).toFixed(1)}M
-• VanEck: ${(totalVanEck / 1000000).toFixed(1)}M
-• Invesco: ${(totalInvesco / 1000000).toFixed(1)}M
-• Franklin: ${(totalFranklin / 1000000).toFixed(1)}M
-• Valkyrie: ${(totalValkyrie / 1000000).toFixed(1)}M
-• WisdomTree: ${(totalWisdomTree / 1000000).toFixed(1)}M
-• Grayscale: ${(totalGrayscale / 1000000).toFixed(1)}M
-• Grayscale BTC: ${(Number(totalGrayscaleBtc) / 1000000).toFixed(1)}M
+• BlackRock: ${totalBlackrock.toFixed(1)}M
+• Fidelity: ${totalFidelity.toFixed(1)}M
+• Bitwise: ${totalBitwise.toFixed(1)}M
+• 21Shares: ${totalTwentyOneShares.toFixed(1)}M
+• VanEck: ${totalVanEck.toFixed(1)}M
+• Invesco: ${totalInvesco.toFixed(1)}M
+• Franklin: ${totalFranklin.toFixed(1)}M
+• Valkyrie: ${totalValkyrie.toFixed(1)}M
+• WisdomTree: ${totalWisdomTree.toFixed(1)}M
+• Grayscale: ${totalGrayscale.toFixed(1)}M
+• Grayscale BTC: ${Number(totalGrayscaleBtc).toFixed(1)}M
       `.trim();
     } catch (error) {
       this.logger.error('❌ Error getting Bitcoin ETF data:', error);
@@ -276,8 +280,8 @@ export class ETFService {
           })() / btcSevenDay.length;
 
         message += `🟠 <b>Bitcoin ETF (${this.formatDate(latestBtc.date)}):</b>\n`;
-        message += `💰 Total Flow: <b>${(btcTotal / 1000000).toFixed(1)}M</b>\n`;
-        message += `📈 7-Day Avg: <b>${(btcAverage / 1000000).toFixed(1)}M</b>\n\n`;
+        message += `💰 Total Flow: <b>${btcTotal.toFixed(1)}M</b>\n`;
+        message += `📈 7-Day Avg: <b>${btcAverage.toFixed(1)}M</b>\n\n`;
       }
 
       // Ethereum data
@@ -295,8 +299,8 @@ export class ETFService {
           })() / ethSevenDay.length;
 
         message += `🔵 <b>Ethereum ETF (${this.formatDate(latestEth.date)}):</b>\n`;
-        message += `💰 Total Flow: <b>${(ethTotal / 1000000).toFixed(1)}M</b>\n`;
-        message += `📈 7-Day Avg: <b>${(ethAverage / 1000000).toFixed(1)}M</b>\n\n`;
+        message += `💰 Total Flow: <b>${ethTotal.toFixed(1)}M</b>\n`;
+        message += `📈 7-Day Avg: <b>${ethAverage.toFixed(1)}M</b>\n\n`;
       }
 
       message += '💡 <i>Use /bitcoin or /ethereum for detailed breakdown</i>';
