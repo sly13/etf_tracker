@@ -85,6 +85,9 @@ export class TelegramBotService {
   private setupBotHandlers() {
     this.logger.log('🔧 Настройка обработчиков Telegram бота...');
 
+    // Setup bot commands menu
+    this.setupBotCommandsMenu();
+
     // Добавляем общий обработчик всех сообщений для отладки
     this.bot.on('message', (msg) => {
       this.logger.log(
@@ -1564,6 +1567,30 @@ ${ethereumEmoji} <b>Ethereum ETF:</b> ${ethereumFlowText}
         error,
       );
       return false;
+    }
+  }
+
+  private async setupBotCommandsMenu() {
+    try {
+      const commands = [
+        { command: 'start', description: 'Subscribe to ETF notifications' },
+        { command: 'help', description: 'Show detailed help and commands' },
+        { command: 'status', description: 'Check your subscription status' },
+        { command: 'bitcoin', description: 'Get Bitcoin ETF flow data' },
+        { command: 'ethereum', description: 'Get Ethereum ETF flow data' },
+        {
+          command: 'summary',
+          description: 'Get both Bitcoin & Ethereum summary',
+        },
+        { command: 'link', description: 'Link Telegram to mobile app' },
+        { command: 'app', description: 'Get app installation instructions' },
+        { command: 'stop', description: 'Unsubscribe from notifications' },
+      ];
+
+      await this.bot.setMyCommands(commands);
+      this.logger.log('✅ Bot commands menu setup completed');
+    } catch (error) {
+      this.logger.error('❌ Error setting up bot commands menu:', error);
     }
   }
 }

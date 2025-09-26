@@ -384,14 +384,14 @@ You can still receive basic notifications via Telegram without the app, but the 
 
       if (existingUser) {
         const alreadyLinkedMessage = `
-🔗 <b>Telegram уже привязан!</b>
+🔗 <b>Telegram already linked!</b>
 
-Ваш аккаунт уже связан с приложением:
+Your account is already connected to the app:
 • Device ID: <code>${existingUser.deviceId}</code>
-• Приложение: ${existingUser.application?.name || 'Неизвестно'}
-• Статус: ${existingUser.isActive ? 'Активен' : 'Неактивен'}
+• Application: ${existingUser.application?.name || 'Unknown'}
+• Status: ${existingUser.isActive ? 'Active' : 'Inactive'}
 
-<i>Используйте /status для проверки статуса</i>
+<i>Use /status to check your status</i>
         `.trim();
 
         await bot.sendMessage(chatId, alreadyLinkedMessage, {
@@ -404,22 +404,22 @@ You can still receive basic notifications via Telegram without the app, but the 
         return;
       }
 
-      // Отправляем инструкции по привязке
+      // Send linking instructions
       const linkMessage = `
-🔗 <b>Привязка Telegram к приложению</b>
+🔗 <b>Link Telegram to App</b>
 
-Для привязки вашего Telegram аккаунта к приложению ETF Tracker:
+To link your Telegram account to the ETF Tracker app:
 
-1️⃣ <b>Откройте приложение ETF Tracker</b>
-2️⃣ <b>Перейдите в Настройки</b>
-3️⃣ <b>Найдите секцию "Device ID"</b>
-4️⃣ <b>Скопируйте ваш Device ID</b>
-5️⃣ <b>Отправьте команду:</b> <code>/link YOUR_DEVICE_ID</code>
+1️⃣ <b>Open the ETF Tracker app</b>
+2️⃣ <b>Go to Settings</b>
+3️⃣ <b>Find the "Device ID" section</b>
+4️⃣ <b>Copy your Device ID</b>
+5️⃣ <b>Send command:</b> <code>/link YOUR_DEVICE_ID</code>
 
-<b>Пример:</b>
+<b>Example:</b>
 <code>/link android_1234567890_1234567890</code>
 
-<i>После привязки вы будете получать уведомления о важных изменениях в ETF!</i>
+<i>After linking, you will receive notifications about important ETF changes!</i>
       `.trim();
 
       await bot.sendMessage(chatId, linkMessage, {
@@ -464,14 +464,14 @@ You can still receive basic notifications via Telegram without the app, but the 
 
       if (existingUser) {
         const alreadyLinkedMessage = `
-🔗 <b>Telegram уже привязан!</b>
+🔗 <b>Telegram already linked!</b>
 
-Ваш аккаунт уже связан с приложением:
+Your account is already connected to the app:
 • Device ID: <code>${existingUser.deviceId}</code>
-• Приложение: ${existingUser.application?.name || 'Неизвестно'}
-• Статус: ${existingUser.isActive ? 'Активен' : 'Неактивен'}
+• Application: ${existingUser.application?.name || 'Unknown'}
+• Status: ${existingUser.isActive ? 'Active' : 'Inactive'}
 
-<i>Используйте /status для проверки статуса</i>
+<i>Use /status to check your status</i>
         `.trim();
 
         await bot.sendMessage(chatId, alreadyLinkedMessage, {
@@ -490,21 +490,21 @@ You can still receive basic notifications via Telegram without the app, but the 
 
       if (!userByDeviceId) {
         const notFoundMessage = `
-❌ <b>Пользователь не найден!</b>
+❌ <b>User not found!</b>
 
-Device ID <code>${deviceId}</code> не найден в системе.
+Device ID <code>${deviceId}</code> not found in the system.
 
-<b>Возможные причины:</b>
-• Неверный Device ID
-• Приложение еще не зарегистрировано
-• Device ID скопирован неправильно
+<b>Possible reasons:</b>
+• Incorrect Device ID
+• App not registered yet
+• Device ID copied incorrectly
 
-<b>Что делать:</b>
-1️⃣ Убедитесь, что приложение ETF Tracker запущено
-2️⃣ Скопируйте Device ID заново из настроек
-3️⃣ Попробуйте команду еще раз
+<b>What to do:</b>
+1️⃣ Make sure the ETF Tracker app is running
+2️⃣ Copy the Device ID again from settings
+3️⃣ Try the command again
 
-<i>Используйте /link без параметров для получения инструкций</i>
+<i>Use /link without parameters for instructions</i>
         `.trim();
 
         await bot.sendMessage(chatId, notFoundMessage, {
@@ -520,15 +520,15 @@ Device ID <code>${deviceId}</code> не найден в системе.
       // Проверяем, не привязан ли уже этот Device ID к другому Telegram
       if (userByDeviceId.telegramChatId) {
         const alreadyLinkedToOtherMessage = `
-❌ <b>Device ID уже привязан!</b>
+❌ <b>Device ID already linked!</b>
 
-Device ID <code>${deviceId}</code> уже привязан к другому Telegram аккаунту.
+Device ID <code>${deviceId}</code> is already linked to another Telegram account.
 
-<b>Что делать:</b>
-• Если это ваш аккаунт - используйте /status для проверки
-• Если это не ваш аккаунт - обратитесь в поддержку
+<b>What to do:</b>
+• If this is your account - use /status to check
+• If this is not your account - contact support
 
-<i>Используйте /link без параметров для получения инструкций</i>
+<i>Use /link without parameters for instructions</i>
         `.trim();
 
         await bot.sendMessage(chatId, alreadyLinkedToOtherMessage, {
@@ -554,19 +554,19 @@ Device ID <code>${deviceId}</code> уже привязан к другому Tel
 
       if (linkSuccess) {
         const successMessage = `
-✅ <b>Telegram успешно привязан!</b>
+✅ <b>Telegram successfully linked!</b>
 
-Ваш аккаунт теперь связан с приложением:
+Your account is now connected to the app:
 • Device ID: <code>${deviceId}</code>
-• Приложение: ${userByDeviceId.application?.name || 'Неизвестно'}
+• Application: ${userByDeviceId.application?.name || 'Unknown'}
 • Telegram: @${msg.from?.username || userName}
 
-<b>Теперь вы будете получать:</b>
-• Уведомления о важных изменениях в ETF
-• Еженедельные сводки
-• Специальные предложения
+<b>You will now receive:</b>
+• Notifications about important ETF changes
+• Weekly summaries
+• Special offers
 
-<i>Используйте /status для проверки статуса</i>
+<i>Use /status to check your status</i>
         `.trim();
 
         await bot.sendMessage(chatId, successMessage, {
@@ -578,16 +578,16 @@ Device ID <code>${deviceId}</code> уже привязан к другому Tel
         );
       } else {
         const errorMessage = `
-❌ <b>Ошибка привязки!</b>
+❌ <b>Linking error!</b>
 
-Не удалось привязать Telegram к Device ID.
+Failed to link Telegram to Device ID.
 
-<b>Что делать:</b>
-• Попробуйте команду еще раз
-• Убедитесь, что Device ID правильный
-• Обратитесь в поддержку, если проблема повторяется
+<b>What to do:</b>
+• Try the command again
+• Make sure the Device ID is correct
+• Contact support if the problem persists
 
-<i>Используйте /link без параметров для получения инструкций</i>
+<i>Use /link without parameters for instructions</i>
         `.trim();
 
         await bot.sendMessage(chatId, errorMessage, {
@@ -650,23 +650,23 @@ Device ID <code>${deviceId}</code> уже привязан к другому Tel
       } else {
         // Не похоже на Device ID, отправляем инструкции
         const helpMessage = `
-🤖 <b>Привет, ${userName}!</b>
+🤖 <b>Hello, ${userName}!</b>
 
-Я получил ваше сообщение, но не понял, что вы хотите сделать.
+I received your message but didn't understand what you want to do.
 
-<b>Доступные команды:</b>
-• /start - Начать работу с ботом
-• /link - Инструкции по привязке Telegram
-• /status - Проверить статус привязки
-• /help - Показать все команды
+<b>Available commands:</b>
+• /start - Start working with the bot
+• /link - Telegram linking instructions
+• /status - Check linking status
+• /help - Show all commands
 
-<b>Для привязки к приложению:</b>
-1️⃣ Откройте приложение ETF Tracker
-2️⃣ Перейдите в Настройки → Device ID
-3️⃣ Скопируйте Device ID
-4️⃣ Отправьте команду: <code>/link ВАШ_DEVICE_ID</code>
+<b>To link to the app:</b>
+1️⃣ Open the ETF Tracker app
+2️⃣ Go to Settings → Device ID
+3️⃣ Copy the Device ID
+4️⃣ Send command: <code>/link YOUR_DEVICE_ID</code>
 
-<i>Или просто вставьте Device ID в следующем сообщении</i>
+<i>Or just paste the Device ID in the next message</i>
         `.trim();
 
         await bot.sendMessage(chatId, helpMessage, {
