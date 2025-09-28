@@ -702,6 +702,16 @@ class _SubscriptionSelectionScreenState
       await SubscriptionService.syncSubscriptions();
       print('✅ Синхронизация с бэкендом завершена');
 
+      // Если покупка восстановлена успешно, отмечаем paywall как пропущенный
+      if (isPremium) {
+        final onboardingProvider = Provider.of<OnboardingProvider>(
+          context,
+          listen: false,
+        );
+        await onboardingProvider.markPaywallAsSkipped();
+        print('🔧 Paywall отмечен как пропущенный после восстановления');
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1021,16 +1031,27 @@ class _SubscriptionSelectionScreenState
       await subscriptionProvider.refreshSubscriptionStatus();
       print('🔧 Статус принудительно обновлен из RevenueCat');
 
+      // Отмечаем paywall как пропущенный, чтобы AppInitializer показал главный экран
+      final onboardingProvider = Provider.of<OnboardingProvider>(
+        context,
+        listen: false,
+      );
+      await onboardingProvider.markPaywallAsSkipped();
+      print('🔧 Paywall отмечен как пропущенный');
+
       if (mounted) {
-        // После успешной покупки AppInitializer автоматически покажет основное приложение
-        // так как пользователь теперь премиум
+        // После успешной покупки переходим к основному приложению
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('subscription.success'.tr()),
             backgroundColor: Colors.green,
           ),
         );
-        print('✅ Покупка завершена, показано уведомление об успехе');
+        print('✅ Покупка завершена, переход к основному приложению');
       }
     } catch (e) {
       print('❌ Ошибка покупки: $e');

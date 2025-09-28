@@ -116,12 +116,13 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(isDark),
           const SizedBox(height: 8),
           _buildKeyMetrics(),
           const SizedBox(height: 8),
-          Flexible(child: _buildChart()),
+          SizedBox(height: 200, child: _buildChart()),
         ],
       ),
     );
@@ -643,14 +644,39 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
   double _calculateTotalAssets() {
     if (widget.flowData.isEmpty) return 0;
 
-    // Активы - это общая сумма активов за все время
-    // Используем все данные, а не только отфильтрованные
     double totalAssets = 0;
-    for (final data in widget.flowData) {
-      final flow = data.total ?? 0;
-      if (flow > 0) {
-        totalAssets += flow;
-      }
+
+    switch (_selectedPeriod) {
+      case ChartPeriod.daily:
+        // Для дневного периода - сумма за последний день
+        if (widget.flowData.isNotEmpty) {
+          final latestData = widget.flowData.first;
+          final flow = latestData.total ?? 0;
+          if (flow > 0) {
+            totalAssets += flow;
+          }
+        }
+        break;
+      case ChartPeriod.weekly:
+        // Для недельного периода - сумма за последний месяц (30 дней)
+        final monthlyData = widget.flowData.take(30).toList();
+        for (final data in monthlyData) {
+          final flow = data.total ?? 0;
+          if (flow > 0) {
+            totalAssets += flow;
+          }
+        }
+        break;
+      case ChartPeriod.monthly:
+        // Для месячного периода - сумма за последний месяц (30 дней)
+        final monthlyData = widget.flowData.take(30).toList();
+        for (final data in monthlyData) {
+          final flow = data.total ?? 0;
+          if (flow > 0) {
+            totalAssets += flow;
+          }
+        }
+        break;
     }
 
     // Добавляем базовую сумму активов

@@ -61,11 +61,8 @@ class _BTCFlowChartState extends State<BTCFlowChart> {
             .toList();
         break;
       case ChartPeriod.weekly:
-        // Показать последние 12 недель
-        final twelveWeeksAgo = now.subtract(const Duration(days: 84));
-        _filteredData = sortedData
-            .where((item) => DateTime.parse(item.date).isAfter(twelveWeeksAgo))
-            .toList();
+        // Группируем данные по неделям
+        _filteredData = _groupDataByWeek(sortedData);
         break;
       case ChartPeriod.monthly:
         // Показать последние 6 месяцев
@@ -431,6 +428,55 @@ class _BTCFlowChartState extends State<BTCFlowChart> {
     if (maxY <= 10000) return 1000;
     if (maxY <= 100000) return 10000;
     return 100000;
+  }
+
+  List<BTCFlowData> _groupDataByWeek(List<BTCFlowData> flowData) {
+    final Map<String, List<BTCFlowData>> weeklyGroups = {};
+
+    for (final data in flowData) {
+      final date = DateTime.parse(data.date);
+      final weekKey = '${date.year}-W${_getWeekOfYear(date)}';
+
+      if (!weeklyGroups.containsKey(weekKey)) {
+        weeklyGroups[weekKey] = [];
+      }
+      weeklyGroups[weekKey]!.add(data);
+    }
+
+    final groupedData = weeklyGroups.entries.map((entry) {
+      final weekData = entry.value;
+      final total = weekData.fold<double>(
+        0,
+        (sum, data) => sum + (data.total ?? 0),
+      );
+      final firstDate = DateTime.parse(weekData.first.date);
+
+      return BTCFlowData(date: firstDate.toIso8601String(), total: total);
+    }).toList();
+
+    // Сортируем по дате
+    groupedData.sort(
+      (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)),
+    );
+
+    return groupedData;
+  }
+
+  int _getWeekOfYear(DateTime date) {
+    // Используем ISO недели (неделя начинается с понедельника)
+    final jan1 = DateTime(date.year, 1, 1);
+    final jan1Weekday = jan1.weekday;
+
+    // Находим первый понедельник года
+    final firstMonday = jan1.add(Duration(days: (8 - jan1Weekday) % 7));
+
+    if (date.isBefore(firstMonday)) {
+      // Если дата до первого понедельника, это неделя предыдущего года
+      return _getWeekOfYear(DateTime(date.year - 1, 12, 31));
+    }
+
+    final weekNumber = ((date.difference(firstMonday).inDays) / 7).floor() + 1;
+    return weekNumber;
   }
 
   double _calculateTotalAssets() {

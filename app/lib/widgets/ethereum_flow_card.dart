@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
+import '../providers/crypto_price_provider.dart';
 
 class EthereumFlowCard extends StatelessWidget {
   final ETFFlowData flowData;
@@ -26,7 +29,6 @@ class EthereumFlowCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 160, // Фиксированная высота
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -71,13 +73,67 @@ class EthereumFlowCard extends StatelessWidget {
 
                   // Заголовок
                   Expanded(
-                    child: Text(
-                      'etf.ethereum_flow'.tr(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.blue.shade400 : Colors.blue,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'etf.ethereum_flow'.tr(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.blue.shade400 : Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        // Цена Ethereum
+                        Consumer<CryptoPriceProvider>(
+                          builder: (context, cryptoProvider, child) {
+                            if (cryptoProvider.hasError)
+                              return Text(
+                                'Ошибка загрузки',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              );
+                            else if (cryptoProvider.ethereumPrice != null)
+                              return Text(
+                                '\$${_formatPrice(cryptoProvider.ethereumPrice!)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue,
+                                ),
+                              );
+                            else
+                              return Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    height: 10,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Загрузка...',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : Colors.blue.shade600,
+                                    ),
+                                  ),
+                                ],
+                              );
+                          },
+                        ),
+                      ],
                     ),
                   ),
 
@@ -207,9 +263,15 @@ class EthereumFlowCard extends StatelessWidget {
 
   String _formatFlowAmount(double amount) {
     final absAmount = amount.abs();
-    final prefix = amount >= 0 ? '\$ ' : '\$ -';
+    final prefix = amount >= 0 ? '' : '-';
 
     // Данные уже в миллионах, поэтому добавляем M к значению
     return '$prefix${absAmount.toStringAsFixed(1)}M';
+  }
+
+  String _formatPrice(double price) {
+    // Форматируем цену с разделителями тысяч
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(price);
   }
 }

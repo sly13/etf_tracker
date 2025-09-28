@@ -25,10 +25,8 @@ class _CryptoPriceWidgetState extends State<CryptoPriceWidget> {
   @override
   void initState() {
     super.initState();
-    // Инициализируем провайдер при создании виджета
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CryptoPriceProvider>().initialize();
-    });
+    // Провайдер уже инициализируется в main.dart
+    // Здесь можно добавить дополнительную логику если нужно
   }
 
   @override

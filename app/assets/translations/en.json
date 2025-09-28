@@ -200,7 +200,12 @@
     "for_month": "For Month",
     "for_quarter": "For 3 Months",
     "for_half_year": "For Half Year",
-    "for_year": "For Year"
+    "for_year": "For Year",
+    "total_net_inflow": "Total Net Inflow",
+    "daily_total_net_inflow": "Daily Total Net Inflow",
+    "weekly_total_net_inflow": "Weekly Total Net Inflow",
+    "monthly_total_net_inflow": "Monthly Total Net Inflow",
+    "no_data_for_date": "No data for"
   },
   "auth": {
     "sign_in_with_apple": "Sign in with Apple",

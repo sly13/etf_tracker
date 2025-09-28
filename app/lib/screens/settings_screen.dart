@@ -161,6 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 24),
         Text(
           'subscription.status'.tr(),
           style: TextStyle(
@@ -478,6 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 24),
         Text(
           'telegram.device_id'.tr(),
           style: TextStyle(
@@ -735,6 +737,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 24),
         Text(
           'settings.about'.tr(),
           style: TextStyle(
@@ -865,6 +868,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await SubscriptionService.initialize();
       final isPremium = await SubscriptionService.refreshSubscriptionStatus();
       _cachedSubscriptionStatus = isPremium;
+
+      // Обновляем статус в SubscriptionProvider для обновления ProButton в хэдере
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(
+        context,
+        listen: false,
+      );
+      subscriptionProvider.setPremiumStatus(isPremium);
+
+      // Принудительно обновляем статус из RevenueCat
+      await subscriptionProvider.refreshSubscriptionStatus();
+
       setState(() {});
     } catch (e) {
       if (mounted) {

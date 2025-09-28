@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../services/subscription_service.dart';
+import '../services/subscription_status_service.dart';
 
 class SubscriptionProvider extends ChangeNotifier {
   bool _isPremium = false;
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _statusSetFromSync =
+      false; // Флаг для отслеживания установки статуса из синхронизации
   String? _error;
   static const String _premiumStatusKey = 'premium_status';
   static const String _lastCheckKey = 'last_status_check';
@@ -25,17 +28,37 @@ class SubscriptionProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      // Сначала загружаем кэшированный статус для мгновенного отображения
-      await _loadCachedStatus();
+      // Сначала получаем правдивые данные из RevenueCat
+      final revenueCatStatus = await SubscriptionService.isPremium();
+      _isPremium = revenueCatStatus;
 
-      // Затем проверяем актуальный статус в фоне
-      await _checkActualStatusInBackground();
+      // Уведомляем слушателей о статусе из RevenueCat
+      notifyListeners();
+
+      // Затем синхронизируем с бэкендом и получаем актуальный статус
+      final syncedStatus =
+          await SubscriptionStatusService.syncSubscriptionStatus();
+
+      // Обновляем статус если он изменился после синхронизации
+      if (syncedStatus != _isPremium) {
+        _isPremium = syncedStatus;
+        notifyListeners();
+
+        if (kDebugMode) {
+          print(
+            '🔧 SubscriptionProvider: Статус обновлен после синхронизации: $_isPremium',
+          );
+        }
+      }
+
+      // Сохраняем актуальный статус в кэш
+      await _saveCachedStatus();
 
       _isInitialized = true;
 
       if (kDebugMode) {
         print(
-          '🔧 SubscriptionProvider: Инициализирован с кэшированным статусом: $_isPremium',
+          '🔧 SubscriptionProvider: Инициализирован со статусом из RevenueCat: $_isPremium',
         );
       }
     } catch (e) {
@@ -55,6 +78,16 @@ class SubscriptionProvider extends ChangeNotifier {
       final cachedStatus = prefs.getBool(_premiumStatusKey);
       final lastCheck = prefs.getString(_lastCheckKey);
 
+      // Если статус уже установлен из синхронизации, не перезаписываем его кэшем
+      if (_isPremium != false) {
+        if (kDebugMode) {
+          print(
+            '🔧 SubscriptionProvider: Статус уже установлен из синхронизации ($_isPremium), пропускаем кэш',
+          );
+        }
+        return;
+      }
+
       if (cachedStatus != null && lastCheck != null) {
         final lastCheckTime = DateTime.parse(lastCheck);
         final now = DateTime.now();
@@ -71,42 +104,17 @@ class SubscriptionProvider extends ChangeNotifier {
         }
       }
 
-      // Если кэш устарел или отсутствует, загружаем актуальный статус
-      await _refreshSubscriptionStatus();
+      // Если кэш устарел или отсутствует, и статус не установлен из RevenueCat
+      if (_isPremium == false) {
+        await _refreshSubscriptionStatus();
+      }
     } catch (e) {
       if (kDebugMode) {
         print('⚠️ SubscriptionProvider: Ошибка загрузки кэша: $e');
       }
-      // Продолжаем с загрузкой актуального статуса
-      await _refreshSubscriptionStatus();
-    }
-  }
-
-  // Проверка актуального статуса в фоне
-  Future<void> _checkActualStatusInBackground() async {
-    try {
-      // Получаем информацию о пользователе из RevenueCat
-      final customerInfo = await SubscriptionService.getCustomerInfo();
-
-      // Сохраняем информацию о подписке
-      await _saveCustomerInfo(customerInfo);
-
-      // Проверяем статус премиум
-      final actualIsPremium = await SubscriptionService.isPremium();
-
-      // Обновляем статус только если он изменился
-      if (actualIsPremium != _isPremium) {
-        _isPremium = actualIsPremium;
-        await _saveCachedStatus();
-        notifyListeners();
-
-        if (kDebugMode) {
-          print('🔧 SubscriptionProvider: Статус обновлен в фоне: $_isPremium');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ SubscriptionProvider: Ошибка фоновой проверки: $e');
+      // Продолжаем с загрузкой актуального статуса только если статус не установлен из RevenueCat
+      if (_isPremium == false) {
+        await _refreshSubscriptionStatus();
       }
     }
   }
@@ -124,42 +132,13 @@ class SubscriptionProvider extends ChangeNotifier {
     }
   }
 
-  // Сохранение информации о подписке из RevenueCat
-  Future<void> _saveCustomerInfo(dynamic customerInfo) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Сохраняем JSON информацию о подписке
-      final customerInfoJson = customerInfo.toJson();
-      await prefs.setString('customer_info', json.encode(customerInfoJson));
-
-      // Сохраняем активные entitlements
-      final activeEntitlements = customerInfo.entitlements.active.keys.toList();
-      await prefs.setStringList('active_entitlements', activeEntitlements);
-
-      // Сохраняем дату последнего обновления
-      await prefs.setString(
-        'customer_info_last_update',
-        DateTime.now().toIso8601String(),
-      );
-
-      if (kDebugMode) {
-        print('🔧 SubscriptionProvider: Информация о подписке сохранена');
-        print('🔧 Активные entitlements: $activeEntitlements');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(
-          '⚠️ SubscriptionProvider: Ошибка сохранения информации о подписке: $e',
-        );
-      }
-    }
-  }
-
   // Обновление статуса подписки
   Future<void> _refreshSubscriptionStatus() async {
     try {
-      final isPremium = await SubscriptionService.isPremium();
+      // Используем SubscriptionStatusService для получения актуального статуса
+      // Он сначала проверяет бэкенд, потом RevenueCat как fallback
+      final isPremium =
+          await SubscriptionStatusService.getCurrentSubscriptionStatus();
       _isPremium = isPremium;
 
       // Сохраняем в кэш

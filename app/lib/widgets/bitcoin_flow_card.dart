@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
+import '../providers/crypto_price_provider.dart';
 
 class BitcoinFlowCard extends StatelessWidget {
   final BTCFlowData flowData;
@@ -26,7 +29,6 @@ class BitcoinFlowCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 160, // Фиксированная высота
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -71,13 +73,69 @@ class BitcoinFlowCard extends StatelessWidget {
 
                   // Заголовок
                   Expanded(
-                    child: Text(
-                      'etf.bitcoin_flow'.tr(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.orange.shade400 : Colors.orange,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'etf.bitcoin_flow'.tr(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.orange.shade400
+                                : Colors.orange,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        // Цена Bitcoin
+                        Consumer<CryptoPriceProvider>(
+                          builder: (context, cryptoProvider, child) {
+                            if (cryptoProvider.hasError)
+                              return Text(
+                                'Ошибка загрузки',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              );
+                            else if (cryptoProvider.bitcoinPrice != null)
+                              return Text(
+                                '\$${_formatPrice(cryptoProvider.bitcoinPrice!)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange,
+                                ),
+                              );
+                            else
+                              return Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    height: 10,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.orange,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Загрузка...',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.orange.shade300
+                                          : Colors.orange.shade600,
+                                    ),
+                                  ),
+                                ],
+                              );
+                          },
+                        ),
+                      ],
                     ),
                   ),
 
@@ -213,9 +271,15 @@ class BitcoinFlowCard extends StatelessWidget {
 
   String _formatFlowAmount(double amount) {
     final absAmount = amount.abs();
-    final prefix = amount >= 0 ? '\$ ' : '\$ -';
+    final prefix = amount >= 0 ? '' : '-';
 
     // Данные уже в миллионах, поэтому добавляем M к значению
     return '$prefix${absAmount.toStringAsFixed(1)}M';
+  }
+
+  String _formatPrice(double price) {
+    // Форматируем цену с разделителями тысяч
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(price);
   }
 }

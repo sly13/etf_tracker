@@ -78,6 +78,7 @@ class SubscriptionStatusService {
   }
 
   /// Синхронизирует статус подписки между RevenueCat и бэкендом
+  /// Возвращает актуальный статус после синхронизации
   static Future<bool> syncSubscriptionStatus() async {
     try {
       print('🔄 === СИНХРОНИЗАЦИЯ СТАТУСА ПОДПИСКИ ===');
@@ -110,17 +111,28 @@ class SubscriptionStatusService {
         if (revenueCatPremium && !backendPremium) {
           print('🔄 Синхронизируем активную подписку с бэкендом...');
 
-          // Получаем deviceId для синхронизации
-          final deviceId = await NotificationService.getDeviceId();
           // Здесь можно вызвать синхронизацию покупки
           // await SubscriptionService.syncSubscriptionsOnStartup();
           print('✅ Синхронизация инициирована');
-                }
+        }
+        // Если в бэкенде Premium, но в RevenueCat нет подписки - обновляем бэкенд
+        else if (!revenueCatPremium && backendPremium) {
+          print(
+            '🔄 Обнаружено несоответствие: бэкенд показывает Premium, но RevenueCat - Basic',
+          );
+          print('🔄 Обновляем статус в бэкенде на Basic...');
+
+          // Отправляем запрос на бэкенд для обновления статуса на Basic
+          await _updateBackendSubscriptionStatus(false);
+          print('✅ Статус в бэкенде обновлен на Basic');
+        }
       } else {
         print('✅ Статусы совпадают, синхронизация не требуется');
       }
 
-      return true;
+      // Возвращаем актуальный статус после синхронизации
+      final actualStatus = await getCurrentSubscriptionStatus();
+      return actualStatus;
     } catch (e) {
       print('❌ Ошибка синхронизации статуса: $e');
       return false;
@@ -178,6 +190,80 @@ class SubscriptionStatusService {
       return isPremium;
     } catch (e) {
       print('❌ Ошибка обновления статуса подписки: $e');
+      return false;
+    }
+  }
+
+  /// Обновляет статус подписки в бэкенде через sync-purchase эндпоинт
+  static Future<bool> _updateBackendSubscriptionStatus(bool isPremium) async {
+    try {
+      print('🔄 === ОБНОВЛЕНИЕ СТАТУСА ПОДПИСКИ В БЭКЕНДЕ ===');
+
+      // Получаем deviceId
+      final deviceId = await NotificationService.getDeviceId();
+      if (deviceId.isEmpty) {
+        print('❌ Device ID не получен');
+        return false;
+      }
+
+      print('📱 Device ID: $deviceId');
+      print('📊 Новый статус: ${isPremium ? "Premium" : "Basic"}');
+
+      // Используем существующий эндпоинт sync-purchase для обновления статуса
+      final url = AppConfig.getApiUrl('/subscription/sync-purchase');
+
+      // Подготавливаем данные в формате, который ожидает sync-purchase
+      final syncData = {
+        'userId': deviceId,
+        'deviceId': deviceId,
+        'customerInfo': {
+          'originalAppUserId': deviceId,
+          'activeEntitlements': isPremium ? ['premium'] : [],
+        },
+        'productId': isPremium ? 'premium_subscription' : 'basic',
+        'transactionId': DateTime.now().millisecondsSinceEpoch.toString(),
+        'originalTransactionId': DateTime.now().millisecondsSinceEpoch
+            .toString(),
+        'purchaseDate': DateTime.now().toIso8601String(),
+        'expirationDate': isPremium
+            ? DateTime.now().add(const Duration(days: 30)).toIso8601String()
+            : null,
+        'isActive': isPremium,
+        'isPremium': isPremium,
+        'autoRenew': isPremium,
+        'environment': 'Production',
+        'platform': 'ios', // или 'android' в зависимости от платформы
+        'price': null,
+        'currency': null,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(syncData),
+          )
+          .timeout(_timeout);
+
+      print('📡 Ответ сервера: ${response.statusCode}');
+      print('📦 Тело ответа: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = json.decode(response.body);
+
+        if (data['success'] == true) {
+          print('✅ Статус подписки обновлен в бэкенде');
+          return true;
+        } else {
+          print('❌ Ошибка на сервере: ${data['error']}');
+          return false;
+        }
+      } else {
+        print('❌ HTTP ошибка: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ Ошибка обновления статуса в бэкенде: $e');
       return false;
     }
   }

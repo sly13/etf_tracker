@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../providers/subscription_provider.dart';
-import '../widgets/crypto_price_widget.dart';
 import '../models/etf_flow_data.dart';
 import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
@@ -271,8 +270,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSummaryCard(etfProvider),
-                        const SizedBox(height: 16),
-                        const CompactCryptoPriceWidget(),
                         const SizedBox(height: 24),
                         _buildRecentUpdates(etfProvider),
                         const SizedBox(height: 100),
@@ -341,10 +338,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 children: [
                   // Общая сводка
                   _buildSummaryCard(etfProvider),
-                  const SizedBox(height: 16),
-
-                  // Цены криптовалют (компактный вид)
-                  const CompactCryptoPriceWidget(),
                   const SizedBox(height: 24),
 
                   // Последние обновления
@@ -558,13 +551,26 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'etf.recent_updates'.tr(),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'etf.recent_updates'.tr(),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                // Общая дата и время сразу под заголовком
+                Text(
+                  _getLatestDateTime(etfProvider),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
             Row(
               children: [
@@ -671,39 +677,25 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      'Updated ${DateFormat('dd.MM.yy HH.mm').format(DateTime.parse(date))}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ),
               Row(
                 children: [
                   Text(
-                    '\$${total.toStringAsFixed(1)}M',
+                    '${total.toStringAsFixed(1)}M',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: adjustedColor,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.arrow_upward, size: 16, color: adjustedColor),
                   if (targetTabIndex != null) ...[
                     const SizedBox(width: 8),
                     Icon(
@@ -719,6 +711,28 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         ),
       ),
     );
+  }
+
+  // Получить последнюю дату и время обновления
+  String _getLatestDateTime(ETFProvider etfProvider) {
+    DateTime? latestDate;
+
+    if (etfProvider.bitcoinData.isNotEmpty) {
+      latestDate = DateTime.parse(etfProvider.bitcoinData.first.date);
+    }
+
+    if (etfProvider.ethereumData.isNotEmpty) {
+      final ethDate = DateTime.parse(etfProvider.ethereumData.first.date);
+      if (latestDate == null || ethDate.isAfter(latestDate)) {
+        latestDate = ethDate;
+      }
+    }
+
+    if (latestDate != null) {
+      return DateFormat('dd.MM.yy').format(latestDate);
+    }
+
+    return '';
   }
 
   // Проверяем, нужно ли показывать кнопку обновления

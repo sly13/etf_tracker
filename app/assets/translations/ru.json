@@ -183,7 +183,12 @@
     "for_month": "За месяц",
     "for_quarter": "За 3 месяца",
     "for_half_year": "За полгода",
-    "for_year": "За год"
+    "for_year": "За год",
+    "total_net_inflow": "Общий чистый приток",
+    "daily_total_net_inflow": "Ежедневный общий чистый приток",
+    "weekly_total_net_inflow": "Еженедельный общий чистый приток",
+    "monthly_total_net_inflow": "Ежемесячный общий чистый приток",
+    "no_data_for_date": "Нет данных за"
   },
   "auth": {
     "sign_in_with_apple": "Войти через Apple",

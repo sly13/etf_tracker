@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../services/crypto_price_service.dart';
@@ -9,6 +10,7 @@ class CryptoPriceProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   DateTime? _lastUpdateTime;
+  Timer? _autoUpdateTimer;
 
   // Getters
   Map<String, double> get prices => _prices;
@@ -22,6 +24,21 @@ class CryptoPriceProvider extends ChangeNotifier {
   // Initialization - load prices when provider is created
   Future<void> initialize() async {
     await loadPrices();
+    _startAutoUpdate();
+  }
+
+  // Запуск автоматического обновления каждые 5 минут
+  void _startAutoUpdate() {
+    _autoUpdateTimer?.cancel();
+    _autoUpdateTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      autoUpdatePrices();
+    });
+  }
+
+  // Остановка автоматического обновления
+  void _stopAutoUpdate() {
+    _autoUpdateTimer?.cancel();
+    _autoUpdateTimer = null;
   }
 
   // Load cryptocurrency prices
@@ -158,4 +175,10 @@ class CryptoPriceProvider extends ChangeNotifier {
 
   // Проверить, есть ли ошибка
   bool get hasError => _error != null;
+
+  @override
+  void dispose() {
+    _stopAutoUpdate();
+    super.dispose();
+  }
 }
