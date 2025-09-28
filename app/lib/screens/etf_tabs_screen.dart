@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
-import '../providers/subscription_provider.dart';
 import '../models/etf_flow_data.dart';
-import 'subscription_selection_screen.dart';
 import 'package:intl/intl.dart';
 import '../widgets/pro_button.dart';
 import '../utils/haptic_feedback.dart';
@@ -35,156 +33,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   /// Создать скриншот с данными за последнюю доступную дату
   Future<void> _createScreenshot() async {
-    final subscriptionProvider = context.read<SubscriptionProvider>();
-
-    // Проверяем статус подписки
-    if (subscriptionProvider.isPremium) {
-      // Если у пользователя есть подписка, создаем скриншот
-      await ScreenshotService.createDailyETFScreenshot(context: context);
-    } else {
-      // Если подписки нет, показываем диалог с предложением подписки
-      _showScreenshotDialog();
-    }
-  }
-
-  /// Показать диалог с объяснением функции скриншота
-  void _showScreenshotDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(Icons.camera_alt, color: Colors.blue, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'screenshot.title'.tr(),
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'screenshot.premium_feature'.tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'screenshot.description'.tr(),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[300] : Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildFeatureItem(
-                'screenshot.feature_visualization'.tr(),
-                isDark,
-              ),
-              _buildFeatureItem('screenshot.feature_charts'.tr(), isDark),
-              _buildFeatureItem('screenshot.feature_design'.tr(), isDark),
-              _buildFeatureItem('screenshot.feature_ready'.tr(), isDark),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.blue.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.star, color: Colors.blue, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'screenshot.premium_available'.tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'common.cancel'.tr(),
-                style: TextStyle(
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SubscriptionSelectionScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text('premium.unlock'.tr()),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Создать элемент списка функций
-  Widget _buildFeatureItem(String text, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey[300] : Colors.grey[600],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    // Создаем скриншот сразу без проверки подписки
+    await ScreenshotService.createDailyETFScreenshot(context: context);
   }
 
   @override

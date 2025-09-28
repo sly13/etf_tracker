@@ -152,9 +152,11 @@ class ScreenshotService {
               ElevatedButton.icon(
                 onPressed: () async {
                   Navigator.of(context).pop();
-                  await Share.shareXFiles([
-                    XFile(file.path),
-                  ], text: 'ETF Flow - ${'common.updated'.tr()}');
+                  await Share.shareXFiles(
+                    [XFile(file.path)],
+                    text: 'ETF Flow - ${'common.updated'.tr()}',
+                    sharePositionOrigin: Rect.fromLTWH(0, 0, 1, 1),
+                  );
                 },
                 icon: const Icon(Icons.share, size: 16),
                 label: Text('screenshot.share'.tr()),

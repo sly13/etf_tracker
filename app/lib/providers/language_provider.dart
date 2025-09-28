@@ -13,6 +13,10 @@ class LanguageProvider with ChangeNotifier {
     _loadLanguage();
   }
 
+  Future<void> initialize() async {
+    await _loadLanguage();
+  }
+
   Future<void> _loadLanguage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -20,10 +24,15 @@ class LanguageProvider with ChangeNotifier {
       if (savedLanguage != null) {
         _currentLocale = Locale(savedLanguage);
         notifyListeners();
+      } else {
+        // Если нет сохраненного языка, используем русский по умолчанию
+        _currentLocale = const Locale('ru');
+        notifyListeners();
       }
     } catch (e) {
       // Используем язык по умолчанию при ошибке
       _currentLocale = const Locale('ru');
+      notifyListeners();
     }
   }
 
@@ -54,6 +63,22 @@ class LanguageProvider with ChangeNotifier {
         return 'English';
       case 'ru':
         return 'Русский';
+      case 'zh':
+        return '中文';
+      case 'ja':
+        return '日本語';
+      case 'pt':
+        return 'Português';
+      case 'es':
+        return 'Español';
+      case 'tr':
+        return 'Türkçe';
+      case 'vi':
+        return 'Tiếng Việt';
+      case 'ko':
+        return '한국어';
+      case 'ar':
+        return 'العربية';
       default:
         return 'English';
     }
@@ -63,6 +88,14 @@ class LanguageProvider with ChangeNotifier {
     return [
       {'code': 'en', 'name': 'English', 'native': 'English'},
       {'code': 'ru', 'name': 'Russian', 'native': 'Русский'},
+      {'code': 'zh', 'name': 'Chinese', 'native': '中文'},
+      {'code': 'ja', 'name': 'Japanese', 'native': '日本語'},
+      {'code': 'pt', 'name': 'Portuguese', 'native': 'Português'},
+      {'code': 'es', 'name': 'Spanish', 'native': 'Español'},
+      {'code': 'tr', 'name': 'Turkish', 'native': 'Türkçe'},
+      {'code': 'vi', 'name': 'Vietnamese', 'native': 'Tiếng Việt'},
+      {'code': 'ko', 'name': 'Korean', 'native': '한국어'},
+      {'code': 'ar', 'name': 'Arabic', 'native': 'العربية'},
     ];
   }
 }

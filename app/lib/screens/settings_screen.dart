@@ -406,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final currentLanguage = languageProvider.currentLocale.languageCode;
+        final currentLanguage = context.locale.languageCode;
 
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -433,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             subtitle: Text(
-              currentLanguage == 'en' ? 'English' : 'Русский',
+              languageProvider.getLanguageDisplayName(currentLanguage),
               style: TextStyle(
                 fontSize: 14,
                 color: isDark

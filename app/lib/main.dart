@@ -142,7 +142,14 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        ChangeNotifierProvider(create: (context) => LanguageProvider()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = LanguageProvider();
+            // Инициализируем язык при создании провайдера
+            provider.initialize();
+            return provider;
+          },
+        ),
         ChangeNotifierProvider(
           create: (context) {
             final provider = ETFProvider();
@@ -193,19 +200,30 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('ru')],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('ru'),
+          Locale('zh'),
+          Locale('ja'),
+          Locale('pt'),
+          Locale('es'),
+          Locale('tr'),
+          Locale('vi'),
+          Locale('ko'),
+          Locale('ar'),
+        ],
         path: 'assets/translations',
         fallbackLocale: const Locale('en'),
-        startLocale: const Locale('ru'),
+        startLocale: const Locale('en'),
         useOnlyLangCode: true,
-        child: Consumer<ThemeProvider>(
-          builder: (context, themeProvider, child) {
+        child: Consumer2<ThemeProvider, LanguageProvider>(
+          builder: (context, themeProvider, languageProvider, child) {
             return MaterialApp(
               title: 'app.title'.tr(),
               theme: themeProvider.currentTheme,
               localizationsDelegates: context.localizationDelegates,
               supportedLocales: context.supportedLocales,
-              locale: context.locale,
+              locale: languageProvider.currentLocale,
               home: const AppInitializer(),
               debugShowCheckedModeBanner: false,
             );

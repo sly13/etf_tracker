@@ -391,13 +391,11 @@
   },
   "screenshot": {
     "title": "Screenshot Report",
-    "premium_feature": "This is a premium subscription feature.",
     "description": "Beautiful daily ETF flow report that can be used for Instagram posts, group sharing, or personal use:",
     "feature_visualization": "📊 Data visualization",
     "feature_charts": "📈 Flow charts",
     "feature_design": "💼 Professional design",
     "feature_ready": "📱 Ready to publish",
-    "premium_available": "Available in premium subscription",
     "tooltip": "Create screenshot",
     "created": "Screenshot created",
     "ready_to_send": "Image saved and ready to send",
