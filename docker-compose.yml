@@ -54,6 +54,51 @@ services:
       - etf_network
     restart: unless-stopped
 
+  # Trade Bot (NestJS)
+  trade_bot_nest:
+    build:
+      context: ./trade_bot_nest
+      dockerfile: Dockerfile
+    container_name: etf_trade_bot
+    env_file:
+      - ./trade_bot_nest/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3088
+      - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
+      - CORS_ORIGIN=http://localhost:3089,http://localhost:3000
+      - MIN_FLOW_THRESHOLD=1000000
+      - MAX_POSITION_SIZE=1000
+      - CHECK_INTERVAL=60000
+      - TZ=Europe/Moscow
+    ports:
+      - "3088:3088"
+    depends_on:
+      - postgres
+    networks:
+      - etf_network
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
+  # Trade Monitoring (React App)
+  trade_monitoring:
+    build:
+      context: ./trade_monitoring
+      dockerfile: Dockerfile
+    container_name: etf_trade_monitoring
+    environment:
+      - REACT_APP_API_URL=http://trade_bot_nest:3088
+      - REACT_APP_ENVIRONMENT=production
+    ports:
+      - "3089:80"
+    depends_on:
+      - trade_bot_nest
+    networks:
+      - etf_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
 

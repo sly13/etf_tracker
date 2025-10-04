@@ -1,0 +1,39 @@
+{
+  "name": "trade-bot",
+  "version": "1.0.0",
+  "description": "Trading bot API with Fastify",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fastify",
+    "trading",
+    "bot",
+    "api",
+    "okx",
+    "etf",
+    "flow"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/swagger": "^8.12.0",
+    "@fastify/swagger-ui": "^2.0.0",
+    "@prisma/client": "^5.7.1",
+    "axios": "^1.6.2",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.3",
+    "fastify": "^4.24.3",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "prisma": "^5.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

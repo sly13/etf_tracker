@@ -8,6 +8,20 @@
 import WidgetKit
 import SwiftUI
 
+// Функция для форматирования даты в нужном формате
+func formatUpdatedDate(_ dataDate: Date, _ lastUpdated: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "dd.MM.yy"
+    
+    let timeFormatter = DateFormatter()
+    timeFormatter.dateFormat = "HH:mm"
+    
+    let dateString = dateFormatter.string(from: dataDate)
+    let timeString = timeFormatter.string(from: lastUpdated)
+    
+    return "Updated: \(dateString) \(timeString)"
+}
+
 // Модель данных для ETF (потоки за день)
 struct ETFWidgetData {
     let totalFlow: Double
@@ -147,8 +161,6 @@ struct SmallWidgetView: View {
             VStack(spacing: 8) {
             // Заголовок
             HStack {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .foregroundColor(.blue)
                 Text("ETF Flow")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
@@ -157,26 +169,15 @@ struct SmallWidgetView: View {
             
             // Основные данные
             VStack(spacing: 6) {
-                // Общий поток
-                HStack {
-                    Text("Total:")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("$\(entry.etfData.totalFlow, specifier: "%.1f")M")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(entry.etfData.isPositive ? .green : .red)
-                }
-                
                 // Bitcoin поток
                 HStack {
                     Text("BTC:")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("$\(entry.etfData.bitcoinFlow, specifier: "%.1f")M")
+                    Text("\(entry.etfData.bitcoinFlow, specifier: "%.1f")M")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.orange)
+                        .foregroundColor(entry.etfData.bitcoinFlow >= 0 ? .green : .red)
                 }
                 
                 // Ethereum поток
@@ -185,9 +186,20 @@ struct SmallWidgetView: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("$\(entry.etfData.ethereumFlow, specifier: "%.1f")M")
+                    Text("\(entry.etfData.ethereumFlow, specifier: "%.1f")M")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.purple)
+                        .foregroundColor(entry.etfData.ethereumFlow >= 0 ? .green : .red)
+                }
+                
+                // Общий поток
+                HStack {
+                    Text("Total:")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(entry.etfData.totalFlow, specifier: "%.1f")M")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(entry.etfData.isPositive ? .green : .red)
                 }
             }
             
@@ -227,9 +239,6 @@ struct MediumWidgetView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Заголовок
                 HStack {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .foregroundColor(.blue)
-                        .font(.system(size: 18))
                     Text("ETF Flow Tracker")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.primary)
@@ -241,7 +250,7 @@ struct MediumWidgetView: View {
                     Text("Total Flow")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
-                    Text("$\(entry.etfData.totalFlow, specifier: "%.1f")M")
+                    Text("\(entry.etfData.totalFlow, specifier: "%.1f")M")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(entry.etfData.isPositive ? .green : .red)
                 }
@@ -265,9 +274,9 @@ struct MediumWidgetView: View {
                     Text("Bitcoin")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
-                    Text("$\(entry.etfData.bitcoinFlow, specifier: "%.1f")M")
+                    Text("\(entry.etfData.bitcoinFlow, specifier: "%.1f")M")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.orange)
+                        .foregroundColor(entry.etfData.bitcoinFlow >= 0 ? .green : .red)
                 }
                 
                 // Ethereum
@@ -275,18 +284,13 @@ struct MediumWidgetView: View {
                     Text("Ethereum")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
-                    Text("$\(entry.etfData.ethereumFlow, specifier: "%.1f")M")
+                    Text("\(entry.etfData.ethereumFlow, specifier: "%.1f")M")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.purple)
+                        .foregroundColor(entry.etfData.ethereumFlow >= 0 ? .green : .red)
                 }
                 
-                // Дата данных
-                Text("Data: \(entry.etfData.dataDate, style: .date)")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
-                
-                // Время обновления
-                Text("Updated: \(entry.etfData.lastUpdated, style: .time)")
+                // Обновленная дата и время
+                Text(formatUpdatedDate(entry.etfData.dataDate, entry.etfData.lastUpdated))
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
             }
