@@ -1,12 +1,8 @@
-# Базовый docker-compose файл
-# Используйте docker-compose.dev.yml для разработки
-# Используйте docker-compose.prod.yml для продакшена
-
 services:
   # PostgreSQL база данных
   postgres:
     image: postgres:17-alpine
-    container_name: etf_postgres
+    container_name: etf_postgres_dev
     environment:
       POSTGRES_DB: etf_tracker
       POSTGRES_USER: etf_user
@@ -14,10 +10,10 @@ services:
     ports:
       - "3080:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
       - ./backend/prisma/migrations:/docker-entrypoint-initdb.d
     networks:
-      - etf_network
+      - etf_network_dev
     restart: unless-stopped
 
   # Backend API
@@ -25,14 +21,17 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: etf_backend
+    container_name: etf_backend_dev
     ports:
       - "3066:3000"
     depends_on:
       - postgres
     networks:
-      - etf_network
+      - etf_network_dev
     restart: unless-stopped
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -48,13 +47,13 @@ services:
       args:
         - REACT_APP_API_URL=http://localhost:3066/api
         - NODE_ENV=development
-    container_name: etf_admin
+    container_name: etf_admin_dev
     ports:
       - "3065:3065"
     depends_on:
       - backend
     networks:
-      - etf_network
+      - etf_network_dev
     restart: unless-stopped
 
   # Trade Bot (NestJS)
@@ -62,7 +61,7 @@ services:
     build:
       context: ./trade_bot
       dockerfile: Dockerfile
-    container_name: etf_trade_bot
+    container_name: etf_trade_bot_dev
     environment:
       - NODE_ENV=development
       - PORT=3088
@@ -72,18 +71,19 @@ services:
       - MAX_POSITION_SIZE=1000
       - CHECK_INTERVAL=60000
       - TZ=Europe/Moscow
-      - OKX_API_KEY=your_api_key_here
-      - OKX_SECRET_KEY=your_secret_key_here
-      - OKX_PASSPHRASE=your_passphrase_here
-      - OKX_SANDBOX=true
+      - OKX_API_KEY=cb165bc6-269c-4d73-b4ac-43860091cae0
+      - OKX_SECRET_KEY=16AFF118061CAD204958F40B0E7D87E8
+      - OKX_PASSPHRASE=ETFbot1m!
+      - OKX_SANDBOX=false
     ports:
       - "3088:3088"
     depends_on:
       - postgres
     networks:
-      - etf_network
+      - etf_network_dev
     restart: unless-stopped
     volumes:
+      - ./trade_bot/src:/app/src
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
 
@@ -95,18 +95,18 @@ services:
       args:
         - REACT_APP_API_URL=http://localhost:3088
         - REACT_APP_ENVIRONMENT=development
-    container_name: etf_trade_monitoring
+    container_name: etf_trade_monitoring_dev
     ports:
       - "3089:80"
     depends_on:
       - trade_bot
     networks:
-      - etf_network
+      - etf_network_dev
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_data_dev:
 
 networks:
-  etf_network:
+  etf_network_dev:
     driver: bridge

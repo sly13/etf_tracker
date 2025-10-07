@@ -12,6 +12,14 @@ RUN npm ci --only=production
 # Копируем исходный код
 COPY . .
 
+# Принимаем build args для переменных окружения
+ARG REACT_APP_API_URL
+ARG REACT_APP_ENVIRONMENT
+
+# Устанавливаем переменные окружения для сборки
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
+
 # Собираем приложение
 RUN npm run build
 

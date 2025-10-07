@@ -1,8 +1,6 @@
-# Trade Bot NestJS - Настройка окружения
+# Trade Bot NestJS .env Configuration
 
-## Переменные окружения
-
-Создайте файл `.env` в корне проекта со следующими переменными:
+Создайте файл `trade_bot_nest/.env` со следующим содержимым:
 
 ```bash
 # Database Configuration
@@ -16,7 +14,7 @@ OKX_SANDBOX=false
 
 # Server Configuration
 PORT=3088
-NODE_ENV=production
+NODE_ENV=development
 CORS_ORIGIN=http://localhost:3089,http://localhost:3000
 
 # Trading Configuration
@@ -28,7 +26,7 @@ CHECK_INTERVAL=60000
 TZ=Europe/Moscow
 ```
 
-## Получение OKX API ключей
+## Получение OKX API ключей:
 
 1. Зайдите на [OKX](https://www.okx.com)
 2. Перейдите в API Management
@@ -36,28 +34,9 @@ TZ=Europe/Moscow
 4. Скопируйте API Key, Secret Key и Passphrase
 5. Вставьте их в файл `.env`
 
-## Запуск
+## Важные замечания:
 
-```bash
-# Установка зависимостей
-npm install
-
-# Генерация Prisma Client
-npx prisma generate
-
-# Запуск в режиме разработки
-npm run start:dev
-
-# Запуск в продакшене
-npm run start:prod
-```
-
-## Docker
-
-```bash
-# Сборка образа
-docker build -t trade_bot_nest .
-
-# Запуск контейнера
-docker run -p 3088:3088 --env-file .env trade_bot_nest
-```
+- **DATABASE_URL** - используйте правильный хост для Docker (`postgres` вместо `localhost`)
+- **OKX_SANDBOX** - установите `true` для тестирования
+- **MIN_FLOW_THRESHOLD** - минимальное значение flow для открытия позиций
+- **CHECK_INTERVAL** - интервал проверки в миллисекундах (60000 = 1 минута)

@@ -14,6 +14,14 @@ RUN npm install --omit=dev \
 # Копируем исходный код
 COPY . .
 
+# Принимаем build args для переменных окружения
+ARG REACT_APP_API_URL
+ARG NODE_ENV
+
+# Устанавливаем переменные окружения для сборки
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV NODE_ENV=$NODE_ENV
+
 # Собираем приложение
 RUN npm run build
 

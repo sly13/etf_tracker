@@ -47,8 +47,12 @@ RUN npx prisma generate
 # Собираем приложение
 RUN npm run build
 
+# Копируем скрипт запуска
+COPY start.sh ./
+RUN chmod +x start.sh
+
 # Открываем порт
 EXPOSE 3000
 
-# Запускаем приложение
-CMD ["npm", "run", "start:prod"]
+# Запускаем приложение через скрипт
+CMD ["./start.sh"]
