@@ -46,10 +46,13 @@ export interface ETFSummaryData {
 
 // Типы для владений фондов
 export interface FundHoldingsData {
-  fundHoldings: Record<string, {
-    eth: number;
-    btc: number;
-  }>;
+  fundHoldings: Record<
+    string,
+    {
+      eth: number;
+      btc: number;
+    }
+  >;
   summary: {
     totalEth: number;
     totalBtc: number;

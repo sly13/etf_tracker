@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Select from "react-select";
 import apiClient from "../services/api";
 import { FundHoldingsData, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
@@ -20,19 +21,19 @@ const FUND_NAMES: Record<string, string> = {
   wisdomTree: "WisdomTree",
 };
 
-// Логотипы фондов (можно заменить на реальные изображения)
+// Логотипы фондов
 const FUND_LOGOS: Record<string, string> = {
-  blackrock: "🏦",
-  fidelity: "🏛️",
-  bitwise: "🔷",
-  twentyOneShares: "📊",
-  vanEck: "🏢",
-  invesco: "💼",
-  franklin: "🏛️",
-  grayscale: "🏗️",
-  grayscaleCrypto: "🏗️",
-  valkyrie: "⚡",
-  wisdomTree: "🌳",
+  blackrock: "/images/fund_logos/blackrock.jpg",
+  fidelity: "/images/fund_logos/fidelity.jpg",
+  bitwise: "/images/fund_logos/bitwise.jpg",
+  twentyOneShares: "/images/fund_logos/ark.jpg", // используем ark.jpg для 21Shares
+  vanEck: "/images/fund_logos/vaneck.jpg",
+  invesco: "/images/fund_logos/invesco.jpg",
+  franklin: "/images/fund_logos/franklin.jpg",
+  grayscale: "/images/fund_logos/grayscale-gbtc.jpg",
+  grayscaleCrypto: "/images/fund_logos/grayscale.jpg",
+  valkyrie: "/images/fund_logos/valkyrie.jpg",
+  wisdomTree: "/images/fund_logos/wtree.jpg",
 };
 
 export default function FundHoldingsCard() {
@@ -188,28 +189,66 @@ export default function FundHoldingsCard() {
 
   const sortedFunds = getSortedFunds();
 
+  const getSortLabel = (sortBy: string, sortOrder: string) => {
+    const labels: Record<string, Record<string, string>> = {
+      btc: { desc: "BTC ↓", asc: "BTC ↑" },
+      eth: { desc: "ETH ↓", asc: "ETH ↑" },
+      company: { desc: "Компания ↓", asc: "Компания ↑" },
+    };
+    return labels[sortBy]?.[sortOrder] || "BTC ↓";
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Владения фондов</h2>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-500">Сортировка:</span>
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={e => {
-              const [column, order] = e.target.value.split("-");
-              setSortBy(column as "company" | "btc" | "eth");
-              setSortOrder(order as "asc" | "desc");
-            }}
-            className="border border-gray-300 rounded px-3 py-1 text-sm"
-          >
-            <option value="btc-desc">BTC ↓</option>
-            <option value="btc-asc">BTC ↑</option>
-            <option value="eth-desc">ETH ↓</option>
-            <option value="eth-asc">ETH ↑</option>
-            <option value="company-asc">Компания ↑</option>
-            <option value="company-desc">Компания ↓</option>
-          </select>
+          <div className="w-48">
+            <Select
+              value={{
+                value: `${sortBy}-${sortOrder}`,
+                label: getSortLabel(sortBy, sortOrder),
+              }}
+              onChange={option => {
+                if (option) {
+                  const [column, order] = option.value.split("-");
+                  setSortBy(column as "company" | "btc" | "eth");
+                  setSortOrder(order as "asc" | "desc");
+                }
+              }}
+              options={[
+                { value: "btc-desc", label: "BTC ↓" },
+                { value: "btc-asc", label: "BTC ↑" },
+                { value: "eth-desc", label: "ETH ↓" },
+                { value: "eth-asc", label: "ETH ↑" },
+                { value: "company-asc", label: "Компания ↑" },
+                { value: "company-desc", label: "Компания ↓" },
+              ]}
+              styles={{
+                control: provided => ({
+                  ...provided,
+                  border: "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+                  "&:hover": {
+                    borderColor: "#9ca3af",
+                  },
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isSelected
+                    ? "#3b82f6"
+                    : state.isFocused
+                    ? "#f3f4f6"
+                    : "white",
+                  color: state.isSelected ? "white" : "#374151",
+                }),
+              }}
+              isSearchable={false}
+              className="text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -249,7 +288,14 @@ export default function FundHoldingsCard() {
               >
                 <td className="py-4 px-4">
                   <div className="flex items-center">
-                    <span className="text-2xl mr-3">{fund.logo}</span>
+                    <img
+                      src={fund.logo}
+                      alt={fund.name}
+                      className="w-8 h-8 rounded-full mr-3 object-cover"
+                      onError={e => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
                     <span className="font-medium text-gray-900">
                       {fund.name}
                     </span>
