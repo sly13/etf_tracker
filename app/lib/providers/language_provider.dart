@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class LanguageProvider with ChangeNotifier {
   static const String _languageKey = 'selected_language';
 
-  Locale _currentLocale = const Locale('ru');
+  // Список поддерживаемых языков
+  static const List<String> supportedLanguages = [
+    'en',
+    'ru',
+    'zh',
+    'ja',
+    'pt',
+    'es',
+    'tr',
+    'vi',
+    'ko',
+    'ar',
+  ];
+
+  Locale _currentLocale = const Locale('en');
 
   Locale get currentLocale => _currentLocale;
 
@@ -21,17 +36,44 @@ class LanguageProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedLanguage = prefs.getString(_languageKey);
+
       if (savedLanguage != null) {
+        // Если есть сохраненный язык, используем его
         _currentLocale = Locale(savedLanguage);
         notifyListeners();
       } else {
-        // Если нет сохраненного языка, используем русский по умолчанию
-        _currentLocale = const Locale('ru');
-        notifyListeners();
+        // Если нет сохраненного языка, определяем язык системы
+        await _detectSystemLanguage();
       }
     } catch (e) {
-      // Используем язык по умолчанию при ошибке
-      _currentLocale = const Locale('ru');
+      // При ошибке используем английский по умолчанию
+      _currentLocale = const Locale('en');
+      notifyListeners();
+    }
+  }
+
+  Future<void> _detectSystemLanguage() async {
+    try {
+      // Получаем язык системы
+      final systemLocale = ui.PlatformDispatcher.instance.locale;
+      final systemLanguageCode = systemLocale.languageCode;
+
+      // Проверяем, поддерживается ли язык системы
+      if (supportedLanguages.contains(systemLanguageCode)) {
+        _currentLocale = Locale(systemLanguageCode);
+        print('🌍 Определен язык системы: $systemLanguageCode');
+      } else {
+        // Если язык системы не поддерживается, используем английский
+        _currentLocale = const Locale('en');
+        print(
+          '🌍 Язык системы $systemLanguageCode не поддерживается, используется английский',
+        );
+      }
+
+      notifyListeners();
+    } catch (e) {
+      // При ошибке используем английский по умолчанию
+      _currentLocale = const Locale('en');
       notifyListeners();
     }
   }

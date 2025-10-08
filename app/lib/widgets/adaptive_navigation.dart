@@ -54,7 +54,7 @@ class AdaptiveNavigation extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'ETF Flow Tracker',
+                        'Crypto ETF Flow',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -236,7 +236,3 @@ class AdaptiveNavigation extends StatelessWidget {
     );
   }
 }
-
-
-
-

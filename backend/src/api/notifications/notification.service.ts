@@ -297,6 +297,26 @@ export class NotificationService {
     appName: string,
   ): Promise<void> {
     try {
+      // Проверяем, не отправляли ли мы уже такое же уведомление недавно
+      const notificationKey = `${data.bitcoinFlow.toFixed(2)}_${data.ethereumFlow.toFixed(2)}`;
+      const lastNotification = await this.prismaService.notificationLog.findFirst({
+        where: {
+          type: 'ETF_UPDATE',
+          body: {
+            contains: notificationKey,
+          },
+          createdAt: {
+            gte: new Date(Date.now() - 60 * 60 * 1000), // Последний час
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (lastNotification) {
+        this.logger.log('📭 Пропускаем отправку уведомления - такое же уже отправлялось недавно');
+        return;
+      }
+
       const users = await this.getUsersWithETFNotifications(appName);
 
       // Отправляем push уведомления
@@ -326,6 +346,23 @@ export class NotificationService {
       this.logger.log(
         `✅ ETF уведомления отправлены для ${appName}: ${users.length} пользователей`,
       );
+
+      // Логируем отправленное уведомление в базу данных
+      await this.prismaService.notificationLog.create({
+        data: {
+          type: 'ETF_UPDATE',
+          title: '📊 ETF Flow Update',
+          body: `Bitcoin: ${data.bitcoinFlow.toFixed(2)}M, Ethereum: ${data.ethereumFlow.toFixed(2)}M`,
+          data: {
+            bitcoinFlow: data.bitcoinFlow.toString(),
+            ethereumFlow: data.ethereumFlow.toString(),
+            date: data.date,
+          },
+          sentToTokens: users.length,
+          successCount: users.length,
+          failureCount: 0,
+        },
+      });
     } catch (error) {
       this.logger.error('Ошибка отправки ETF уведомлений:', error);
     }

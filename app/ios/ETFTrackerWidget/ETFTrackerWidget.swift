@@ -239,7 +239,7 @@ struct MediumWidgetView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Заголовок
                 HStack {
-                    Text("ETF Flow Tracker")
+                    Text("Crypto ETF Flow")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.primary)
                     Spacer()
@@ -314,7 +314,7 @@ struct ETFTrackerWidget: Widget {
                     .background()
             }
         }
-        .configurationDisplayName("ETF Flow Tracker")
+        .configurationDisplayName("Crypto ETF Flow")
         .description("Отслеживает потоки Bitcoin и Ethereum ETF")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

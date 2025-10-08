@@ -115,7 +115,17 @@ export class ETFSchedulerService {
     bitcoinSaveResult?: any,
   ) {
     try {
-      // Получаем последние данные
+      // Используем только новые данные для уведомления
+      const ethereumNewData = ethereumSaveResult?.newData;
+      const bitcoinNewData = bitcoinSaveResult?.newData;
+
+      // Если нет новых данных, не отправляем уведомление
+      if (!ethereumNewData && !bitcoinNewData) {
+        this.logger.log('📭 Нет новых данных для отправки уведомления');
+        return;
+      }
+
+      // Получаем последние данные для сравнения
       const latestEthereum = ethereumData[0];
       const latestBitcoin = bitcoinData[0];
 
@@ -124,9 +134,9 @@ export class ETFSchedulerService {
         return;
       }
 
-      // Проверяем, есть ли новые данные (не нулевые потоки)
-      const ethereumFlow = latestEthereum.total || 0;
-      const bitcoinFlow = latestBitcoin.total || 0;
+      // Используем новые данные если есть, иначе последние
+      const ethereumFlow = ethereumNewData?.total || latestEthereum.total || 0;
+      const bitcoinFlow = bitcoinNewData?.total || latestBitcoin.total || 0;
 
       // Отправляем уведомление только если есть значительные потоки
       if (Math.abs(ethereumFlow) > 0.1 || Math.abs(bitcoinFlow) > 0.1) {
@@ -135,9 +145,9 @@ export class ETFSchedulerService {
           ethereumFlow,
           bitcoinTotal: bitcoinFlow,
           ethereumTotal: ethereumFlow,
-          date: latestEthereum.date || new Date().toISOString(),
-          bitcoinData: bitcoinSaveResult?.newData || latestBitcoin,
-          ethereumData: ethereumSaveResult?.newData || latestEthereum,
+          date: (ethereumNewData?.date || latestEthereum.date) || new Date().toISOString(),
+          bitcoinData: bitcoinNewData || latestBitcoin,
+          ethereumData: ethereumNewData || latestEthereum,
         };
 
         await this.notificationService.sendETFNotifications(

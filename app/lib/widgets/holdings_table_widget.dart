@@ -284,9 +284,9 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final prefix = value < 0 ? '\$-' : '\$';
 
     if (absValue >= 1000) {
-      return '$prefix${(absValue / 1000).toStringAsFixed(1)}B';
+      return '$prefix${(absValue / 1000).toStringAsFixed(2)}B';
     } else {
-      return '$prefix${absValue.toStringAsFixed(1)}M';
+      return '$prefix${absValue.toStringAsFixed(2)}M';
     }
   }
 

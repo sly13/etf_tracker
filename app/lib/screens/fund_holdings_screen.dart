@@ -326,6 +326,19 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
     final isSelected = _sortBy == value;
 
     return ListTile(
+      onTap: () {
+        setState(() {
+          if (_sortBy == value) {
+            _sortAscending = !_sortAscending;
+          } else {
+            _sortBy = value;
+            _sortAscending = true;
+          }
+        });
+        Navigator.pop(context);
+      },
+      splashColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       title: Text(
         title,
         style: TextStyle(color: isDark ? Colors.white : Colors.black87),
@@ -364,17 +377,6 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
           ),
         ],
       ),
-      onTap: () {
-        setState(() {
-          if (_sortBy == value) {
-            _sortAscending = !_sortAscending;
-          } else {
-            _sortBy = value;
-            _sortAscending = true;
-          }
-        });
-        Navigator.pop(context);
-      },
     );
   }
 
@@ -429,6 +431,14 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
 
   Widget _buildPeriodOption(String value, String title, bool isDark) {
     return ListTile(
+      onTap: () {
+        setState(() {
+          _selectedPeriod = value;
+        });
+        Navigator.pop(context);
+      },
+      splashColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       title: Text(
         title,
         style: TextStyle(color: isDark ? Colors.white : Colors.black87),

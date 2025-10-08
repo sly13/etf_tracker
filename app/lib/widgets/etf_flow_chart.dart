@@ -286,7 +286,7 @@ class _ETFFlowChartState extends State<ETFFlowChart> {
                   return SideTitleWidget(
                     axisSide: meta.axisSide,
                     child: Text(
-                      DateFormat('MM/dd').format(date),
+                      DateFormat('MM-dd').format(date),
                       style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                   );

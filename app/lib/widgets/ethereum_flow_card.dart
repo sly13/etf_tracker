@@ -265,8 +265,12 @@ class EthereumFlowCard extends StatelessWidget {
     final absAmount = amount.abs();
     final prefix = amount >= 0 ? '' : '-';
 
-    // Данные уже в миллионах, поэтому добавляем M к значению
-    return '$prefix${absAmount.toStringAsFixed(1)}M';
+    // Данные уже в миллионах, но если больше 1000M, показываем как миллиарды
+    if (absAmount >= 1000) {
+      return '$prefix${(absAmount / 1000).toStringAsFixed(2)}B';
+    } else {
+      return '$prefix${absAmount.toStringAsFixed(2)}M';
+    }
   }
 
   String _formatPrice(double price) {

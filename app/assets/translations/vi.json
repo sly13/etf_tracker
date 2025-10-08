@@ -377,7 +377,7 @@
   "telegram": {
     "get_notifications": "Nhận thông báo trong Telegram",
     "get_updates": "Nhận cập nhật ETF trực tiếp trong Telegram",
-    "open_bot": "Mở bot Telegram",
+    "open_bot": "Mở Bot Telegram",
     "telegram_opens": "Telegram sẽ tự động mở. Gửi lệnh /start cho bot để liên kết tài khoản của bạn.",
     "telegram_error": "Không thể mở Telegram. Đảm bảo ứng dụng đã được cài đặt.",
     "device_id_copied": "ID thiết bị đã được sao chép vào clipboard",
@@ -407,11 +407,11 @@
   "onboarding": {
     "welcome": {
       "title": "Chào mừng đến với Crypto ETF Flow",
-      "description": "Theo dõi dòng vào và dòng ra của ETF Bitcoin và Ethereum theo thời gian thực."
+      "description": "Theo dõi dòng vào và dòng ra của ETF Bitcoin và Ethereum theo thời gian thực"
     },
     "notifications": {
       "title": "Thông báo tức thì",
-      "description": "Tất cả sự kiện đến trực tiếp ứng dụng và được sao chép trong Telegram, để bạn không bỏ lỡ bất cứ điều gì."
+      "description": "Tất cả sự kiện đến trực tiếp ứng dụng và được sao chép trong Telegram, để bạn không bỏ lỡ bất cứ điều gì"
     },
     "speed": {
       "title": "Nhận dữ liệu nhanh hơn bất kỳ ai",

@@ -419,14 +419,14 @@ class FlowChart extends StatelessWidget {
       if (billions == billions.roundToDouble()) {
         return '$prefix${billions.round()}B';
       } else {
-        return '$prefix${billions.toStringAsFixed(1)}B';
+        return '$prefix${billions.toStringAsFixed(2)}B';
       }
     } else if (absValue >= 1) {
       // Для миллионов показываем без десятичных знаков, если это целое число
       if (absValue == absValue.roundToDouble()) {
         return '$prefix${absValue.round()}M';
       } else {
-        return '$prefix${absValue.toStringAsFixed(1)}M';
+        return '$prefix${absValue.toStringAsFixed(2)}M';
       }
     } else {
       // Для тысяч показываем без десятичных знаков, если это целое число
@@ -434,7 +434,7 @@ class FlowChart extends StatelessWidget {
       if (thousands == thousands.roundToDouble()) {
         return '$prefix${thousands.round()}K';
       } else {
-        return '$prefix${thousands.toStringAsFixed(1)}K';
+        return '$prefix${thousands.toStringAsFixed(2)}K';
       }
     }
   }

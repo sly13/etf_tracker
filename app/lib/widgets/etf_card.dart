@@ -138,7 +138,7 @@ class ETFCard extends StatelessWidget {
                   ),
                   _buildInfoItem(
                     'Обновлено',
-                    DateFormat('dd.MM.yy').format(etf.lastUpdated),
+                    DateFormat('yyyy-MM-dd').format(etf.lastUpdated),
                     Icons.access_time,
                   ),
                 ],
@@ -204,11 +204,11 @@ class ETFCard extends StatelessWidget {
     final prefix = volume < 0 ? '-' : '';
 
     if (absVolume >= 1000000000) {
-      return '$prefix${(absVolume / 1000000000).toStringAsFixed(1)}B';
+      return '$prefix${(absVolume / 1000000000).toStringAsFixed(2)}B';
     } else if (absVolume >= 1000000) {
-      return '$prefix${(absVolume / 1000000).toStringAsFixed(1)}M';
+      return '$prefix${(absVolume / 1000000).toStringAsFixed(2)}M';
     } else if (absVolume >= 1000) {
-      return '$prefix${(absVolume / 1000).toStringAsFixed(1)}K';
+      return '$prefix${(absVolume / 1000).toStringAsFixed(2)}K';
     }
     return '$prefix${absVolume.toStringAsFixed(0)}';
   }
@@ -218,11 +218,11 @@ class ETFCard extends StatelessWidget {
     final prefix = amount < 0 ? '\$-' : '\$';
 
     if (absAmount >= 1000000000) {
-      return '$prefix${(absAmount / 1000000000).toStringAsFixed(1)}B';
+      return '$prefix${(absAmount / 1000000000).toStringAsFixed(2)}B';
     } else if (absAmount >= 1000000) {
-      return '$prefix${(absAmount / 1000000).toStringAsFixed(1)}M';
+      return '$prefix${(absAmount / 1000000).toStringAsFixed(2)}M';
     } else if (absAmount >= 1000) {
-      return '$prefix${(absAmount / 1000).toStringAsFixed(1)}K';
+      return '$prefix${(absAmount / 1000).toStringAsFixed(2)}K';
     }
     return '$prefix${absAmount.toStringAsFixed(0)}';
   }

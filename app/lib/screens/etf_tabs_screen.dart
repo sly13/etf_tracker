@@ -242,10 +242,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             const SizedBox(height: 20),
 
             // Сводка по Bitcoin
-            if (bitcoinData != null) ...[
+            if (etfProvider.summaryData != null) ...[
               _buildSummaryRow(
                 'etf.bitcoin'.tr(),
-                _calculateTotalAssetsBTC(etfProvider.bitcoinData),
+                etfProvider.summaryData!['bitcoin']['totalAssets']
+                        ?.toDouble() ??
+                    0.0,
                 'assets/bitcoin.png',
                 Colors.orange,
                 'etf.total_assets'.tr(),
@@ -254,10 +256,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ],
 
             // Сводка по Ethereum
-            if (ethereumData != null) ...[
+            if (etfProvider.summaryData != null) ...[
               _buildSummaryRow(
                 'etf.ethereum'.tr(),
-                _calculateTotalAssets(etfProvider.ethereumData),
+                etfProvider.summaryData!['ethereum']['totalAssets']
+                        ?.toDouble() ??
+                    0.0,
                 'assets/ethereum.png',
                 Colors.blue,
                 'etf.total_assets'.tr(),
@@ -266,7 +270,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
             const SizedBox(height: 16),
             Text(
-              '${'common.updated'.tr()}: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+              '${'common.updated'.tr()}: ${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
               style: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 12,
@@ -278,35 +282,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     );
   }
 
-  // Функция для расчета общей суммы активов
-  double _calculateTotalAssets(List<ETFFlowData> data) {
-    double total = 0.0;
-
-    for (final item in data) {
-      // Используем total из базы данных вместо суммирования компаний
-      if (item.total != null) {
-        total += item.total!;
-      }
-    }
-
-    print('=== Общая сводка ETH: $total ===');
-    return total;
-  }
-
-  // Функция для расчета общей суммы активов Bitcoin
-  double _calculateTotalAssetsBTC(List<BTCFlowData> data) {
-    double total = 0.0;
-
-    for (final item in data) {
-      // Используем total из базы данных вместо суммирования компаний
-      if (item.total != null) {
-        total += item.total!;
-      }
-    }
-
-    print('=== Общая сводка BTC: $total ===');
-    return total;
-  }
+  // Старые методы расчета удалены - теперь используем данные напрямую из API
 
   // Функция для умного форматирования чисел
   String _formatLargeNumber(double value) {
@@ -314,9 +290,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     final prefix = value < 0 ? '\$-' : '\$';
 
     if (absValue >= 1000) {
-      return '$prefix${(absValue / 1000).toStringAsFixed(1)}B';
+      return '$prefix${(absValue / 1000).toStringAsFixed(2)}B';
     } else {
-      return '$prefix${absValue.toStringAsFixed(1)}M';
+      return '$prefix${absValue.toStringAsFixed(2)}M';
     }
   }
 
@@ -539,7 +515,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               Row(
                 children: [
                   Text(
-                    '${total.toStringAsFixed(1)}M',
+                    _formatLargeNumber(total),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -579,7 +555,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     }
 
     if (latestDate != null) {
-      return DateFormat('dd.MM.yy').format(latestDate);
+      return DateFormat('yyyy-MM-dd').format(latestDate);
     }
 
     return '';

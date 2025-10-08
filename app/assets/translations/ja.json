@@ -407,11 +407,11 @@
   "onboarding": {
     "welcome": {
       "title": "Crypto ETF Flowへようこそ",
-      "description": "ビットコインとイーサリアムETFの流入と流出をリアルタイムで追跡。"
+      "description": "ビットコインとイーサリアムETFの流入と流出をリアルタイムで追跡"
     },
     "notifications": {
       "title": "即座の通知",
-      "description": "すべてのイベントがアプリケーションに直接送信され、Telegramでも重複されるため、何も見逃しません。"
+      "description": "すべてのイベントがアプリケーションに直接送信され、Telegramでも重複されるため、何も見逃しません"
     },
     "speed": {
       "title": "誰よりも速くデータを取得",

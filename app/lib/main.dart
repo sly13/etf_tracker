@@ -43,7 +43,7 @@ void main() async {
   print('BACKEND_API_URL : ${dotenv.env['BACKEND_API_URL ']}');
   print('REVENUECAT_IOS_API_KEY: ${dotenv.env['REVENUECAT_IOS_API_KEY']}');
 
-  // Инициализируем Firebase
+  // Инициализируем Firebase.
   try {
     await Firebase.initializeApp();
     print('✅ Firebase Core инициализирован');

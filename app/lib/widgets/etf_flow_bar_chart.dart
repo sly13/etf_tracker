@@ -718,13 +718,13 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
 
     if (value < 0) {
       if (value.abs() >= 1000) {
-        return '-${(value.abs() / 1000).toStringAsFixed(1)}K';
+        return '-${(value.abs() / 1000).toStringAsFixed(2)}K';
       }
       return value.toStringAsFixed(0);
     }
 
     if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(1)}K';
+      return '${(value / 1000).toStringAsFixed(2)}K';
     }
     return value.toStringAsFixed(0);
   }

@@ -118,40 +118,54 @@ export class ETFFlowController {
       'bitcoin',
     )) as BTCFlowData[];
 
+    // Функция для расчета суммы всех фондов за день (исключая total и date)
+    const calculateDailyTotal = (item: any): number => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { total: _total, date: _date, ...funds } = item;
+      return (Object.values(funds) as number[]).reduce(
+        (sum: number, value: number) => {
+          return sum + (value || 0);
+        },
+        0,
+      );
+    };
+
     // Берем только последние данные для каждого типа
     const latestEthereum = ethereumData[0];
     const latestBitcoin = bitcoinData[0];
 
-    // Если total равен 0 или null, используем сумму всех потоков за последние 7 дней
-    let ethereumTotal = latestEthereum?.total || 0;
-    let bitcoinTotal = latestBitcoin?.total || 0;
+    // Рассчитываем текущие потоки как сумму всех фондов за последний день
+    let ethereumTotal: number = calculateDailyTotal(latestEthereum || {});
+    let bitcoinTotal: number = calculateDailyTotal(latestBitcoin || {});
 
-    // Если total равен 0, берем сумму за последние 7 дней
+    // Если текущий поток равен 0, берем среднее за последние 7 дней
     if (ethereumTotal === 0 && ethereumData.length > 0) {
-      ethereumTotal = ethereumData
-        .slice(0, Math.min(7, ethereumData.length))
-        .reduce((sum, item) => sum + (item.total || 0), 0);
+      ethereumTotal =
+        ethereumData
+          .slice(0, Math.min(7, ethereumData.length))
+          .reduce((sum, item) => sum + calculateDailyTotal(item), 0) / 7;
     }
 
     if (bitcoinTotal === 0 && bitcoinData.length > 0) {
-      bitcoinTotal = bitcoinData
-        .slice(0, Math.min(7, bitcoinData.length))
-        .reduce((sum, item) => sum + (item.total || 0), 0);
+      bitcoinTotal =
+        bitcoinData
+          .slice(0, Math.min(7, bitcoinData.length))
+          .reduce((sum, item) => sum + calculateDailyTotal(item), 0) / 7;
     }
 
     // Считаем общий итог как сумму текущих потоков
     const overallTotal = ethereumTotal + bitcoinTotal;
 
-    // Вычисляем общие активы (total assets) - накопленная сумма всех положительных потоков
-    const ethereumTotalAssets =
-      ethereumData
-        .filter((item) => item.total && item.total > 0)
-        .reduce((sum, item) => sum + (item.total || 0), 0) + 12520; // Базовая сумма активов
+    // Вычисляем общие активы (total assets) - суммируем все фонды за все дни
+    const ethereumTotalAssets = ethereumData.reduce(
+      (sum, item) => sum + calculateDailyTotal(item),
+      0,
+    );
 
-    const bitcoinTotalAssets =
-      bitcoinData
-        .filter((item) => item.total && item.total > 0)
-        .reduce((sum, item) => sum + (item.total || 0), 0) + 12520; // Базовая сумма активов
+    const bitcoinTotalAssets = bitcoinData.reduce(
+      (sum, item) => sum + calculateDailyTotal(item),
+      0,
+    );
 
     return {
       ethereum: {
@@ -247,38 +261,30 @@ export class ETFFlowController {
     // Объединяем общие фонды с Bitcoin-специфичными
     const allFundHoldings = { ...fundHoldings, ...bitcoinFundHoldings };
 
-    // Округляем значения до 2 знаков после запятой
+    // Округляем значения до 1 знака после запятой
     Object.keys(allFundHoldings).forEach((fund) => {
       allFundHoldings[fund].eth =
-        Math.round(allFundHoldings[fund].eth * 100) / 100;
+        Math.round(allFundHoldings[fund].eth * 10) / 10;
       allFundHoldings[fund].btc =
-        Math.round(allFundHoldings[fund].btc * 100) / 100;
+        Math.round(allFundHoldings[fund].btc * 10) / 10;
     });
+
+    // Рассчитываем общие суммы без базовой суммы
+    const totalEth = Object.values(allFundHoldings).reduce(
+      (sum, fund) => sum + fund.eth,
+      0,
+    );
+    const totalBtc = Object.values(allFundHoldings).reduce(
+      (sum, fund) => sum + fund.btc,
+      0,
+    );
 
     return {
       fundHoldings: allFundHoldings,
       summary: {
-        totalEth:
-          Math.round(
-            Object.values(allFundHoldings).reduce(
-              (sum, fund) => sum + fund.eth,
-              0,
-            ) * 100,
-          ) / 100,
-        totalBtc:
-          Math.round(
-            Object.values(allFundHoldings).reduce(
-              (sum, fund) => sum + fund.btc,
-              0,
-            ) * 100,
-          ) / 100,
-        totalHoldings:
-          Math.round(
-            Object.values(allFundHoldings).reduce(
-              (sum, fund) => sum + fund.eth + fund.btc,
-              0,
-            ) * 100,
-          ) / 100,
+        totalEth: Math.round(totalEth * 10) / 10,
+        totalBtc: Math.round(totalBtc * 10) / 10,
+        totalHoldings: Math.round((totalEth + totalBtc) * 10) / 10,
         fundCount: Object.keys(allFundHoldings).length,
       },
     };

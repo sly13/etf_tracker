@@ -81,7 +81,7 @@ class ETFService {
   // Получить суммарные данные ETF потоков
   Future<Map<String, dynamic>> getSummaryData() async {
     try {
-      final url = AppConfig.getApiUrl('/etf-flow/summary');
+      final url = AppConfig.getApiUrl('/summary');
 
       final response = await http
           .get(Uri.parse(url))

@@ -104,6 +104,21 @@ services:
       - etf_network
     restart: unless-stopped
 
+  # Website (Next.js App)
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: etf_website
+    ports:
+      - "3070:3000"
+    networks:
+      - etf_network
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+
 volumes:
   postgres_data:
 

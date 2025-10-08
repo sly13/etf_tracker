@@ -41,6 +41,19 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ru</string>
+		<string>zh</string>
+		<string>ja</string>
+		<string>pt</string>
+		<string>es</string>
+		<string>tr</string>
+		<string>vi</string>
+		<string>ko</string>
+		<string>ar</string>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

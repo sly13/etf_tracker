@@ -210,7 +210,7 @@ struct MacMediumWidgetView: View {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .foregroundColor(.blue)
                         .font(.system(size: 20))
-                    Text("ETF Flow Tracker")
+                    Text("Crypto ETF Flow")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.primary)
                     Spacer()

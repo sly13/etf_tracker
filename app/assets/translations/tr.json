@@ -377,7 +377,7 @@
   "telegram": {
     "get_notifications": "Telegram'da bildirim al",
     "get_updates": "ETF güncellemelerini doğrudan Telegram'da al",
-    "open_bot": "Telegram botunu aç",
+    "open_bot": "Telegram Botunu aç",
     "telegram_opens": "Telegram otomatik olarak açılacak. Hesabınızı bağlamak için bot'a /start komutunu gönderin.",
     "telegram_error": "Telegram açılamadı. Uygulamanın yüklü olduğundan emin olun.",
     "device_id_copied": "Cihaz ID'si panoya kopyalandı",
@@ -407,11 +407,11 @@
   "onboarding": {
     "welcome": {
       "title": "Crypto ETF Flow'a Hoş Geldiniz",
-      "description": "Bitcoin ve Ethereum ETF giriş ve çıkışlarını gerçek zamanlı olarak takip edin."
+      "description": "Bitcoin ve Ethereum ETF giriş ve çıkışlarını gerçek zamanlı olarak takip edin"
     },
     "notifications": {
       "title": "Anında Bildirimler",
-      "description": "Tüm olaylar doğrudan uygulamaya gelir ve Telegram'da çoğaltılır, böylece hiçbir şeyi kaçırmazsınız."
+      "description": "Tüm olaylar doğrudan uygulamaya gelir ve Telegram'da çoğaltılır, böylece hiçbir şeyi kaçırmazsınız"
     },
     "speed": {
       "title": "Herkesden daha hızlı veri alın",

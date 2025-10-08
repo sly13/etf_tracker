@@ -18,6 +18,18 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
     // Данные загружаются только при инициализации приложения, не здесь
   }
 
+  // Функция для форматирования больших чисел
+  String _formatAmount(double amount) {
+    final absAmount = amount.abs();
+    final prefix = amount >= 0 ? '\$' : '\$-';
+
+    if (absAmount >= 1000) {
+      return '$prefix${(absAmount / 1000).toStringAsFixed(2)}B';
+    } else {
+      return '$prefix${absAmount.toStringAsFixed(2)}M';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,7 +110,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  DateFormat('dd.MM.yyyy').format(date),
+                  DateFormat('yyyy-MM-dd').format(date),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -115,9 +127,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
                     border: Border.all(color: totalColor),
                   ),
                   child: Text(
-                    (flowData.total ?? 0) >= 0
-                        ? '\$${(flowData.total ?? 0).toStringAsFixed(1)}M'
-                        : '\$-${(flowData.total ?? 0).abs().toStringAsFixed(1)}M',
+                    _formatAmount(flowData.total ?? 0),
                     style: TextStyle(
                       color: totalColor,
                       fontWeight: FontWeight.bold,
@@ -161,7 +171,6 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
     final color = value == null
         ? Colors.grey
         : (isPositive ? Colors.green : Colors.red);
-    final displayValue = value?.toStringAsFixed(1) ?? 'N/A';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -186,9 +195,7 @@ class _ETFFlowScreenState extends State<ETFFlowScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            value != null && value < 0
-                ? '\$-${value.abs().toStringAsFixed(1)}M'
-                : '\$${displayValue}M',
+            value != null ? _formatAmount(value) : '\$N/A',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,

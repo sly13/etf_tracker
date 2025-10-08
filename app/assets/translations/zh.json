@@ -407,11 +407,11 @@
   "onboarding": {
     "welcome": {
       "title": "欢迎使用Crypto ETF Flow",
-      "description": "实时跟踪比特币和以太坊ETF的流入和流出。"
+      "description": "实时跟踪比特币和以太坊ETF的流入和流出"
     },
     "notifications": {
       "title": "即时通知",
-      "description": "所有事件直接发送到应用程序并在Telegram中重复，这样您就不会错过任何内容。"
+      "description": "所有事件直接发送到应用程序并在Telegram中重复，这样您就不会错过任何内容"
     },
     "speed": {
       "title": "比任何人都更快地获取数据",

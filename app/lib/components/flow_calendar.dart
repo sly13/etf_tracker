@@ -57,6 +57,22 @@ class _FlowCalendarState extends State<FlowCalendar> {
     return events.fold<double>(0, (sum, event) => sum + (event.total ?? 0));
   }
 
+  double _getTotalForMonth(DateTime month) {
+    double total = 0;
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0);
+
+    for (
+      DateTime day = firstDay;
+      day.isBefore(lastDay.add(const Duration(days: 1)));
+      day = day.add(const Duration(days: 1))
+    ) {
+      total += _getTotalForDay(day);
+    }
+
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -92,10 +108,13 @@ class _FlowCalendarState extends State<FlowCalendar> {
                 const Spacer(),
                 if (_selectedDay != null)
                   Text(
-                    DateFormat('MMM yyyy').format(_focusedDay),
+                    _formatAmount(_getTotalForMonth(_focusedDay)),
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontWeight: FontWeight.bold,
+                      color: _getTotalForMonth(_focusedDay) >= 0
+                          ? Colors.green
+                          : Colors.red,
                     ),
                   ),
               ],
@@ -323,7 +342,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
         SnackBar(
           content: Text(
             'etf.no_data_for_date'.tr() +
-                ' ${DateFormat('dd MMM yyyy').format(selectedDay)}',
+                ' ${DateFormat('yyyy-MM-dd').format(selectedDay)}',
           ),
           backgroundColor: isDark ? Colors.grey[800] : Colors.grey[600],
         ),
@@ -366,7 +385,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                   Row(
                     children: [
                       Text(
-                        DateFormat('dd MMM yyyy').format(selectedDay),
+                        DateFormat('yyyy-MM-dd').format(selectedDay),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -529,9 +548,9 @@ class _FlowCalendarState extends State<FlowCalendar> {
     final prefix = amount >= 0 ? '+' : '-';
 
     if (absAmount >= 1000) {
-      return '$prefix${(absAmount / 1000).toStringAsFixed(1)}B';
+      return '$prefix${(absAmount / 1000).toStringAsFixed(2)}B';
     } else if (absAmount >= 1) {
-      return '$prefix${absAmount.toStringAsFixed(1)}M';
+      return '$prefix${absAmount.toStringAsFixed(2)}M';
     } else {
       return '$prefix${(absAmount * 1000).toStringAsFixed(0)}K';
     }

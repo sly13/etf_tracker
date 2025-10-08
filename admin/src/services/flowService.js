@@ -40,7 +40,7 @@ const flowService = {
 	// Получение сводки данных
 	getFlowSummary: async () => {
 		try {
-			const response = await api.get('/etf-flow/summary');
+			const response = await api.get('/summary');
 			return {
 				success: true,
 				data: response.data

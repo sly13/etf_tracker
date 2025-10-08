@@ -12,8 +12,10 @@ async function bootstrap() {
     origin: [
       'http://localhost:3065',
       'http://localhost:3066',
+      'http://localhost:3070',
       'http://10.0.2.2:3066', // Android эмулятор
       'http://127.0.0.1:3066', // iOS симулятор
+      'http://127.0.0.1:3070', // website
       'http://172.20.10.9:3066', // Физическое устройство (ваш IP)
       'https://admin-etf.vadimsemenko.ru', // Админ-панель
       'https://etf-flow.vadimsemenko.ru', // Основной домен API

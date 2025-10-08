@@ -4,6 +4,7 @@ import { ETFFlowModule } from './etf/etf-flow.module';
 import { NotificationModule } from './notifications/notification.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { SummaryModule } from './summary/summary.module';
 import { TestNotificationController } from './test-notification.controller';
 
 @Module({
@@ -13,6 +14,7 @@ import { TestNotificationController } from './test-notification.controller';
     NotificationModule,
     TelegramBotModule,
     SubscriptionModule,
+    SummaryModule,
   ],
   controllers: [TestNotificationController],
   exports: [
@@ -21,6 +23,7 @@ import { TestNotificationController } from './test-notification.controller';
     NotificationModule,
     TelegramBotModule,
     SubscriptionModule,
+    SummaryModule,
   ],
 })
 export class ApiModule {}

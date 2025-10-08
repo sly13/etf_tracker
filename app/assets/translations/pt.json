@@ -377,7 +377,7 @@
   "telegram": {
     "get_notifications": "Receber notificações no Telegram",
     "get_updates": "Receba atualizações de ETF diretamente no Telegram",
-    "open_bot": "Abrir bot do Telegram",
+    "open_bot": "Abrir Bot do Telegram",
     "telegram_opens": "O Telegram abrirá automaticamente. Envie o comando /start para o bot para vincular sua conta.",
     "telegram_error": "Não foi possível abrir o Telegram. Certifique-se de que o app está instalado.",
     "device_id_copied": "ID do dispositivo copiado para a área de transferência",
@@ -407,11 +407,11 @@
   "onboarding": {
     "welcome": {
       "title": "Bem-vindo ao Crypto ETF Flow",
-      "description": "Rastreie entradas e saídas de ETF de Bitcoin e Ethereum em tempo real."
+      "description": "Rastreie entradas e saídas de ETF de Bitcoin e Ethereum em tempo real"
     },
     "notifications": {
       "title": "Notificações Instantâneas",
-      "description": "Todos os eventos chegam diretamente ao aplicativo e são duplicados no Telegram, para que você não perca nada."
+      "description": "Todos os eventos chegam diretamente ao aplicativo e são duplicados no Telegram, para que você não perca nada"
     },
     "speed": {
       "title": "Obtenha dados mais rápido que qualquer um",
