@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Select from "react-select";
 import apiClient from "../services/api";
 import { FundHoldingsData, ApiError } from "../types/api";
@@ -198,6 +199,10 @@ export default function FundHoldingsCard() {
     return labels[sortBy]?.[sortOrder] || "BTC ↓";
   };
 
+  const getFundUrl = (fundKey: string) => {
+    return `/funds/${fundKey}`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
@@ -296,9 +301,12 @@ export default function FundHoldingsCard() {
                         e.currentTarget.style.display = "none";
                       }}
                     />
-                    <span className="font-medium text-gray-900">
+                    <Link
+                      href={getFundUrl(fund.key)}
+                      className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                    >
                       {fund.name}
-                    </span>
+                    </Link>
                   </div>
                 </td>
                 <td className="py-4 px-4 text-right">

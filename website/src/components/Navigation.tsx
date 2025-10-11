@@ -8,12 +8,13 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/", label: "Главная" },
+    { href: "/funds", label: "Фонды" },
     { href: "/app", label: "Приложение" },
     { href: "/blog", label: "Блог" },
   ];
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm relative z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center">

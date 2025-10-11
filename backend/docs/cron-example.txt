@@ -1,0 +1,30 @@
+# Пример настройки cron для автоматической синхронизации криптовалютных свечей
+# 
+# Для добавления в crontab выполните:
+# crontab -e
+#
+# И добавьте одну из строк ниже (замените путь на актуальный):
+
+# Вариант 1: Синхронизация BTC каждые 5 минут
+*/5 * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && npm run sync:btc-klines >> /var/log/btc-sync.log 2>&1
+
+# Вариант 2: Синхронизация ETH каждые 5 минут (с задержкой в 1 минуту)
+1,6,11,16,21,26,31,36,41,46,51,56 * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && npm run sync:eth-klines >> /var/log/eth-sync.log 2>&1
+
+# Вариант 3: Синхронизация обеих криптовалют последовательно каждые 5 минут
+*/5 * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && npm run sync:all-klines >> /var/log/crypto-sync.log 2>&1
+
+# Альтернативные варианты с полным путем к node:
+# */5 * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && /usr/local/bin/node sync_btc_klines_5m.mjs >> /var/log/btc-sync.log 2>&1
+# 1,6,11,16,21,26,31,36,41,46,51,56 * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && /usr/local/bin/node sync_eth_klines_5m.mjs >> /var/log/eth-sync.log 2>&1
+
+# Для тестирования - запуск каждую минуту
+# * * * * * cd /Users/vadimsemenko/Programming/ideas/etf_app/backend && npm run sync:all-klines >> /var/log/crypto-sync.log 2>&1
+
+# Проверка статуса cron задач:
+# crontab -l
+
+# Просмотр логов:
+# tail -f /var/log/btc-sync.log
+# tail -f /var/log/eth-sync.log
+# tail -f /var/log/crypto-sync.log

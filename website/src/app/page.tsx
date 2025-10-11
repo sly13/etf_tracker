@@ -2,15 +2,19 @@ import ETFSummaryCard from "../components/ETFSummaryCard";
 import FundHoldingsCard from "../components/FundHoldingsCard";
 import LatestNewsCard from "../components/LatestNewsCard";
 import Navigation from "../components/Navigation";
+import MoneyRain from "../components/MoneyRain";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 relative">
+      {/* Money Rain Animation */}
+      <MoneyRain />
+
       {/* Navigation */}
       <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Latest News Section */}
         <LatestNewsCard />
 

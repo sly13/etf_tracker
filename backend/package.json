@@ -12,7 +12,14 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "seed:funds": "tsx prisma/seed-funds.ts",
+    "seed:funds-translations": "tsx prisma/seed-funds-with-translations.ts",
+    "sync:btc-klines": "node scripts/sync_btc_klines_5m.mjs",
+    "sync:eth-klines": "node scripts/sync_eth_klines_5m.mjs",
+    "sync:all-klines": "npm run sync:btc-klines && npm run sync:eth-klines",
+    "test:sync": "node tests/test_sync.mjs",
+    "test:eth-sync": "node tests/test_eth_sync.mjs"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
@@ -56,6 +63,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   }

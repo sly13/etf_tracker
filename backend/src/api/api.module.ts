@@ -5,6 +5,7 @@ import { NotificationModule } from './notifications/notification.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { SummaryModule } from './summary/summary.module';
+import { FundsModule } from './funds/funds.module';
 import { TestNotificationController } from './test-notification.controller';
 
 @Module({
@@ -15,6 +16,7 @@ import { TestNotificationController } from './test-notification.controller';
     TelegramBotModule,
     SubscriptionModule,
     SummaryModule,
+    FundsModule,
   ],
   controllers: [TestNotificationController],
   exports: [
@@ -24,6 +26,7 @@ import { TestNotificationController } from './test-notification.controller';
     TelegramBotModule,
     SubscriptionModule,
     SummaryModule,
+    FundsModule,
   ],
 })
 export class ApiModule {}

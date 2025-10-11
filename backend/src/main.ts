@@ -55,7 +55,7 @@ async function bootstrap() {
   console.log('📊 Инициализация данных ETF...');
 
   // В режиме разработки пропускаем парсинг данных ETF
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development!') {
     console.log('🔧 Development режим: пропускаем парсинг данных ETF');
   } else {
     try {
