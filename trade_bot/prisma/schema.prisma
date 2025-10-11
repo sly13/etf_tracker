@@ -7,25 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ETFFlow {
-  id              String   @id @default(cuid())
-  date            DateTime @unique
-  blackrock       Float?
-  fidelity        Float?
-  bitwise         Float?
-  twentyOneShares Float?
-  vanEck          Float?
-  invesco         Float?
-  franklin        Float?
-  grayscale       Float?
-  grayscaleEth    Float?
-  total           Float?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model admins {
+  id        String    @id
+  username  String    @unique
+  password  String
+  email     String?   @unique
+  firstName String?
+  lastName  String?
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
 }
 
-model BTCFlow {
-  id              String   @id @default(cuid())
+model applications {
+  id          String   @id
+  name        String   @unique
+  displayName String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  users       users[]
+}
+
+model btc_candles {
+  id              BigInt   @id @default(autoincrement())
+  symbol          String
+  interval        String
+  open_time       DateTime
+  close_time      DateTime
+  open            Float
+  high            Float
+  low             Float
+  close           Float
+  volume          Float
+  quote_volume    Float
+  trades          Int
+  taker_buy_base  Float
+  taker_buy_quote Float
+  source          String   @default("binance_spot")
+  inserted_at     DateTime @default(now())
+  updated_at      DateTime
+
+  @@unique([symbol, interval, open_time])
+  @@index([symbol, interval, open_time], map: "idx_btc_candles_symbol_interval_time")
+}
+
+model btc_flows {
+  id              String   @id
   date            DateTime @unique
   blackrock       Float?
   fidelity        Float?
@@ -38,13 +68,59 @@ model BTCFlow {
   grayscaleBtc    Float?
   total           Float?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  updatedAt       DateTime
   valkyrie        Float?
   wisdomTree      Float?
 }
 
-model NotificationLog {
-  id           String   @id @default(cuid())
+model eth_flow {
+  id              String   @id
+  date            DateTime @unique
+  blackrock       Float?
+  fidelity        Float?
+  bitwise         Float?
+  twentyOneShares Float?
+  vanEck          Float?
+  invesco         Float?
+  franklin        Float?
+  grayscale       Float?
+  grayscaleEth    Float?
+  total           Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+}
+
+model fund_details {
+  id                Int                 @id @default(autoincrement())
+  fund_key          String              @unique
+  name              String
+  description       String?
+  logo_url          String?
+  ticker            String?
+  fund_type         String?
+  fee_percentage    Float?
+  launch_date       DateTime?
+  status            String?
+  created_at        DateTime            @default(now())
+  updated_at        DateTime
+  fund_translations fund_translations[]
+}
+
+model fund_translations {
+  id           Int          @id @default(autoincrement())
+  fund_id      Int
+  language     String
+  name         String?
+  description  String?
+  created_at   DateTime     @default(now())
+  updated_at   DateTime
+  fund_details fund_details @relation(fields: [fund_id], references: [id], onDelete: Cascade)
+
+  @@unique([fund_id, language])
+}
+
+model notification_logs {
+  id           String   @id
   type         String
   title        String
   body         String
@@ -55,37 +131,8 @@ model NotificationLog {
   createdAt    DateTime @default(now())
 }
 
-model Application {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  displayName String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  users       User[]
-}
-
-model User {
-  id             String         @id @default(cuid())
-  applicationId  String
-  deviceId       String?        @unique
-  deviceToken    String         @unique
-  telegramChatId String?        @unique
-  settings       Json?
-  isActive       Boolean        @default(true)
-  lastUsed       DateTime       @default(now())
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  os             String?
-  subscriptions  Subscription[]
-  application    Application    @relation(fields: [applicationId], references: [id])
-
-  @@index([settings], map: "idx_user_settings", type: Gin)
-}
-
-model Subscription {
-  id                    String    @id @default(cuid())
+model subscriptions {
+  id                    String    @id
   userId                String
   revenueCatUserId      String?
   originalTransactionId String?
@@ -101,41 +148,44 @@ model Subscription {
   price                 Float?
   currency              String?
   createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  user                  User      @relation(fields: [userId], references: [id])
+  updatedAt             DateTime
+  users                 users     @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([revenueCatUserId])
   @@index([originalTransactionId])
+  @@index([revenueCatUserId])
+  @@index([userId])
 }
 
-model Admin {
-  id        String    @id @default(cuid())
-  username  String    @unique
-  password  String
-  email     String?   @unique
-  firstName String?
-  lastName  String?
-  isActive  Boolean   @default(true)
-  lastLogin DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model TradingPosition {
-  id           String    @id @default(cuid())
-  symbol       String    // BTC-USDT, ETH-USDT
-  side         String    // long, short
+model trading_positions {
+  id           String    @id
+  symbol       String
+  side         String
   size         Float
-  entryPrice   Float     @map("entry_price")
-  total        Float     // Значение flow, которое вызвало открытие позиции
-  status       String    @default("open") // open, closed, cancelled
-  okxOrderId   String?   @map("okx_order_id")
-  profitLoss   Float?    @default(0) @map("profit_loss")
-  exitPrice    Float?    @map("exit_price")
-  closedAt     DateTime? @map("closed_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  entry_price  Float
+  total        Float
+  status       String    @default("open")
+  okx_order_id String?
+  profit_loss  Float?    @default(0)
+  exit_price   Float?
+  closed_at    DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime
+}
 
-  @@map("TradingPositions")
+model users {
+  id             String          @id
+  applicationId  String
+  deviceId       String?         @unique
+  deviceToken    String          @unique
+  telegramChatId String?         @unique
+  settings       Json?
+  isActive       Boolean         @default(true)
+  lastUsed       DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime
+  os             String?
+  subscriptions  subscriptions[]
+  applications   applications    @relation(fields: [applicationId], references: [id])
+
+  @@index([settings], map: "idx_user_settings", type: Gin)
 }

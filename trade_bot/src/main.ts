@@ -10,6 +10,9 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Устанавливаем глобальный префикс для API
+  app.setGlobalPrefix('api');
+
   const port = process.env.PORT || 3088;
   await app.listen(port);
   console.log(`Trade Bot NestJS запущен на порту ${port}`);

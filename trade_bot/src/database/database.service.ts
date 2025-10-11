@@ -51,7 +51,7 @@ export class DatabaseService {
   // Получить последние данные BTC Flow
   async getLatestBTCFlow(limit = 1) {
     try {
-      const flows = await this.prisma.bTCFlow.findMany({
+      const flows = await this.prisma.btc_flows.findMany({
         orderBy: { date: 'desc' },
         take: limit,
       });
@@ -65,7 +65,7 @@ export class DatabaseService {
   // Получить последние данные ETH Flow
   async getLatestETHFlow(limit = 1) {
     try {
-      const flows = await this.prisma.eTFFlow.findMany({
+      const flows = await this.prisma.eth_flow.findMany({
         orderBy: { date: 'desc' },
         take: limit,
       });
@@ -79,8 +79,8 @@ export class DatabaseService {
   // Получить все торговые позиции
   async getAllPositions(limit = 50) {
     try {
-      const positions = await this.prisma.tradingPosition.findMany({
-        orderBy: { createdAt: 'desc' },
+      const positions = await this.prisma.trading_positions.findMany({
+        orderBy: { created_at: 'desc' },
         take: limit,
       });
       return positions;
@@ -93,9 +93,9 @@ export class DatabaseService {
   // Получить открытые позиции
   async getOpenPositions() {
     try {
-      const positions = await this.prisma.tradingPosition.findMany({
+      const positions = await this.prisma.trading_positions.findMany({
         where: { status: 'open' },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { created_at: 'desc' },
       });
       return positions;
     } catch (error) {
@@ -107,16 +107,16 @@ export class DatabaseService {
   // Получить статистику торговли
   async getTradingStats() {
     try {
-      const totalPositions = await this.prisma.tradingPosition.count();
-      const openPositions = await this.prisma.tradingPosition.count({
+      const totalPositions = await this.prisma.trading_positions.count();
+      const openPositions = await this.prisma.trading_positions.count({
         where: { status: 'open' },
       });
-      const closedPositions = await this.prisma.tradingPosition.count({
+      const closedPositions = await this.prisma.trading_positions.count({
         where: { status: 'closed' },
       });
 
-      const totalProfitLoss = await this.prisma.tradingPosition.aggregate({
-        _sum: { profitLoss: true },
+      const totalProfitLoss = await this.prisma.trading_positions.aggregate({
+        _sum: { profit_loss: true },
         where: { status: 'closed' },
       });
 
@@ -124,7 +124,7 @@ export class DatabaseService {
         totalPositions,
         openPositions,
         closedPositions,
-        totalProfitLoss: totalProfitLoss._sum.profitLoss || 0,
+        totalProfitLoss: totalProfitLoss._sum.profit_loss || 0,
       };
     } catch (error) {
       this.logger.error('Ошибка получения статистики торговли:', error);
@@ -137,13 +137,22 @@ export class DatabaseService {
     symbol: string;
     side: string;
     size: number;
-    entryPrice: number;
+    entry_price: number;
     total: number;
-    okxOrderId?: string;
+    okx_order_id?: string;
   }) {
     try {
-      const position = await this.prisma.tradingPosition.create({
-        data,
+      const position = await this.prisma.trading_positions.create({
+        data: {
+          id: crypto.randomUUID(),
+          symbol: data.symbol,
+          side: data.side,
+          size: data.size,
+          entry_price: data.entry_price,
+          total: data.total,
+          okx_order_id: data.okx_order_id,
+          updated_at: new Date(),
+        },
       });
       return position;
     } catch (error) {
@@ -155,13 +164,120 @@ export class DatabaseService {
   // Обновить торговую позицию
   async updateTradingPosition(id: string, data: any) {
     try {
-      const position = await this.prisma.tradingPosition.update({
+      const position = await this.prisma.trading_positions.update({
         where: { id },
         data,
       });
       return position;
     } catch (error) {
       this.logger.error('Ошибка обновления торговой позиции:', error);
+      throw error;
+    }
+  }
+
+  async getBTCCandles(
+    limit: number = 1000,
+    interval: string = '1h',
+    offset: number = 0,
+  ) {
+    try {
+      const candles = await this.prisma.btc_candles.findMany({
+        where: {
+          symbol: 'BTCUSDT',
+          interval: interval,
+        },
+        orderBy: [
+          {
+            open_time: 'desc',
+          },
+          {
+            id: 'desc',
+          },
+        ],
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          symbol: true,
+          interval: true,
+          open_time: true,
+          close_time: true,
+          open: true,
+          high: true,
+          low: true,
+          close: true,
+          volume: true,
+          quote_volume: true,
+          trades: true,
+          taker_buy_base: true,
+          taker_buy_quote: true,
+          source: true,
+          inserted_at: true,
+          updated_at: true,
+        },
+      });
+
+      // Конвертируем BigInt в строку для JSON сериализации
+      return candles.map((candle) => ({
+        ...candle,
+        id: candle.id.toString(),
+      }));
+    } catch (error) {
+      this.logger.error('Ошибка получения BTC свечей:', error);
+      throw error;
+    }
+  }
+
+  async getETHCandles(
+    limit: number = 1000,
+    interval: string = '1h',
+    offset: number = 0,
+  ) {
+    try {
+      // Пока используем ту же таблицу, но можем создать отдельную для ETH
+      const candles = await this.prisma.btc_candles.findMany({
+        where: {
+          symbol: 'ETHUSDT',
+          interval: interval,
+        },
+        orderBy: [
+          {
+            open_time: 'desc',
+          },
+          {
+            id: 'desc',
+          },
+        ],
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          symbol: true,
+          interval: true,
+          open_time: true,
+          close_time: true,
+          open: true,
+          high: true,
+          low: true,
+          close: true,
+          volume: true,
+          quote_volume: true,
+          trades: true,
+          taker_buy_base: true,
+          taker_buy_quote: true,
+          source: true,
+          inserted_at: true,
+          updated_at: true,
+        },
+      });
+
+      // Конвертируем BigInt в строку для JSON сериализации
+      return candles.map((candle) => ({
+        ...candle,
+        id: candle.id.toString(),
+      }));
+    } catch (error) {
+      this.logger.error('Ошибка получения ETH свечей:', error);
       throw error;
     }
   }

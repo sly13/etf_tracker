@@ -1,0 +1,1 @@
+cd /Users/vadimsemenko/Programming/ideas/etf_app/trade-model && source venv/bin/activate && pip install -r requirements.txt

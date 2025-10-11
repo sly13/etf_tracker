@@ -7,19 +7,9 @@ import { TelegramBotService } from './api/telegram-bot/telegram-bot.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Настройка CORS для админской панели и мобильного приложения
+  // Настройка CORS - принимаем запросы отовсюду
   app.enableCors({
-    origin: [
-      'http://localhost:3065',
-      'http://localhost:3066',
-      'http://localhost:3070',
-      'http://10.0.2.2:3066', // Android эмулятор
-      'http://127.0.0.1:3066', // iOS симулятор
-      'http://127.0.0.1:3070', // website
-      'http://172.20.10.9:3066', // Физическое устройство (ваш IP)
-      'https://admin-etf.vadimsemenko.ru', // Админ-панель
-      'https://etf-flow.vadimsemenko.ru', // Основной домен API
-    ],
+    origin: true, // Принимаем запросы отовсюду
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',

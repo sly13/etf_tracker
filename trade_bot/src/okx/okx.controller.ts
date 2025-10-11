@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Param, Query, Body } from '@nestjs/common';
 import { OkxService } from './okx.service';
 
-@Controller('api/okx')
+@Controller('okx')
 export class OkxController {
   constructor(private readonly okxService: OkxService) {}
 

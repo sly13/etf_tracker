@@ -6,6 +6,8 @@ import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { SummaryModule } from './summary/summary.module';
 import { FundsModule } from './funds/funds.module';
+import { MLModule } from './ml/ml.module';
+import { CandlesModule } from './candles/candles.module';
 import { TestNotificationController } from './test-notification.controller';
 
 @Module({
@@ -17,6 +19,8 @@ import { TestNotificationController } from './test-notification.controller';
     SubscriptionModule,
     SummaryModule,
     FundsModule,
+    MLModule,
+    CandlesModule,
   ],
   controllers: [TestNotificationController],
   exports: [
@@ -27,6 +31,8 @@ import { TestNotificationController } from './test-notification.controller';
     SubscriptionModule,
     SummaryModule,
     FundsModule,
+    MLModule,
+    CandlesModule,
   ],
 })
 export class ApiModule {}

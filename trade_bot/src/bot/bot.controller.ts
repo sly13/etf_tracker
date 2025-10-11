@@ -1,13 +1,24 @@
 import { Controller, Get, Post, Param, Query } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { FlowMonitoringService } from '../flow-monitoring/flow-monitoring.service';
+import { MLService } from '../ml/ml.service';
 
-@Controller('api/bot')
+@Controller('bot')
 export class BotController {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly flowMonitoringService: FlowMonitoringService,
+    private readonly mlService: MLService,
   ) {}
+
+  @Get('test')
+  async test() {
+    return {
+      success: true,
+      message: 'Bot controller is working',
+      timestamp: new Date().toISOString(),
+    };
+  }
 
   @Get('flow/:asset')
   async getLatestFlowData(
@@ -151,5 +162,26 @@ export class BotController {
       data: stats,
       timestamp: new Date().toISOString(),
     };
+  }
+
+  @Get('prediction')
+  async getPrediction() {
+    try {
+      const prediction = await this.mlService.getBitcoinPrediction();
+
+      return {
+        success: true,
+        message: 'Предикшен получен',
+        data: prediction,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Ошибка получения предикшена',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
   }
 }

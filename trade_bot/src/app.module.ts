@@ -6,6 +6,8 @@ import { OkxModule } from './okx/okx.module';
 import { DatabaseModule } from './database/database.module';
 import { FlowMonitoringModule } from './flow-monitoring/flow-monitoring.module';
 import { BotModule } from './bot/bot.module';
+import { MLModule } from './ml/ml.module';
+import { CandlesModule } from './candles/candles.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { BotModule } from './bot/bot.module';
     FlowMonitoringModule,
     OkxModule,
     BotModule,
+    MLModule,
+    CandlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -76,6 +76,31 @@ export const botApi = {
 
   getTradingStats: (): Promise<ApiResponse<TradingStats>> =>
     api.get("/api/bot/stats").then(res => res.data),
+
+  getPrediction: (): Promise<ApiResponse<any>> =>
+    api.get("/api/bot/prediction").then(res => res.data),
+
+  // BTC Flows для графика
+  getBTCFlows: (limit?: number): Promise<ApiResponse<any[]>> =>
+    api
+      .get(`/api/bot/flow/btc${limit ? `?limit=${limit}` : ""}`)
+      .then(res => res.data),
+
+  // BTC Candles для свечного графика
+  getBTCCandles: (
+    limit?: number,
+    interval?: string,
+    offset?: number
+  ): Promise<ApiResponse<any[]>> => {
+    const params = new URLSearchParams();
+    if (limit) params.append("limit", limit.toString());
+    if (interval) params.append("interval", interval);
+    if (offset) params.append("offset", offset.toString());
+    const queryString = params.toString();
+    return api
+      .get(`/api/bot/candles/btc${queryString ? `?${queryString}` : ""}`)
+      .then(res => res.data);
+  },
 };
 
 // OKX API
