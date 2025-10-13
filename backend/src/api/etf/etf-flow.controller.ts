@@ -18,12 +18,10 @@ export class ETFFlowController {
   @Get()
   async getETFFlowData() {
     // Возвращаем общие данные для всех ETF
-    const ethereumData = (await this.etfFlowService.getETFFlowData(
-      'ethereum',
-    )) as ETFFlowData[];
-    const bitcoinData = (await this.etfFlowService.getETFFlowData(
-      'bitcoin',
-    )) as BTCFlowData[];
+    const ethereumData: ETFFlowData[] =
+      await this.etfFlowService.getETFFlowData('ethereum');
+    const bitcoinData: BTCFlowData[] =
+      await this.etfFlowService.getETFFlowData('bitcoin');
 
     // Объединяем данные, убирая дубликаты по дате
     const allData = [...ethereumData, ...bitcoinData];
@@ -111,23 +109,17 @@ export class ETFFlowController {
 
   @Get('summary')
   async getETFFlowSummary() {
-    const ethereumData = (await this.etfFlowService.getETFFlowData(
-      'ethereum',
-    )) as ETFFlowData[];
-    const bitcoinData = (await this.etfFlowService.getETFFlowData(
-      'bitcoin',
-    )) as BTCFlowData[];
+    const ethereumData: ETFFlowData[] =
+      await this.etfFlowService.getETFFlowData('ethereum');
+    const bitcoinData: BTCFlowData[] =
+      await this.etfFlowService.getETFFlowData('bitcoin');
 
     // Функция для расчета суммы всех фондов за день (исключая total и date)
     const calculateDailyTotal = (item: any): number => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { total: _total, date: _date, ...funds } = item;
-      return (Object.values(funds) as number[]).reduce(
-        (sum: number, value: number) => {
-          return sum + (value || 0);
-        },
-        0,
-      );
+      if (!item) return 0;
+      return Object.entries(item)
+        .filter(([key]) => key !== 'total' && key !== 'date' && key !== 'id')
+        .reduce((sum: number, [, value]) => sum + (Number(value) || 0), 0);
     };
 
     // Берем только последние данные для каждого типа
@@ -199,14 +191,101 @@ export class ETFFlowController {
     };
   }
 
+  /**
+   * Возвращает суммы потоков за последние 7 записей для ETH и BTC
+   * Также возвращает объединённую серию (ETH+BTC) и массив дат в хронологическом порядке
+   */
+  @Get('last7')
+  async getLast7Totals() {
+    // берём последние 7 по каждой таблице
+    const [ethRows, btcRows] = await Promise.all([
+      this.prisma.eTFFlow.findMany({ orderBy: { date: 'desc' }, take: 7 }),
+      this.prisma.bTCFlow.findMany({ orderBy: { date: 'desc' }, take: 7 }),
+    ]);
+
+    // Функция для расчета суммы всех фондов за день (исключая total и date)
+    const calculateDailyTotal = (item: any): number => {
+      if (!item) return 0;
+      return Object.entries(item)
+        .filter(([key]) => key !== 'total' && key !== 'date' && key !== 'id')
+        .reduce((sum: number, [, value]) => sum + (Number(value) || 0), 0);
+    };
+
+    // Берем последние данные для суммарных активов
+    const latestEthereum = ethRows[0];
+    const latestBitcoin = btcRows[0];
+
+    // Рассчитываем суммарные активы (total assets) - это накопительная сумма всех фондов
+    const ethereumTotalAssets = latestEthereum
+      ? calculateDailyTotal(latestEthereum)
+      : 0;
+    const bitcoinTotalAssets = latestBitcoin
+      ? calculateDailyTotal(latestBitcoin)
+      : 0;
+
+    // Рассчитываем дневные потоки для графика (разности между соседними днями)
+    const ethSeriesDesc = ethRows.map((r) => ({
+      date: r.date.toISOString().split('T')[0],
+      totalAssets: calculateDailyTotal(r),
+    }));
+    const btcSeriesDesc = btcRows.map((r) => ({
+      date: r.date.toISOString().split('T')[0],
+      totalAssets: calculateDailyTotal(r),
+    }));
+
+    const ethSeries = ethSeriesDesc.reverse();
+    const btcSeries = btcSeriesDesc.reverse();
+
+    // Рассчитываем дневные потоки как разности
+    const ethereumDailyFlows: number[] = [];
+    const bitcoinDailyFlows: number[] = [];
+    const dates: string[] = [];
+
+    for (let i = 0; i < Math.max(ethSeries.length, btcSeries.length); i++) {
+      const ethItem = ethSeries[i];
+      const btcItem = btcSeries[i];
+
+      if (ethItem || btcItem) {
+        const date = ethItem?.date || btcItem?.date;
+        dates.push(date);
+
+        // Рассчитываем дневной поток как разность с предыдущим днем
+        const prevEthAssets = i > 0 ? ethSeries[i - 1]?.totalAssets || 0 : 0;
+        const prevBtcAssets = i > 0 ? btcSeries[i - 1]?.totalAssets || 0 : 0;
+
+        const ethDailyFlow = (ethItem?.totalAssets || 0) - prevEthAssets;
+        const btcDailyFlow = (btcItem?.totalAssets || 0) - prevBtcAssets;
+
+        ethereumDailyFlows.push(ethDailyFlow);
+        bitcoinDailyFlows.push(btcDailyFlow);
+      }
+    }
+
+    return {
+      // Суммарные активы (total assets) за последний день
+      ethereum: {
+        totalAssets: ethereumTotalAssets,
+        dailyFlow: ethereumDailyFlows[ethereumDailyFlows.length - 1] || 0,
+      },
+      bitcoin: {
+        totalAssets: bitcoinTotalAssets,
+        dailyFlow: bitcoinDailyFlows[bitcoinDailyFlows.length - 1] || 0,
+      },
+      // Данные для графика за последние 7 дней
+      chart: {
+        dates,
+        ethereumDailyFlows,
+        bitcoinDailyFlows,
+      },
+    };
+  }
+
   @Get('holdings')
   async getFundHoldings() {
-    const ethereumData = (await this.etfFlowService.getETFFlowData(
-      'ethereum',
-    )) as ETFFlowData[];
-    const bitcoinData = (await this.etfFlowService.getETFFlowData(
-      'bitcoin',
-    )) as BTCFlowData[];
+    const ethereumData: ETFFlowData[] =
+      await this.etfFlowService.getETFFlowData('ethereum');
+    const bitcoinData: BTCFlowData[] =
+      await this.etfFlowService.getETFFlowData('bitcoin');
 
     // Создаем объект для хранения суммарного владения каждого фонда
     const fundHoldings: Record<string, { eth: number; btc: number }> = {

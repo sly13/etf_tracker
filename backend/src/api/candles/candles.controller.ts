@@ -25,10 +25,10 @@ export class CandlesController {
     try {
       // Тестируем получение 5-минутных данных
       const candles5m = await this.candlesService.getBTCCandles(50, '5m', 0);
-      
+
       // Тестируем агрегацию
       const candles1h = await this.candlesService.getBTCCandles(3, '1h', 0);
-      
+
       return {
         success: true,
         message: 'Debug info',

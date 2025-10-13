@@ -727,6 +727,8 @@ export class UniversalETFFlowService {
     }
   }
 
+  async getETFFlowData(type: 'ethereum'): Promise<ETFFlowData[]>;
+  async getETFFlowData(type: 'bitcoin'): Promise<BTCFlowData[]>;
   async getETFFlowData(
     type: 'ethereum' | 'bitcoin',
   ): Promise<ETFFlowData[] | BTCFlowData[]> {

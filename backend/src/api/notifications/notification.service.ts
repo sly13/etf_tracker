@@ -54,6 +54,19 @@ export class NotificationService {
   ) {}
 
   /**
+   * Форматирование значения потока: числа в БД в миллионах.
+   * Если значение >= 1000M, показываем в B (миллиарды), иначе в M (миллионы).
+   */
+  private formatFlow(value: number): string {
+    const abs = Math.abs(value);
+    if (abs >= 1000) {
+      const billions = value / 1000;
+      return `${billions.toFixed(2)}B`;
+    }
+    return `${value.toFixed(2)}M`;
+  }
+
+  /**
    * Регистрация устройства пользователя
    */
   async registerDevice(
@@ -298,22 +311,24 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Проверяем, не отправляли ли мы уже такое же уведомление недавно
-      const notificationKey = `${data.bitcoinFlow.toFixed(2)}_${data.ethereumFlow.toFixed(2)}`;
-      const lastNotification = await this.prismaService.notificationLog.findFirst({
-        where: {
-          type: 'ETF_UPDATE',
-          body: {
-            contains: notificationKey,
+      // Дедуп по дате и значениям
+      const notificationKey = `${data.date}_${data.bitcoinFlow.toFixed(2)}_${data.ethereumFlow.toFixed(2)}`;
+      const lastNotification =
+        await this.prismaService.notificationLog.findFirst({
+          where: {
+            type: 'ETF_UPDATE',
+            body: {
+              contains: notificationKey,
+            },
+            // Уберём жёсткую привязку к одному часу — ключ по дате сам обеспечит уникальность в день
           },
-          createdAt: {
-            gte: new Date(Date.now() - 60 * 60 * 1000), // Последний час
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+          orderBy: { createdAt: 'desc' },
+        });
 
       if (lastNotification) {
-        this.logger.log('📭 Пропускаем отправку уведомления - такое же уже отправлялось недавно');
+        this.logger.log(
+          '📭 Пропускаем отправку уведомления - такое же уже отправлялось недавно',
+        );
         return;
       }
 
@@ -324,7 +339,7 @@ export class NotificationService {
         await this.firebaseAdminService.sendNotificationToToken(
           user.deviceToken,
           '📊 ETF Flow Update',
-          `Bitcoin: ${data.bitcoinFlow.toFixed(2)}M, Ethereum: ${data.ethereumFlow.toFixed(2)}M`,
+          `Bitcoin: ${this.formatFlow(data.bitcoinFlow)}, Ethereum: ${this.formatFlow(data.ethereumFlow)}`,
           {
             type: 'etf_update',
             bitcoinFlow: data.bitcoinFlow.toString(),
@@ -352,7 +367,7 @@ export class NotificationService {
         data: {
           type: 'ETF_UPDATE',
           title: '📊 ETF Flow Update',
-          body: `Bitcoin: ${data.bitcoinFlow.toFixed(2)}M, Ethereum: ${data.ethereumFlow.toFixed(2)}M`,
+          body: `[key:${notificationKey}] Date: ${data.date} — Bitcoin: ${this.formatFlow(data.bitcoinFlow)}, Ethereum: ${this.formatFlow(data.ethereumFlow)}`,
           data: {
             bitcoinFlow: data.bitcoinFlow.toString(),
             ethereumFlow: data.ethereumFlow.toString(),

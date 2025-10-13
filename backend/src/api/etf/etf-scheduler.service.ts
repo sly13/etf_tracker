@@ -145,7 +145,10 @@ export class ETFSchedulerService {
           ethereumFlow,
           bitcoinTotal: bitcoinFlow,
           ethereumTotal: ethereumFlow,
-          date: (ethereumNewData?.date || latestEthereum.date) || new Date().toISOString(),
+          date:
+            ethereumNewData?.date ||
+            latestEthereum.date ||
+            new Date().toISOString(),
           bitcoinData: bitcoinNewData || latestBitcoin,
           ethereumData: ethereumNewData || latestEthereum,
         };

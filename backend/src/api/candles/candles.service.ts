@@ -110,8 +110,10 @@ export class CandlesService {
     targetInterval: string,
     limit: number,
   ) {
-    console.log(`Aggregating ${candles.length} candles to ${targetInterval}, limit: ${limit}`);
-    
+    console.log(
+      `Aggregating ${candles.length} candles to ${targetInterval}, limit: ${limit}`,
+    );
+
     if (candles.length === 0) {
       console.log('No candles to aggregate');
       return [];
@@ -130,18 +132,20 @@ export class CandlesService {
         step = 2016; // каждую 2016-ю свечу (2016 * 5min = 1w)
         break;
       default:
-        console.log(`Unknown interval ${targetInterval}, returning first ${limit} candles`);
+        console.log(
+          `Unknown interval ${targetInterval}, returning first ${limit} candles`,
+        );
         return candles.slice(0, limit);
     }
 
     console.log(`Using step: ${step}`);
 
     const sampled: any[] = [];
-    
+
     // вместо N-й свечи
     for (let i = 0; i < candles.length; i += step) {
       if (sampled.length >= limit) break;
-      
+
       const candle = candles[i];
       sampled.push({
         ...candle,
