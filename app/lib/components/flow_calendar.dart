@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 
@@ -341,8 +340,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'etf.no_data_for_date'.tr() +
-                ' ${DateFormat('yyyy-MM-dd').format(selectedDay)}',
+            '${'etf.no_data_for_date'.tr()} ${DateFormat('yyyy-MM-dd').format(selectedDay)}',
           ),
           backgroundColor: isDark ? Colors.grey[800] : Colors.grey[600],
         ),

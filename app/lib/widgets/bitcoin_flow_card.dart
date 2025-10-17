@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
 import '../providers/crypto_price_provider.dart';
 
@@ -90,7 +89,7 @@ class BitcoinFlowCard extends StatelessWidget {
                         // Цена Bitcoin
                         Consumer<CryptoPriceProvider>(
                           builder: (context, cryptoProvider, child) {
-                            if (cryptoProvider.hasError)
+                            if (cryptoProvider.hasError) {
                               return Text(
                                 'Ошибка загрузки',
                                 style: TextStyle(
@@ -99,7 +98,7 @@ class BitcoinFlowCard extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               );
-                            else if (cryptoProvider.bitcoinPrice != null)
+                            } else if (cryptoProvider.bitcoinPrice != null)
                               return Text(
                                 '\$${_formatPrice(cryptoProvider.bitcoinPrice!)}',
                                 style: TextStyle(

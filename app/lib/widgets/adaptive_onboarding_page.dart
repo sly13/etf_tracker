@@ -207,7 +207,7 @@ class AdaptiveOnboardingPage extends StatelessWidget {
   Widget _buildMacOSButton(Map<String, double> sizes) {
     final isWelcomeScreen = data.isWelcomeScreen;
 
-    return Container(
+    return SizedBox(
       width: 300,
       height: sizes['buttonHeight']! + 8,
       child: ElevatedButton(

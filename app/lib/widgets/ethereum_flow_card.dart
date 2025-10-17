@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:intl/intl.dart';
 import '../models/etf_flow_data.dart';
 import '../providers/crypto_price_provider.dart';
 
@@ -88,7 +87,7 @@ class EthereumFlowCard extends StatelessWidget {
                         // Цена Ethereum
                         Consumer<CryptoPriceProvider>(
                           builder: (context, cryptoProvider, child) {
-                            if (cryptoProvider.hasError)
+                            if (cryptoProvider.hasError) {
                               return Text(
                                 'Ошибка загрузки',
                                 style: TextStyle(
@@ -97,7 +96,7 @@ class EthereumFlowCard extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                 ),
                               );
-                            else if (cryptoProvider.ethereumPrice != null)
+                            } else if (cryptoProvider.ethereumPrice != null)
                               return Text(
                                 '\$${_formatPrice(cryptoProvider.ethereumPrice!)}',
                                 style: TextStyle(

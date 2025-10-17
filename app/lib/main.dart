@@ -13,8 +13,6 @@ import 'providers/language_provider.dart';
 import 'providers/subscription_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/onboarding_provider.dart';
-import 'screens/main_navigation_screen.dart';
-import 'screens/onboarding_screen.dart';
 import 'widgets/app_initializer.dart';
 import 'services/subscription_service.dart';
 import 'services/notification_service.dart';

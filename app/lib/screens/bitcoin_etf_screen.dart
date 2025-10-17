@@ -243,7 +243,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
       title: 'premium.bitcoin_charts_title'.tr(),
       description: 'premium.bitcoin_charts_desc'.tr(),
       lockedHeight: 200, // Высота для заблокированного контента
-      child: Container(
+      child: SizedBox(
         height: 420, // Полная высота для разблокированного контента
         child: DarkFlowChart(flowData: data, title: 'etf.bitcoin_flows'.tr()),
       ),

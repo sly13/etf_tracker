@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UniversalETFFlowService } from './universal-etf-flow.service';
 import { NotificationService } from '../notifications/notification.service';
+import { ETFNotificationService } from './etf-notification.service';
 import { schedulerConfig } from '../../shared/config/scheduler.config';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class ETFSchedulerService {
   constructor(
     private readonly etfFlowService: UniversalETFFlowService,
     private readonly notificationService: NotificationService,
+    private readonly etfNotificationService: ETFNotificationService,
   ) {}
 
   // Запуск каждый час в 00 минут
@@ -56,7 +58,22 @@ export class ETFSchedulerService {
         `✅ Bitcoin данные обновлены: ${bitcoinData.length} записей, новых: ${bitcoinSaveResult.newDataCount}`,
       );
 
-      // Отправляем уведомление только если есть новые данные
+      // Отправляем уведомления о новых записях ETF
+      const allNewRecords = [
+        ...(ethereumSaveResult.newRecords || []),
+        ...(bitcoinSaveResult.newRecords || []),
+      ];
+
+      if (allNewRecords.length > 0) {
+        this.logger.log(
+          `🔔 Обнаружено ${allNewRecords.length} новых записей ETF для уведомлений`,
+        );
+        await this.etfNotificationService.sendETFNotificationsForNewRecords(
+          'etf.flow',
+        );
+      }
+
+      // Отправляем уведомление только если есть новые данные (старая система для совместимости)
       if (ethereumSaveResult.hasNewData || bitcoinSaveResult.hasNewData) {
         await this.sendETFUpdateNotification(
           ethereumData,
@@ -94,6 +111,27 @@ export class ETFSchedulerService {
     } catch (error) {
       this.logger.error(
         '❌ Ошибка при ежедневном обновлении ETF данных:',
+        error,
+      );
+    }
+  }
+
+  // Отправка уведомлений о новых записях каждые 15 минут
+  @Cron('*/15 * * * *')
+  async handleETFNotificationsUpdate() {
+    if (!schedulerConfig.enableAutoUpdate) {
+      return;
+    }
+
+    this.logger.log('🔔 Проверка новых записей ETF для уведомлений...');
+
+    try {
+      await this.etfNotificationService.sendETFNotificationsForNewRecords(
+        'etf.flow',
+      );
+    } catch (error) {
+      this.logger.error(
+        '❌ Ошибка при отправке уведомлений о новых записях ETF:',
         error,
       );
     }

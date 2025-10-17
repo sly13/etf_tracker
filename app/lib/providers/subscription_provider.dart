@@ -8,7 +8,7 @@ class SubscriptionProvider extends ChangeNotifier {
   bool _isPremium = false;
   bool _isLoading = false;
   bool _isInitialized = false;
-  bool _statusSetFromSync =
+  final bool _statusSetFromSync =
       false; // Флаг для отслеживания установки статуса из синхронизации
   String? _error;
   static const String _premiumStatusKey = 'premium_status';

@@ -590,7 +590,12 @@ export class UniversalETFFlowService {
   async saveETFFlowData(
     type: 'ethereum' | 'bitcoin',
     flowData: ETFFlowData[] | BTCFlowData[],
-  ): Promise<{ hasNewData: boolean; newDataCount: number; newData?: any }> {
+  ): Promise<{
+    hasNewData: boolean;
+    newDataCount: number;
+    newData?: any;
+    newRecords: any[];
+  }> {
     try {
       this.logger.log(
         `Начинаю сохранение данных о потоках ${type.toUpperCase()} ETF в базу данных`,
@@ -602,19 +607,33 @@ export class UniversalETFFlowService {
 
       let newDataCount = 0;
       let latestNewData: any = null;
+      const newRecords: any[] = [];
 
       for (const data of flowData) {
         const date = new Date(data.date);
 
         if (type === 'ethereum') {
-          // Проверяем, существовала ли запись ДО операции upsert
+          // Получаем существующую запись для сравнения
           const existingRecord = await this.prisma.eTFFlow.findUnique({
             where: { date },
-            select: { id: true, total: true },
+            select: {
+              id: true,
+              total: true,
+              blackrock: true,
+              fidelity: true,
+              bitwise: true,
+              twentyOneShares: true,
+              vanEck: true,
+              invesco: true,
+              franklin: true,
+              grayscale: true,
+              grayscaleEth: true,
+            },
           });
 
           const wasExisting = !!existingRecord;
 
+          // Сохраняем данные
           await this.prisma.eTFFlow.upsert({
             where: { date },
             update: {
@@ -645,6 +664,44 @@ export class UniversalETFFlowService {
             },
           });
 
+          // Обнаруживаем новые записи для каждой компании
+          const companies = [
+            { name: 'blackrock', value: data.blackrock },
+            { name: 'fidelity', value: data.fidelity },
+            { name: 'bitwise', value: data.bitwise },
+            { name: 'twentyOneShares', value: data.twentyOneShares },
+            { name: 'vanEck', value: data.vanEck },
+            { name: 'invesco', value: data.invesco },
+            { name: 'franklin', value: data.franklin },
+            { name: 'grayscale', value: data.grayscale },
+            { name: 'grayscaleEth', value: data.grayscaleCrypto },
+          ];
+
+          for (const company of companies) {
+            const previousValue = existingRecord?.[company.name] || 0;
+            const currentValue = company.value || 0;
+
+            // Проверяем, появилась ли новая запись или значительно изменилась
+            const isNewRecord = this.isNewRecord(previousValue, currentValue);
+
+            if (isNewRecord) {
+              const newRecord = await this.createETFNewRecord({
+                date,
+                assetType: 'ethereum',
+                company: company.name,
+                amount: currentValue,
+                previousAmount: previousValue,
+              });
+
+              if (newRecord) {
+                newRecords.push(newRecord);
+                this.logger.log(
+                  `🆕 Новая запись Ethereum ETF: ${company.name} - ${currentValue}M (было: ${previousValue}M)`,
+                );
+              }
+            }
+          }
+
           // Если записи не было, то это новые данные
           if (!wasExisting) {
             newDataCount++;
@@ -656,14 +713,29 @@ export class UniversalETFFlowService {
         } else {
           const btcData = data as BTCFlowData;
 
-          // Проверяем, существовала ли запись ДО операции upsert
+          // Получаем существующую запись для сравнения
           const existingRecord = await this.prisma.bTCFlow.findUnique({
             where: { date },
-            select: { id: true, total: true },
+            select: {
+              id: true,
+              total: true,
+              blackrock: true,
+              fidelity: true,
+              bitwise: true,
+              twentyOneShares: true,
+              invesco: true,
+              franklin: true,
+              valkyrie: true,
+              vanEck: true,
+              wisdomTree: true,
+              grayscale: true,
+              grayscaleBtc: true,
+            },
           });
 
           const wasExisting = !!existingRecord;
 
+          // Сохраняем данные
           await this.prisma.bTCFlow.upsert({
             where: { date },
             update: {
@@ -698,6 +770,46 @@ export class UniversalETFFlowService {
             },
           });
 
+          // Обнаруживаем новые записи для каждой компании
+          const companies = [
+            { name: 'blackrock', value: btcData.blackrock },
+            { name: 'fidelity', value: btcData.fidelity },
+            { name: 'bitwise', value: btcData.bitwise },
+            { name: 'twentyOneShares', value: btcData.twentyOneShares },
+            { name: 'invesco', value: btcData.invesco },
+            { name: 'franklin', value: btcData.franklin },
+            { name: 'valkyrie', value: btcData.valkyrie },
+            { name: 'vanEck', value: btcData.vanEck },
+            { name: 'wisdomTree', value: btcData.wisdomTree },
+            { name: 'grayscale', value: btcData.grayscale },
+            { name: 'grayscaleBtc', value: btcData.grayscaleBtc },
+          ];
+
+          for (const company of companies) {
+            const previousValue = existingRecord?.[company.name] || 0;
+            const currentValue = company.value || 0;
+
+            // Проверяем, появилась ли новая запись или значительно изменилась
+            const isNewRecord = this.isNewRecord(previousValue, currentValue);
+
+            if (isNewRecord) {
+              const newRecord = await this.createETFNewRecord({
+                date,
+                assetType: 'bitcoin',
+                company: company.name,
+                amount: currentValue,
+                previousAmount: previousValue,
+              });
+
+              if (newRecord) {
+                newRecords.push(newRecord);
+                this.logger.log(
+                  `🆕 Новая запись Bitcoin ETF: ${company.name} - ${currentValue}M (было: ${previousValue}M)`,
+                );
+              }
+            }
+          }
+
           // Если записи не было, то это новые данные
           if (!wasExisting) {
             newDataCount++;
@@ -710,13 +822,14 @@ export class UniversalETFFlowService {
       }
 
       this.logger.log(
-        `Данные о потоках ${type.toUpperCase()} ETF успешно сохранены в базу данных. Новых записей: ${newDataCount}`,
+        `Данные о потоках ${type.toUpperCase()} ETF успешно сохранены в базу данных. Новых записей: ${newDataCount}, новых событий: ${newRecords.length}`,
       );
 
       return {
         hasNewData: newDataCount > 0,
         newDataCount,
         newData: latestNewData,
+        newRecords,
       };
     } catch (error) {
       this.logger.error(
@@ -781,6 +894,98 @@ export class UniversalETFFlowService {
         error,
       );
       throw error;
+    }
+  }
+
+  /**
+   * Проверяет, является ли изменение новой записью
+   */
+  private isNewRecord(previousValue: number, currentValue: number): boolean {
+    // Если предыдущее значение было 0 или null, а текущее > 0 - это новая запись
+    if ((previousValue === 0 || previousValue === null) && currentValue > 0) {
+      return true;
+    }
+
+    // Если изменение больше чем на 10% и больше чем на 1M - это значительное изменение
+    if (previousValue > 0 && currentValue > 0) {
+      const changePercent =
+        Math.abs(currentValue - previousValue) / previousValue;
+      const changeAmount = Math.abs(currentValue - previousValue);
+
+      if (changePercent > 0.1 && changeAmount > 1) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Создает новую запись ETFNewRecord
+   */
+  private async createETFNewRecord(data: {
+    date: Date;
+    assetType: 'bitcoin' | 'ethereum';
+    company: string;
+    amount: number;
+    previousAmount: number;
+  }): Promise<any> {
+    try {
+      const dedupeKey = `${data.date.toISOString().split('T')[0]}_${data.assetType}_${data.company}_${data.amount.toFixed(2)}`;
+
+      // Проверяем, не создавали ли мы уже такую запись
+      const existingRecord = await this.prisma.eTFNewRecord.findUnique({
+        where: { dedupeKey },
+      });
+
+      if (existingRecord) {
+        this.logger.log(`Запись уже существует: ${dedupeKey}`);
+        return null;
+      }
+
+      const newRecord = await this.prisma.eTFNewRecord.create({
+        data: {
+          date: data.date,
+          assetType: data.assetType,
+          company: data.company,
+          amount: data.amount,
+          previousAmount: data.previousAmount,
+          dedupeKey,
+        },
+      });
+
+      this.logger.log(`Создана новая запись ETF: ${dedupeKey}`);
+      return newRecord;
+    } catch (error) {
+      this.logger.error(`Ошибка при создании новой записи ETF:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Получает новые записи для отправки уведомлений
+   */
+  async getNewRecordsForNotifications(): Promise<any[]> {
+    try {
+      const records = await this.prisma.eTFNewRecord.findMany({
+        where: {
+          deliveries: {
+            none: {}, // Записи без доставок уведомлений
+          },
+        },
+        orderBy: {
+          detectedAt: 'desc',
+        },
+        take: 50, // Ограничиваем количество для обработки
+      });
+
+      return records;
+    } catch (error) {
+      this.logger.error(
+        'Ошибка при получении новых записей для уведомлений:',
+        error,
+      );
+      return [];
     }
   }
 

@@ -102,7 +102,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
       title: 'premium.ethereum_charts_title'.tr(),
       description: 'premium.ethereum_charts_desc'.tr(),
       lockedHeight: 200, // Высота для заблокированного контента
-      child: Container(
+      child: SizedBox(
         height: 420, // Полная высота для разблокированного контента
         child: DarkFlowChart(flowData: data, title: 'etf.ethereum_flows'.tr()),
       ),

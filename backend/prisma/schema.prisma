@@ -88,6 +88,7 @@ model User {
   os             String?
   subscriptions  Subscription[]
   application    Application    @relation(fields: [applicationId], references: [id])
+  etfDeliveries  ETFNotificationDelivery[]
 
   @@index([settings], map: "idx_user_settings", type: Gin)
   @@map("users")
@@ -206,4 +207,50 @@ model BTCandle {
   @@unique([symbol, interval, openTime])
   @@index([symbol, interval, openTime], map: "idx_btc_candles_symbol_interval_time")
   @@map("btc_candles")
+}
+
+// Глобальное событие: фиксируем факт обнаружения новой записи ETF
+model ETFNewRecord {
+  id               String   @id @default(cuid())
+  date             DateTime
+  assetType        String   // 'bitcoin' | 'ethereum'
+  company          String   // 'blackrock', 'fidelity', 'bitwise', etc.
+  amount           Float
+  previousAmount   Float?   // предыдущее значение для сравнения
+  detectedAt       DateTime @default(now())
+  // Ключ для дедупликации событий (на случай повторного парсинга)
+  dedupeKey        String   @unique
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Связь с доставками уведомлений
+  deliveries       ETFNotificationDelivery[]
+
+  @@index([date, assetType])
+  @@index([detectedAt])
+  @@map("etf_new_records")
+}
+
+// Персональная доставка уведомления по событию
+model ETFNotificationDelivery {
+  id           String   @id @default(cuid())
+  userId       String
+  recordId     String
+  sent         Boolean  @default(false)
+  sentAt       DateTime?
+  channel      String?  // 'push' | 'telegram' | 'email'
+  error        String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Связи
+  record       ETFNewRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Дедуп на уровне "один пользователь — одно событие — одна доставка"
+  @@unique([userId, recordId])
+  @@index([sent, createdAt])
+  @@map("etf_notification_deliveries")
 }
