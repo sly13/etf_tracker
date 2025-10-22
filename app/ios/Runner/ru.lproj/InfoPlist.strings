@@ -1,1 +1,9 @@
-/* Localized strings for Info.plist */
+/* 
+  InfoPlist.strings
+  Crypto ETF
+
+  Created by Localization.
+*/
+
+"CFBundleDisplayName" = "Крипто ETF";
+"CFBundleName" = "Крипто ETF";
