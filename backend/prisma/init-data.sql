@@ -1,5 +1,5 @@
 -- Базовая конфигурация приложения
-INSERT INTO "public"."Application" ("id", "name", "displayName", "description", "isActive", "createdAt", "updatedAt")
+INSERT INTO "public"."applications" ("id", "name", "displayName", "description", "isActive", "createdAt", "updatedAt")
 VALUES (
   'etf-flow-default-app',
   'etf.flow',
