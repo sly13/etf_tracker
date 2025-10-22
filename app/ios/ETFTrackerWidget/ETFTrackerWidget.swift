@@ -13,7 +13,7 @@ struct APIConfig {
         #if DEBUG
         return "http://192.168.100.94:3066"
         #else
-        return "http://192.168.100.94:3066" // Временно используем локальный IP
+        return "https://api-etf.vadimsemenko.ru"
         #endif
     }
 }
@@ -508,7 +508,7 @@ struct ETFTrackerWidget: Widget {
             }
         }
         .contentMarginsDisabled() // 🔥 отключает системные паддинги
-        .configurationDisplayName("Crypto ETF Flow")
+        .configurationDisplayName("Crypto ETFs Flow")
         .description("Отслеживает потоки Bitcoin и Ethereum ETF")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

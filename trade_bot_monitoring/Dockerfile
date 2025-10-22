@@ -1,5 +1,5 @@
 # Multi-stage build для React приложения
-FROM node:18-alpine as build
+FROM node:20-alpine as build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Копируем исходный код
 COPY . .
