@@ -151,8 +151,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) {
             final provider = ETFProvider();
-            // Инициализируем данные сразу при создании провайдера
-            provider.initializeData();
+            // Инициализируем данные в фоне, не блокируем запуск
+            Future.microtask(() => provider.initializeData());
             return provider;
           },
         ),
@@ -174,14 +174,6 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) {
-            final provider = SubscriptionProvider();
-            // Инициализируем подписку при создании провайдера
-            provider.initialize();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (context) {
             final provider = NotificationProvider();
             // Инициализируем уведомления при создании провайдера
             provider.initialize();
@@ -191,8 +183,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) {
             final provider = OnboardingProvider();
-            // Инициализируем онбординг при создании провайдера
-            provider.initialize();
+            // Не инициализируем здесь, инициализация будет в AppInitializer
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = SubscriptionProvider();
+            // Не инициализируем здесь, инициализация будет в AppInitializer
             return provider;
           },
         ),
@@ -212,7 +210,8 @@ class MyApp extends StatelessWidget {
         ],
         path: 'assets/translations',
         fallbackLocale: const Locale('en'),
-        startLocale: const Locale('en'),
+        startLocale:
+            null, // Позволяем EasyLocalization автоматически определять язык
         useOnlyLangCode: true,
         child: Consumer2<ThemeProvider, LanguageProvider>(
           builder: (context, themeProvider, languageProvider, child) {

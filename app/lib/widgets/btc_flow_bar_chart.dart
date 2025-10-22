@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
+import '../utils/adaptive_text_utils.dart';
 
 enum ChartPeriod { daily, weekly, monthly }
 
@@ -322,7 +323,9 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableHeight = constraints.maxHeight;
-        final minHeight = 60.0; // Минимальная высота для графика
+        final sizes = AdaptiveTextUtils.getChartSizes(context);
+        final minHeight =
+            sizes['axisHeight']! * 1.5; // Уменьшили минимальную высоту
 
         if (availableHeight < minHeight) {
           // Если места очень мало, показываем упрощенную версию
@@ -334,7 +337,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           child: Row(
             children: [
               // Фиксированная шкала слева (только если достаточно места)
-              if (availableHeight >= 80)
+              if (availableHeight >= sizes['axisHeight']! * 2.5)
                 SizedBox(
                   width: 60,
                   child: Column(
@@ -352,7 +355,7 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
                   child: SizedBox(
                     width: _getChartWidth(),
                     child: _buildScrollableChart(
-                      showAxis: availableHeight >= 80,
+                      showAxis: availableHeight >= sizes['axisHeight']! * 2.5,
                     ),
                   ),
                 ),

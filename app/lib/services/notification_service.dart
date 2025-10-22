@@ -42,9 +42,9 @@ class NotificationService {
         '@mipmap/ic_launcher',
       );
       const iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
+        requestAlertPermission: false, // Не запрашиваем разрешения сразу
+        requestBadgePermission: false,
+        requestSoundPermission: false,
       );
 
       const initSettings = InitializationSettings(
@@ -63,14 +63,13 @@ class NotificationService {
       // Настраиваем обработчики Firebase Messaging
       await _setupFirebaseHandlers();
 
-      // Получаем FCM токен
+      // Получаем FCM токен (без разрешений)
       await _getFCMToken();
 
-      // Запрашиваем разрешения
-      await _requestPermissions();
-
       _isInitialized = true;
-      debugPrint('✅ NotificationService инициализирован');
+      debugPrint(
+        '✅ NotificationService инициализирован (без запроса разрешений)',
+      );
     } catch (e) {
       debugPrint('❌ Ошибка инициализации NotificationService: $e');
     }
@@ -252,11 +251,13 @@ class NotificationService {
     }
   }
 
-  /// Запрос разрешений на уведомления
-  static Future<void> _requestPermissions() async {
+  /// Запрос разрешений на уведомления (публичный метод)
+  static Future<bool> requestPermissions() async {
     try {
+      debugPrint('🔔 Запрашиваем разрешения на уведомления...');
+
       // Для iOS
-      await _firebaseMessaging!.requestPermission(
+      final iosSettings = await _firebaseMessaging!.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -264,15 +265,37 @@ class NotificationService {
       );
 
       // Для Android
-      await _localNotifications!
+      final androidPermission = await _localNotifications!
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.requestNotificationsPermission();
 
-      debugPrint('✅ Разрешения на уведомления запрошены');
+      final isGranted =
+          iosSettings.authorizationStatus == AuthorizationStatus.authorized &&
+          (androidPermission ?? false);
+
+      debugPrint(
+        '✅ Разрешения на уведомления: ${isGranted ? "предоставлены" : "отклонены"}',
+      );
+      debugPrint('📱 iOS статус: ${iosSettings.authorizationStatus}');
+      debugPrint('📱 Android разрешение: $androidPermission');
+
+      return isGranted;
     } catch (e) {
       debugPrint('❌ Ошибка запроса разрешений: $e');
+      return false;
+    }
+  }
+
+  /// Проверка статуса разрешений на уведомления
+  static Future<bool> checkPermissions() async {
+    try {
+      final settings = await _firebaseMessaging!.getNotificationSettings();
+      return settings.authorizationStatus == AuthorizationStatus.authorized;
+    } catch (e) {
+      debugPrint('❌ Ошибка проверки разрешений: $e');
+      return false;
     }
   }
 

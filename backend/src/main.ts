@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { UniversalETFFlowService } from './api/etf/universal-etf-flow.service';
 import { AdminService } from './admin-panel/admin/admin.service';
 import { TelegramBotService } from './api/telegram-bot/telegram-bot.service';
+import { DataSyncService } from './api/sync/data-sync.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,7 @@ async function bootstrap() {
   const etfFlowService = app.get(UniversalETFFlowService);
   const adminService = app.get(AdminService);
   const telegramBotService = app.get(TelegramBotService);
+  const dataSyncService = app.get(DataSyncService);
 
   console.log('🚀 Запуск ETF Flow Tracker сервера...');
   console.log('👤 Инициализация администратора...');
@@ -40,6 +42,15 @@ async function bootstrap() {
     console.log('✅ Администратор по умолчанию создан');
   } catch (error) {
     console.log('⚠️ Ошибка создания администратора:', error.message);
+  }
+
+  // Запускаем синхронизацию данных при старте
+  console.log('📊 Запуск синхронизации данных при старте...');
+  try {
+    await dataSyncService.onApplicationBootstrap();
+    console.log('✅ Синхронизация данных при старте завершена');
+  } catch (error) {
+    console.log('⚠️ Ошибка синхронизации данных при старте:', error.message);
   }
 
   console.log('📊 Инициализация данных ETF...');

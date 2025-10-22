@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
-import '../widgets/pro_button.dart';
 import '../utils/haptic_feedback.dart';
+import '../utils/adaptive_text_utils.dart';
 import '../services/screenshot_service.dart';
 
 class ETFTabsScreen extends StatefulWidget {
@@ -38,166 +38,156 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('app.title'.tr()),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0A0A0A)
-            : Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false, // Скрываем кнопку "назад"
-        actions: [
-          // Кнопка Pro
-          const ProButton(),
-        ],
-      ),
-      body: Consumer<ETFProvider>(
-        builder: (context, etfProvider, child) {
-          // Показываем ошибку только если она есть
-          if (etfProvider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${'common.error'.tr()}: ${etfProvider.error}',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      etfProvider.clearError();
-                      etfProvider.forceRefreshAllData();
-                    },
-                    child: Text('common.retry'.tr()),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Показываем индикатор загрузки во время обновления данных
-          if (etfProvider.isLoading && etfProvider.isDataReady) {
-            return Stack(
-              children: [
-                // Основной контент
-                RefreshIndicator(
-                  onRefresh: () async {
-                    // Вибрация при начале обновления
-                    HapticUtils.lightImpact();
-                    try {
-                      await etfProvider.forceRefreshAllData();
-                      // Автоматически скроллим вниз после обновления
-                      if (_scrollController.hasClients) {
-                        _scrollController.animateTo(
-                          _scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 500),
-                          curve: Curves.easeOut,
-                        );
-                      }
-                      // Вибрация при успешном обновлении
-                      HapticUtils.notificationSuccess();
-                    } catch (e) {
-                      // Вибрация при ошибке
-                      HapticUtils.notificationError();
-                      rethrow;
-                    }
-                  },
-                  color: Theme.of(context).colorScheme.primary,
-                  backgroundColor:
-                      Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1C1C1E)
-                      : Colors.white,
-                  strokeWidth: 2.5,
-                  displacement: 40.0,
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSummaryCard(etfProvider),
-                        const SizedBox(height: 24),
-                        _buildRecentUpdates(etfProvider),
-                        const SizedBox(height: 100),
-                      ],
+      body: SafeArea(
+        child: Consumer<ETFProvider>(
+          builder: (context, etfProvider, child) {
+            // Показываем ошибку только если она есть
+            if (etfProvider.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${'common.error'.tr()}: ${etfProvider.error}',
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        etfProvider.clearError();
+                        etfProvider.forceRefreshAllData();
+                      },
+                      child: Text('common.retry'.tr()),
+                    ),
+                  ],
                 ),
-                // Индикатор загрузки поверх контента
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 3,
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      width: double.infinity,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(1.5),
+              );
+            }
+
+            // Показываем индикатор загрузки во время обновления данных
+            if (etfProvider.isLoading && etfProvider.isDataReady) {
+              return Stack(
+                children: [
+                  // Основной контент
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      // Вибрация при начале обновления
+                      HapticUtils.lightImpact();
+                      try {
+                        await etfProvider.forceRefreshAllData();
+                        // Автоматически скроллим вниз после обновления
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                        // Вибрация при успешном обновлении
+                        HapticUtils.notificationSuccess();
+                      } catch (e) {
+                        // Вибрация при ошибке
+                        HapticUtils.notificationError();
+                        rethrow;
+                      }
+                    },
+                    color: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1C1C1E)
+                        : Colors.white,
+                    strokeWidth: 2.5,
+                    displacement: 40.0,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: AdaptiveTextUtils.getContentPadding(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSummaryCard(etfProvider),
+                          const SizedBox(height: 24),
+                          _buildRecentUpdates(etfProvider),
+                          const SizedBox(height: 100),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Вибрация при начале обновления
-              HapticUtils.lightImpact();
-
-              try {
-                await etfProvider.forceRefreshAllData();
-                // Автоматически скроллим вниз после обновления
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.easeOut,
-                  );
-                }
-                // Вибрация при успешном обновлении
-                HapticUtils.notificationSuccess();
-              } catch (e) {
-                // Вибрация при ошибке
-                HapticUtils.notificationError();
-                rethrow;
-              }
-            },
-            color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1C1C1E)
-                : Colors.white,
-            strokeWidth: 2.5,
-            displacement: 40.0,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Общая сводка
-                  _buildSummaryCard(etfProvider),
-                  const SizedBox(height: 24),
-
-                  // Последние обновления
-                  _buildRecentUpdates(etfProvider),
-
-                  // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                  const SizedBox(height: 100),
+                  // Индикатор загрузки поверх контента
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 3,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        width: double.infinity,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Вибрация при начале обновления
+                HapticUtils.lightImpact();
+
+                try {
+                  await etfProvider.forceRefreshAllData();
+                  // Автоматически скроллим вниз после обновления
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                  // Вибрация при успешном обновлении
+                  HapticUtils.notificationSuccess();
+                } catch (e) {
+                  // Вибрация при ошибке
+                  HapticUtils.notificationError();
+                  rethrow;
+                }
+              },
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1C1C1E)
+                  : Colors.white,
+              strokeWidth: 2.5,
+              displacement: 40.0,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AdaptiveTextUtils.getContentPadding(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Общая сводка
+                    _buildSummaryCard(etfProvider),
+                    const SizedBox(height: 24),
+
+                    // Последние обновления
+                    _buildRecentUpdates(etfProvider),
+
+                    // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -205,17 +195,11 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
   // Карточка с общей сводкой
   Widget _buildSummaryCard(ETFProvider etfProvider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ethereumData = etfProvider.ethereumData.isNotEmpty
-        ? etfProvider.ethereumData.first
-        : null;
-    final bitcoinData = etfProvider.bitcoinData.isNotEmpty
-        ? etfProvider.bitcoinData.first
-        : null;
 
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AdaptiveTextUtils.getCardPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -488,7 +472,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             : null,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AdaptiveTextUtils.getCardPadding(context),
           child: Row(
             children: [
               Container(

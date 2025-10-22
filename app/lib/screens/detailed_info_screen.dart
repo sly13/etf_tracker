@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
+import '../utils/adaptive_text_utils.dart';
 
 class DetailedInfoScreen extends StatefulWidget {
   const DetailedInfoScreen({super.key});
@@ -67,7 +68,7 @@ class _DetailedInfoScreenState extends State<DetailedInfoScreen> {
           return RefreshIndicator(
             onRefresh: () => etfProvider.loadAllData(),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: AdaptiveTextUtils.getContentPadding(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

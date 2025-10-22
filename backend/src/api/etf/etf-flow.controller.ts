@@ -397,4 +397,145 @@ export class ETFFlowController {
       timestamp: new Date().toISOString(),
     };
   }
+
+  /**
+   * Специальный эндпоинт для виджета iOS
+   * Возвращает все необходимые данные в одном запросе
+   */
+  @Get('widget')
+  async getWidgetData() {
+    try {
+      // Используем ту же логику, что и в summary API
+      const ethereumData: ETFFlowData[] =
+        await this.etfFlowService.getETFFlowData('ethereum');
+      const bitcoinData: BTCFlowData[] =
+        await this.etfFlowService.getETFFlowData('bitcoin');
+
+      // Функция для получения дневного притока (используем поле total)
+      const getDailyFlow = (item: any): number => {
+        if (!item) return 0;
+        return Math.round((Number(item.total) || 0) * 100) / 100;
+      };
+
+      // Функция для расчета суммы всех фондов за день (исключая total и date)
+      const calculateDailyTotal = (item: any): number => {
+        if (!item) return 0;
+        return Object.entries(item)
+          .filter(([key]) => key !== 'total' && key !== 'date' && key !== 'id')
+          .reduce((sum: number, [, value]) => sum + (Number(value) || 0), 0);
+      };
+
+      // Берем только последние данные для каждого типа
+      const latestEthereum = ethereumData[0];
+      const latestBitcoin = bitcoinData[0];
+
+      // Рассчитываем текущие потоки как сумму всех фондов за последний день
+      let ethereumDailyFlow: number = getDailyFlow(latestEthereum || {});
+      let bitcoinDailyFlow: number = getDailyFlow(latestBitcoin || {});
+
+      // Если текущий поток равен 0, берем среднее за последние 10 дней
+      if (ethereumDailyFlow === 0 && ethereumData.length > 0) {
+        ethereumDailyFlow =
+          ethereumData
+            .slice(0, Math.min(10, ethereumData.length))
+            .reduce((sum, item) => sum + getDailyFlow(item), 0) / 10;
+      }
+
+      if (bitcoinDailyFlow === 0 && bitcoinData.length > 0) {
+        bitcoinDailyFlow =
+          bitcoinData
+            .slice(0, Math.min(10, bitcoinData.length))
+            .reduce((sum, item) => sum + getDailyFlow(item), 0) / 10;
+      }
+
+      // Считаем общий итог как сумму текущих потоков
+      const totalFlow =
+        Math.round((ethereumDailyFlow + bitcoinDailyFlow) * 100) / 100;
+
+      // Вычисляем общие активы (total assets) - суммируем все фонды за все дни
+      const ethereumTotalAssets =
+        Math.round(
+          ethereumData.reduce(
+            (sum, item) => sum + calculateDailyTotal(item),
+            0,
+          ) * 100,
+        ) / 100;
+
+      const bitcoinTotalAssets =
+        Math.round(
+          bitcoinData.reduce(
+            (sum, item) => sum + calculateDailyTotal(item),
+            0,
+          ) * 100,
+        ) / 100;
+
+      // Для графика берем последние 10 дней и рассчитываем дневные потоки
+      const ethLast10 = ethereumData.slice(0, 10);
+      const btcLast10 = bitcoinData.slice(0, 10);
+
+      // Рассчитываем дневные потоки для графика
+      const ethereumDailyFlows: number[] = [];
+      const bitcoinDailyFlows: number[] = [];
+      const dates: string[] = [];
+
+      for (let i = 0; i < Math.max(ethLast10.length, btcLast10.length); i++) {
+        const ethItem = ethLast10[i];
+        const btcItem = btcLast10[i];
+
+        if (ethItem || btcItem) {
+          const date = ethItem?.date || btcItem?.date;
+          dates.push(date);
+
+          // Дневной поток - это значение поля total
+          const ethDailyFlow = ethItem ? getDailyFlow(ethItem) : 0;
+          const btcDailyFlow = btcItem ? getDailyFlow(btcItem) : 0;
+
+          ethereumDailyFlows.push(ethDailyFlow);
+          bitcoinDailyFlows.push(btcDailyFlow);
+        }
+      }
+
+      // Объединяем потоки для общего графика
+      const combinedDailyFlows: number[] = [];
+      const maxLength = Math.max(
+        ethereumDailyFlows.length,
+        bitcoinDailyFlows.length,
+      );
+      for (let i = 0; i < maxLength; i++) {
+        const ethFlow =
+          i < ethereumDailyFlows.length ? ethereumDailyFlows[i] : 0;
+        const btcFlow = i < bitcoinDailyFlows.length ? bitcoinDailyFlows[i] : 0;
+        combinedDailyFlows.push(Math.round((ethFlow + btcFlow) * 100) / 100);
+      }
+
+      return {
+        // Основные данные для отображения
+        bitcoin: {
+          totalAssets: bitcoinTotalAssets,
+          dailyFlow: bitcoinDailyFlow,
+          latestDate: latestBitcoin?.date || null,
+        },
+        ethereum: {
+          totalAssets: ethereumTotalAssets,
+          dailyFlow: ethereumDailyFlow,
+          latestDate: latestEthereum?.date || null,
+        },
+        overall: {
+          totalFlow: totalFlow,
+          isPositive: totalFlow >= 0,
+          lastUpdated: new Date().toISOString(),
+        },
+        // Данные для графика за 10 дней
+        chart: {
+          dates: dates,
+          ethereumDailyFlows: ethereumDailyFlows,
+          bitcoinDailyFlows: bitcoinDailyFlows,
+          combinedDailyFlows: combinedDailyFlows,
+        },
+      };
+    } catch (error) {
+      console.error('Ошибка при получении данных виджета:', error);
+      throw error;
+    }
+  }
 }

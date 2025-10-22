@@ -11,11 +11,16 @@ import SwiftUI
 struct APIConfig {
     static var baseURL: String {
         #if DEBUG
-        return "http://localhost:3066"
+        return "http://192.168.100.94:3066"
         #else
-        return "https://api-etf.vadimsemenko.ru"
+        return "http://192.168.100.94:3066" // Временно используем локальный IP
         #endif
     }
+}
+
+// Функция для определения цвета потока по знаку
+func flowColor(_ value: Double) -> Color {
+    return value >= 0 ? .green : .red
 }
 
 // Функция для форматирования даты в нужном формате
@@ -29,7 +34,15 @@ func formatUpdatedDate(_ dataDate: Date, _ lastUpdated: Date) -> String {
     let dateString = dateFormatter.string(from: dataDate)
     let timeString = timeFormatter.string(from: lastUpdated)
     
-    return "Updated: \(dateString) \(timeString)"
+    return "\(dateString) \(timeString)"
+}
+
+// Функция для форматирования только даты (без времени)
+func formatDateOnly(_ dataDate: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "dd.MM.yy"
+    
+    return dateFormatter.string(from: dataDate)
 }
 
 // Модель данных для ETF (потоки за день)
@@ -43,17 +56,21 @@ struct ETFWidgetData {
     let dataDate: Date
     let isPositive: Bool
     let last7DaysTotals: [Double]
+    let bitcoinDailyFlows: [Double]
+    let ethereumDailyFlows: [Double]
     
     static let placeholder = ETFWidgetData(
-        totalFlow: -365.5,
-        bitcoinFlow: -201.3,
-        ethereumFlow: -164.2,
-        bitcoinTotalAssets: 3520548397122.5,
-        ethereumTotalAssets: 3520548382366.1,
+        totalFlow: 618.9,
+        bitcoinFlow: 477.2,
+        ethereumFlow: 141.7,
+        bitcoinTotalAssets: 61942.9,
+        ethereumTotalAssets: 24866.5,
         lastUpdated: Date(),
         dataDate: Date(),
-        isPositive: false,
-        last7DaysTotals: [120, -80, 60, -30, 150, 40, -20]
+        isPositive: true,
+        last7DaysTotals: [618.9, -186.1, -598.9, -587.7, 65.5, 338.9, -754.9, 200.3, -150.2, 500.8],
+        bitcoinDailyFlows: [477.2, -40.4, -366.6, -530.9, -104.1, 102.7, -326.4, 150.2, -200.3, 300.4],
+        ethereumDailyFlows: [141.7, -145.7, -232.3, -56.8, 169.6, 236.2, -428.5, 100.1, -75.5, 200.4]
     )
 }
 
@@ -62,26 +79,37 @@ class ETFWidgetService {
     static let shared = ETFWidgetService()
     
     func fetchETFData() async -> ETFWidgetData? {
-        guard let summaryURL = URL(string: "\(APIConfig.baseURL)/api/etf-flow/summary"),
-              let last7URL = URL(string: "\(APIConfig.baseURL)/api/etf-flow/last7") else {
+        guard let widgetURL = URL(string: "\(APIConfig.baseURL)/api/etf-flow/widget") else {
             return nil
         }
         
         do {
-            async let summaryTask: (Data, URLResponse) = URLSession.shared.data(from: summaryURL)
-            async let last7Task: (Data, URLResponse) = URLSession.shared.data(from: last7URL)
-
-            let (summaryData, _) = try await summaryTask
-            let json = try JSONSerialization.jsonObject(with: summaryData) as? [String: Any]
+            var request = URLRequest(url: widgetURL)
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.timeoutInterval = 10.0
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             
             // Извлекаем данные из ответа API
             let bitcoinData = json?["bitcoin"] as? [String: Any]
             let ethereumData = json?["ethereum"] as? [String: Any]
+            let overallData = json?["overall"] as? [String: Any]
+            let chartData = json?["chart"] as? [String: Any]
             
-            // Получаем потоки (flows) для отображения
-            let bitcoinFlow = bitcoinData?["total"] as? Double ?? 0.0
-            let ethereumFlow = ethereumData?["total"] as? Double ?? 0.0
-            let totalFlow = bitcoinFlow + ethereumFlow
+            // Получаем суммарные активы
+            let bitcoinTotalAssets = bitcoinData?["totalAssets"] as? Double ?? 0.0
+            let ethereumTotalAssets = ethereumData?["totalAssets"] as? Double ?? 0.0
+            
+            // Получаем дневные потоки
+            let bitcoinDailyFlow = bitcoinData?["dailyFlow"] as? Double ?? 0.0
+            let ethereumDailyFlow = ethereumData?["dailyFlow"] as? Double ?? 0.0
+            let totalFlow = overallData?["totalFlow"] as? Double ?? 0.0
+            
+            // Получаем данные для графика
+            let combinedDailyFlows = chartData?["combinedDailyFlows"] as? [Double] ?? []
+            let bitcoinDailyFlows = chartData?["bitcoinDailyFlows"] as? [Double] ?? []
+            let ethereumDailyFlows = chartData?["ethereumDailyFlows"] as? [Double] ?? []
             
             // Пытаемся получить дату данных из API
             var dataDate = Date()
@@ -98,48 +126,23 @@ class ETFWidgetService {
                     dataDate = parsedDate
                 }
             }
-            
-            // Считываем последние 7 дней для мини-графика из нового эндпоинта
-            let (last7Data, _) = try await last7Task
-            let last7Json = try JSONSerialization.jsonObject(with: last7Data) as? [String: Any]
-            
-            // Извлекаем данные из новой структуры
-            let ethData = last7Json?["ethereum"] as? [String: Any]
-            let btcData = last7Json?["bitcoin"] as? [String: Any]
-            let chartData = last7Json?["chart"] as? [String: Any]
-            
-            // Получаем суммарные активы и дневные потоки
-            let ethereumTotalAssets = ethData?["totalAssets"] as? Double ?? 0.0
-            let bitcoinTotalAssets = btcData?["totalAssets"] as? Double ?? 0.0
-            let ethereumDailyFlow = ethData?["dailyFlow"] as? Double ?? 0.0
-            let bitcoinDailyFlow = btcData?["dailyFlow"] as? Double ?? 0.0
-            
-            // Данные для графика - объединяем ETH и BTC потоки
-            let ethereumDailyFlows = chartData?["ethereumDailyFlows"] as? [Double] ?? []
-            let bitcoinDailyFlows = chartData?["bitcoinDailyFlows"] as? [Double] ?? []
-            
-            // Объединяем потоки ETH и BTC для общего графика
-            var combinedDailyFlows: [Double] = []
-            let maxLength = max(ethereumDailyFlows.count, bitcoinDailyFlows.count)
-            for i in 0..<maxLength {
-                let ethFlow = i < ethereumDailyFlows.count ? ethereumDailyFlows[i] : 0.0
-                let btcFlow = i < bitcoinDailyFlows.count ? bitcoinDailyFlows[i] : 0.0
-                combinedDailyFlows.append(ethFlow + btcFlow)
-            }
 
             return ETFWidgetData(
-                totalFlow: ethereumDailyFlow + bitcoinDailyFlow, // Общий дневной поток
+                totalFlow: totalFlow, // Общий дневной поток
                 bitcoinFlow: bitcoinDailyFlow, // Дневной поток BTC
                 ethereumFlow: ethereumDailyFlow, // Дневной поток ETH
                 bitcoinTotalAssets: bitcoinTotalAssets, // Суммарные активы BTC
                 ethereumTotalAssets: ethereumTotalAssets, // Суммарные активы ETH
                 lastUpdated: Date(),
                 dataDate: dataDate,
-                isPositive: (ethereumDailyFlow + bitcoinDailyFlow) >= 0,
-                last7DaysTotals: combinedDailyFlows // дневные потоки для графика
+                isPositive: overallData?["isPositive"] as? Bool ?? true,
+                last7DaysTotals: combinedDailyFlows, // дневные потоки для общего графика (10 дней)
+                bitcoinDailyFlows: bitcoinDailyFlows, // дневные потоки BTC (10 дней)
+                ethereumDailyFlows: ethereumDailyFlows // дневные потоки ETH (10 дней)
             )
         } catch {
-            print("Ошибка загрузки данных виджета: \(error)")
+            print("❌ Widget Error: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
             return nil
         }
     }
@@ -194,10 +197,16 @@ struct ETFTrackerWidgetEntryView : View {
         switch family {
         case .systemSmall:
             SmallWidgetView(entry: entry)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
         case .systemMedium:
             MediumWidgetView(entry: entry)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
         default:
             SmallWidgetView(entry: entry)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
         }
     }
 }
@@ -207,95 +216,90 @@ struct SmallWidgetView: View {
     var entry: Provider.Entry
     
     var body: some View {
-        Link(destination: URL(string: "etfapp://open")!) {
-            VStack(spacing: 10) {
-                // Верхняя строка только с общим потоком
-                HStack {
-                    Spacer()
-                    Text(String(format: "%.1fM", entry.etfData.totalFlow))
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(entry.etfData.isPositive ? .green : .red)
+        VStack(spacing: 0) {
+            // BTC секция
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("BTC")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text("Bitcoin ETF")
+                        .font(.system(size: 9))
+                        .foregroundColor(.secondary)
                 }
-                // Мини-график за 7 дней
-                MiniBarsView(values: entry.etfData.last7DaysTotals)
-                    .frame(height: 26)
-                // Низ с разбивкой BTC/ETH в стиле финансового виджета
-                VStack(spacing: 6) {
-                    // BTC строка
-                    HStack {
-                        // Иконка и название
-                        HStack(spacing: 4) {
-                            Image(systemName: "triangle.fill")
-                                .font(.system(size: 8))
-                                .foregroundColor(.green)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("BTC-ETF")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(.primary)
-                                Text("Bitcoin ETF")
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // Мини-график (простая линия)
-                        MiniLineChart(values: entry.etfData.last7DaysTotals.map { $0 / 100 }) // масштабируем для мини-графика
-                            .frame(width: 30, height: 12)
-                        
-                        Spacer()
-                        
-                        // Значения
-                        VStack(alignment: .trailing, spacing: 1) {
-                            Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000_000_000))
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.primary)
-                            Text(String(format: "%.0fM", entry.etfData.bitcoinFlow))
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(entry.etfData.bitcoinFlow >= 0 ? .green : .red)
-                        }
-                    }
-                    
-                    // ETH строка
-                    HStack {
-                        // Иконка и название
-                        HStack(spacing: 4) {
-                            Image(systemName: "triangle.fill")
-                                .font(.system(size: 8))
-                                .foregroundColor(.green)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("ETH-ETF")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(.primary)
-                                Text("Ethereum ETF")
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // Мини-график (простая линия)
-                        MiniLineChart(values: entry.etfData.last7DaysTotals.map { $0 / 100 }) // масштабируем для мини-графика
-                            .frame(width: 30, height: 12)
-                        
-                        Spacer()
-                        
-                        // Значения
-                        VStack(alignment: .trailing, spacing: 1) {
-                            Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000_000_000))
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.primary)
-                            Text(String(format: "%.0fM", entry.etfData.ethereumFlow))
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(entry.etfData.ethereumFlow >= 0 ? .green : .red)
-                        }
-                    }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
+                    Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
+                        .font(.system(size: 10))
+                        .foregroundColor(.primary)
                 }
             }
-            .padding(12)
+            .padding(.horizontal, 2)
+            .padding(.vertical, 10)
+            
+            // Разделитель
+            Rectangle()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(height: 0.5)
+            
+            // ETH секция
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("ETH")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text("Ethereum ETF")
+                        .font(.system(size: 9))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(flowColor(entry.etfData.ethereumFlow))
+                    Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
+                        .font(.system(size: 10))
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding(.horizontal, 2)
+            .padding(.vertical, 10)
+            
+            // Разделитель
+            Rectangle()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(height: 0.5)
+            
+            // Общий результат
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Total")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text(formatDateOnly(entry.etfData.dataDate))
+                        .font(.system(size: 9))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Text(String(format: "%+.1fM", entry.etfData.totalFlow))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(flowColor(entry.etfData.totalFlow))
+            }
+            .padding(.horizontal, 2)
+            .padding(.vertical, 10)
+            
         }
+        .padding(.vertical, 10)
+        .widgetURL(URL(string: "etfapp://open"))
     }
 }
 
@@ -304,56 +308,111 @@ struct MediumWidgetView: View {
     var entry: Provider.Entry
     
     var body: some View {
-        Link(destination: URL(string: "etfapp://open")!) {
-            VStack(spacing: 10) {
-                // Верхняя строка только с общим потоком
-                HStack {
-                    Spacer()
-                    Text(String(format: "%.1fM", entry.etfData.totalFlow))
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(entry.etfData.isPositive ? .green : .red)
+        VStack(spacing: 0) {
+            // BTC секция
+            HStack(spacing: 12) {
+                // BTC слева
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("BTC")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text("Bitcoin ETF")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
                 }
-                MiniBarsView(values: entry.etfData.last7DaysTotals)
-                    .frame(height: 36)
-                HStack {
-                    VStack(alignment: .leading, spacing: 6) {
-                        // BTC суммарные активы и дневной поток
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("BTC")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
-                                Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000_000_000))
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.primary)
-                            }
-                            Text(String(format: "%.0fM", entry.etfData.bitcoinFlow))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(entry.etfData.bitcoinFlow >= 0 ? .green : .red)
-                        }
-                        // ETH суммарные активы и дневной поток
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("ETH")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
-                                Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000_000_000))
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.primary)
-                            }
-                            Text(String(format: "%.0fM", entry.etfData.ethereumFlow))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(entry.etfData.ethereumFlow >= 0 ? .green : .red)
-                        }
-                    }
-                    Spacer()
+                .frame(width: 100, alignment: .leading) // Фиксированная ширина
+                
+                Spacer()
+                
+                // Мини-график в центре
+                MiniBarsView(values: entry.etfData.bitcoinDailyFlows)
+                    .frame(width: 60, height: 30)
+                
+                Spacer()
+                
+                // Значение потока и суммарные активы справа
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
+                    Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            
+            // Разделитель
+            Rectangle()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(height: 0.5)
+                .padding(.vertical, 2)
+            
+            // ETH секция
+            HStack(spacing: 12) {
+                // ETH слева
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ETH")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.primary)
+                    Text("Ethereum ETF")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .frame(width: 100, alignment: .leading) // Фиксированная ширина
+                
+                Spacer()
+                
+                // Мини-график в центре
+                MiniBarsView(values: entry.etfData.ethereumDailyFlows)
+                    .frame(width: 60, height: 30)
+                
+                Spacer()
+                
+                // Значение потока и суммарные активы справа
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(flowColor(entry.etfData.ethereumFlow))
+                    Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            
+            // Разделитель
+            Rectangle()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(height: 0.5)
+                .padding(.vertical, 2)
+            
+            // Inflow секция
+            HStack(spacing: 12) {
+                // Total текст и дата
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primary)
                     Text(formatUpdatedDate(entry.etfData.dataDate, entry.etfData.lastUpdated))
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
+                
+                Spacer()
+                
+                // Общее значение
+                Text(String(format: "%+.1fM", entry.etfData.totalFlow))
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(flowColor(entry.etfData.totalFlow))
             }
-            .padding(16)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
         }
+        .padding(.vertical, 6) // 👉 добавь этот отступ
+        .widgetURL(URL(string: "etfapp://open"))
     }
 }
 
@@ -368,34 +427,23 @@ struct MiniBarsView: View {
     var body: some View {
         GeometryReader { geometry in
             let barWidth = geometry.size.width / CGFloat(max(values.count, 1)) * 0.7
-            let centerY = geometry.size.height / 2
+            let spacing = geometry.size.width / CGFloat(max(values.count, 1)) * 0.3
 
-            ZStack(alignment: .center) {
-                Capsule()
-                    .fill(Color.secondary.opacity(0.2))
-                    .frame(height: 1)
-                    .offset(y: 0)
-
-                HStack(alignment: .bottom, spacing: geometry.size.width / CGFloat(max(values.count, 1)) * 0.3) {
-                    ForEach(Array(values.enumerated()), id: \.offset) { item in
-                        let value = item.element
-                        let height = CGFloat(abs(value) / maxAbsValue) * (geometry.size.height / 2)
-                        let color: Color = value >= 0 ? .green : .red
-                        Rectangle()
-                            .fill(color)
-                            .frame(width: barWidth, height: height)
-                            .offset(y: value >= 0 ? -height/2 : height/2)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .offset(y: 0)
-                .overlay(
+            HStack(alignment: .bottom, spacing: spacing) {
+                // Переворачиваем массив, чтобы последние данные были справа
+                ForEach(Array(values.reversed().enumerated()), id: \.offset) { item in
+                    let value = item.element
+                    // Высота бара всегда отсчитывается от низа
+                    let height = CGFloat(abs(value) / maxAbsValue) * geometry.size.height * 0.9
+                    let color: Color = value >= 0 ? .green : .red
+                    
                     Rectangle()
-                        .fill(Color.secondary.opacity(0.15))
-                        .frame(height: 1)
-                        .position(x: geometry.size.width/2, y: centerY)
-                )
+                        .fill(color)
+                        .frame(width: barWidth, height: max(height, 1)) // Минимальная высота 1 пиксель
+                        .cornerRadius(barWidth / 4) // Закругленные углы
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }
     }
 }
@@ -451,35 +499,21 @@ struct ETFTrackerWidget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             if #available(iOS 17.0, *) {
                 ETFTrackerWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
+                    .containerBackground(for: .widget) { Color.black }
             } else {
                 ETFTrackerWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
+                    .padding(8)
+                    .background(Color.black)
+                    .cornerRadius(12)
             }
         }
+        .contentMarginsDisabled() // 🔥 отключает системные паддинги
         .configurationDisplayName("Crypto ETF Flow")
         .description("Отслеживает потоки Bitcoin и Ethereum ETF")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
-#Preview(as: .systemSmall) {
-    ETFTrackerWidget()
-} timeline: {
-    SimpleEntry(date: .now, etfData: ETFWidgetData.placeholder)
-    SimpleEntry(date: .now, etfData: ETFWidgetData(
-        totalFlow: 980.2,
-        bitcoinFlow: 650.1,
-        ethereumFlow: 330.1,
-        bitcoinTotalAssets: 3520548397122.5,
-        ethereumTotalAssets: 3520548382366.1,
-        lastUpdated: .now,
-        dataDate: .now,
-        isPositive: false,
-        last7DaysTotals: [100, -50, 80, -20, 60, 40, -10]
-    ))
-}
 
 #Preview(as: .systemMedium) {
     ETFTrackerWidget()

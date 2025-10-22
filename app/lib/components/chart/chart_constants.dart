@@ -59,8 +59,9 @@ class ChartStyles {
 class ChartDimensions {
   // Размеры осей
   static const double leftAxisReservedSize =
-      50.0; // Увеличено для предотвращения переноса
-  static const double bottomAxisReservedSize = 40.0;
+      24.0; // Уменьшено для предотвращения переполнения
+  static const double bottomAxisReservedSize =
+      30.0; // Достаточно места для дат без фиксированных контейнеров
 
   // Ширина столбцов
   static const double dailyBarWidth = 2.0;

@@ -525,11 +525,39 @@ class NotificationSettingsScreen extends StatelessWidget {
 
     // Если пользователь премиум или выключает уведомления
     print('🔍 NotificationSettingsScreen: Сохраняем настройки на сервере');
+
+    // Показываем индикатор загрузки при включении уведомлений
+    if (value) {
+      _showLoadingDialog(context);
+    }
+
     await notificationProvider.toggleNotifications(value);
+
+    // Закрываем диалог загрузки
+    if (value && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
 
     // UI обновится автоматически через Consumer2
     print(
       '🔍 NotificationSettingsScreen: UI обновится автоматически через Consumer2',
+    );
+  }
+
+  /// Показать диалог загрузки при запросе разрешений
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text('notifications.requesting_permissions'.tr()),
+          ],
+        ),
+      ),
     );
   }
 

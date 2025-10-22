@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../providers/theme_provider.dart';
@@ -15,11 +16,12 @@ import '../services/subscription_service.dart';
 import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
 import '../utils/haptic_feedback.dart';
-import '../widgets/pro_button.dart';
 import '../config/app_config.dart';
 import 'notification_settings_screen.dart';
 import 'theme_selection_screen.dart';
 import 'language_selection_screen.dart';
+import 'subscription_selection_screen.dart';
+import '../utils/adaptive_text_utils.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -32,6 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isCheckingSubscription = false;
   bool? _cachedSubscriptionStatus;
   int _versionTapCount = 0;
+  String _appVersion = '1.0.0'; // Версия по умолчанию
 
   @override
   void initState() {
@@ -39,6 +42,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     // Логируем просмотр экрана настроек
     AnalyticsService.logScreenView(screenName: 'settings');
+
+    // Загружаем версию приложения
+    _loadAppVersion();
 
     // Обновляем статус подписки при открытии экрана
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -53,39 +59,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('settings.title'.tr()),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0A0A0A)
-            : Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        actions: [
-          // Кнопка Pro
-          const ProButton(),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Внешний вид
-          _buildAppearanceSection(),
+      body: SafeArea(
+        child: ListView(
+          padding: AdaptiveTextUtils.getContentPadding(context),
+          children: [
+            // Заголовок как в Fund Holdings
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                'settings.title'.tr(),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 32, // Увеличен размер шрифта
+                  color: Theme.of(context).textTheme.headlineMedium?.color,
+                ),
+              ),
+            ),
+            // Внешний вид
+            _buildAppearanceSection(),
 
-          // Язык
-          _buildLanguageSection(),
+            // Язык
+            _buildLanguageSection(),
 
-          // Уведомления
-          _buildNotificationSection(),
+            // Уведомления
+            _buildNotificationSection(),
 
-          // Подписка
-          _buildSubscriptionSection(),
+            // Подписка
+            _buildSubscriptionSection(),
 
-          // Device ID
-          _buildDeviceIdSection(),
+            // Device ID
+            _buildDeviceIdSection(),
 
-          // О приложении
-          _buildAboutSection(),
-        ],
+            // О приложении
+            _buildAboutSection(),
+          ],
+        ),
       ),
     );
   }
@@ -249,16 +257,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Colors.blue,
                           ),
                         ),
-                      )
-                    else
-                      Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey.withOpacity(0.6),
-                        size: 20,
                       ),
                   ],
                 ),
               ),
+              // Pro Button
+              GestureDetector(
+                onTap: () {
+                  HapticUtils.lightImpact();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const SubscriptionSelectionScreen(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(0.0, 1.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeOutCubic;
+
+                            var tween = Tween(
+                              begin: begin,
+                              end: end,
+                            ).chain(CurveTween(curve: curve));
+
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                      transitionDuration: const Duration(milliseconds: 400),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.grey.withOpacity(0.2),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF6B35), Color(0xFFFFD23F)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.workspace_premium,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'subscription.upgrade_to_pro'.tr(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Разделитель
+              Container(height: 0.5, color: Colors.grey.withOpacity(0.2)),
               GestureDetector(
                 onTap: _isCheckingSubscription
                     ? null
@@ -514,14 +588,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.fingerprint,
-                      color: isDark
-                          ? Colors.grey.withOpacity(0.6)
-                          : Colors.grey.withOpacity(0.7),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,42 +836,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: isDark
-                          ? Colors.grey.withOpacity(0.6)
-                          : Colors.grey.withOpacity(0.7),
-                      size: 20,
+                    Text(
+                      'app.title'.tr(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'app.title'.tr(),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          GestureDetector(
-                            onTap: _onVersionTap,
-                            child: Text(
-                              '${'settings.version'.tr()} 1.0.0',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark
-                                    ? Colors.grey.withOpacity(0.6)
-                                    : Colors.grey.withOpacity(0.5),
-                              ),
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: _onVersionTap,
+                      child: Text(
+                        '${'settings.version'.tr()} $_appVersion',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? Colors.grey.withOpacity(0.6)
+                              : Colors.grey.withOpacity(0.5),
+                        ),
                       ),
                     ),
                   ],
@@ -827,6 +879,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = packageInfo.version;
+        });
+      }
+    } catch (e) {
+      // Если не удалось загрузить версию, оставляем значение по умолчанию
+      print('Ошибка загрузки версии приложения: $e');
+    }
   }
 
   Future<void> _onVersionTap() async {
@@ -857,6 +923,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _refreshSubscriptionStatus() async {
+    if (!mounted) return;
+
     setState(() {
       _isCheckingSubscription = true;
       _cachedSubscriptionStatus = null;
@@ -877,7 +945,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Принудительно обновляем статус из RevenueCat
       await subscriptionProvider.refreshSubscriptionStatus();
 
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -888,13 +958,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isCheckingSubscription = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCheckingSubscription = false;
+        });
+      }
     }
   }
 
   Future<void> _handleRestorePurchases() async {
+    if (!mounted) return;
+
     setState(() {
       _isCheckingSubscription = true;
     });
@@ -932,7 +1006,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       // Обновляем локальный кэш
       _cachedSubscriptionStatus = isPremium;
-      setState(() {});
+
+      if (mounted) {
+        setState(() {});
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

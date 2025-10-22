@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
+import '../utils/adaptive_text_utils.dart';
 
 class FlowCalendar extends StatefulWidget {
   final List<dynamic> flowData;
@@ -93,27 +94,30 @@ class _FlowCalendarState extends State<FlowCalendar> {
         children: [
           // Заголовок
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: AdaptiveTextUtils.getCardPadding(context),
             child: Row(
               children: [
                 Text(
                   widget.title,
-                  style: TextStyle(
-                    fontSize: 18,
+                  style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                    context,
+                    'headlineSmall',
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    customBaseSize: 18.0,
                   ),
                 ),
                 const Spacer(),
                 if (_selectedDay != null)
                   Text(
                     _formatAmount(_getTotalForMonth(_focusedDay)),
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                      context,
+                      'bodyMedium',
                       fontWeight: FontWeight.bold,
                       color: _getTotalForMonth(_focusedDay) >= 0
                           ? Colors.green
                           : Colors.red,
+                      customBaseSize: 14.0,
                     ),
                   ),
               ],
@@ -321,7 +325,9 @@ class _FlowCalendarState extends State<FlowCalendar> {
               }
             },
             onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
+              setState(() {
+                _focusedDay = focusedDay;
+              });
             },
           ),
 

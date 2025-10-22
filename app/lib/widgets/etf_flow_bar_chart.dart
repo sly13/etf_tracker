@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
+import '../utils/adaptive_text_utils.dart';
 
 enum ChartPeriod { daily, weekly, monthly }
 
@@ -261,8 +262,10 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     Color color,
     bool isDark,
   ) {
+    final sizes = AdaptiveTextUtils.getChartSizes(context);
+
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: EdgeInsets.all(sizes['padding']! * 0.75),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
         borderRadius: BorderRadius.circular(6),
@@ -270,26 +273,30 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 12),
-          const SizedBox(height: 2),
+          Icon(icon, color: color, size: sizes['iconSize']),
+          SizedBox(height: sizes['padding']! * 0.25),
           Text(
             title,
-            style: const TextStyle(
+            style: AdaptiveTextUtils.createAdaptiveTextStyle(
+              context,
+              'labelSmall',
               color: Colors.grey,
-              fontSize: 8,
               fontWeight: FontWeight.w500,
+              customBaseSize: sizes['metricFontSize'],
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 1),
+          SizedBox(height: sizes['padding']! * 0.125),
           Text(
             value,
-            style: TextStyle(
+            style: AdaptiveTextUtils.createAdaptiveTextStyle(
+              context,
+              'labelSmall',
               color: color,
-              fontSize: 11,
               fontWeight: FontWeight.bold,
+              customBaseSize: sizes['valueFontSize'],
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -313,7 +320,9 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableHeight = constraints.maxHeight;
-        final minHeight = 60.0; // Минимальная высота для графика
+        final sizes = AdaptiveTextUtils.getChartSizes(context);
+        final minHeight =
+            sizes['axisHeight']! * 1.5; // Уменьшили минимальную высоту
 
         if (availableHeight < minHeight) {
           // Если места очень мало, показываем упрощенную версию
@@ -325,7 +334,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
           child: Row(
             children: [
               // Фиксированная шкала слева (только если достаточно места)
-              if (availableHeight >= 80)
+              if (availableHeight >= sizes['axisHeight']! * 2.5)
                 SizedBox(
                   width: 60,
                   child: Column(
@@ -343,7 +352,7 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
                   child: SizedBox(
                     width: _getChartWidth(),
                     child: _buildScrollableChart(
-                      showAxis: availableHeight >= 80,
+                      showAxis: availableHeight >= sizes['axisHeight']! * 2.5,
                     ),
                   ),
                 ),
@@ -374,23 +383,26 @@ class _ETFFlowBarChartState extends State<ETFFlowBarChart> {
     final maxY = _getMaxY();
     final minY = _getMinY();
     final interval = _getLeftInterval();
+    final sizes = AdaptiveTextUtils.getChartSizes(context);
 
     final List<Widget> axisLabels = [];
 
     for (double value = maxY; value >= minY; value -= interval) {
       axisLabels.add(
         SizedBox(
-          height: 25, // Увеличиваем высоту для лучшего выравнивания
+          height: sizes['axisHeight'],
           child: Align(
             alignment: Alignment.centerRight,
             child: Padding(
-              padding: const EdgeInsets.only(right: 12.0), // Увеличиваем отступ
+              padding: EdgeInsets.only(right: sizes['padding']! * 1.5),
               child: Text(
                 _formatAxisValue(value),
-                style: TextStyle(
+                style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                  context,
+                  'labelSmall',
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  fontSize: 11, // Увеличиваем размер шрифта
                   fontWeight: FontWeight.w500,
+                  customBaseSize: sizes['axisFontSize'],
                 ),
               ),
             ),

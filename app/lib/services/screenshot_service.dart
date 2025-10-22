@@ -88,6 +88,8 @@ class ScreenshotService {
       builder: (context) => AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.all(20),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         title: Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 24),
@@ -120,7 +122,7 @@ class ScreenshotService {
             // Показываем изображение
             Container(
               width: double.infinity,
-              height: 200,
+              height: 300,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(

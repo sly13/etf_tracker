@@ -66,9 +66,64 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
+  /// Запрос разрешений на уведомления
+  Future<bool> requestNotificationPermissions() async {
+    if (!_isInitialized) {
+      debugPrint('❌ NotificationProvider: Сервис не инициализирован');
+      return false;
+    }
+
+    try {
+      debugPrint(
+        '🔔 NotificationProvider: Запрашиваем разрешения на уведомления...',
+      );
+      final granted = await NotificationService.requestPermissions();
+
+      if (granted) {
+        debugPrint('✅ NotificationProvider: Разрешения предоставлены');
+        // Обновляем FCM токен после получения разрешений
+        await refreshToken();
+      } else {
+        debugPrint('❌ NotificationProvider: Разрешения отклонены');
+      }
+
+      notifyListeners();
+      return granted;
+    } catch (e) {
+      debugPrint('❌ NotificationProvider: Ошибка запроса разрешений: $e');
+      return false;
+    }
+  }
+
+  /// Проверка статуса разрешений на уведомления
+  Future<bool> checkNotificationPermissions() async {
+    if (!_isInitialized) {
+      return false;
+    }
+
+    try {
+      return await NotificationService.checkPermissions();
+    } catch (e) {
+      debugPrint('❌ NotificationProvider: Ошибка проверки разрешений: $e');
+      return false;
+    }
+  }
+
   /// Переключение уведомлений
   Future<void> toggleNotifications(bool enabled) async {
     debugPrint('🔍 NotificationProvider: Переключаем уведомления на: $enabled');
+
+    // Если включаем уведомления, сначала проверяем разрешения
+    if (enabled && !await checkNotificationPermissions()) {
+      debugPrint(
+        '🔔 NotificationProvider: Разрешения не предоставлены, запрашиваем...',
+      );
+      final granted = await requestNotificationPermissions();
+      if (!granted) {
+        debugPrint('❌ NotificationProvider: Не удалось получить разрешения');
+        return;
+      }
+    }
 
     _notificationsEnabled = enabled;
 

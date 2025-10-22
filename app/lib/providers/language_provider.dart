@@ -62,12 +62,20 @@ class LanguageProvider with ChangeNotifier {
       if (supportedLanguages.contains(systemLanguageCode)) {
         _currentLocale = Locale(systemLanguageCode);
         print('🌍 Определен язык системы: $systemLanguageCode');
+
+        // Сохраняем автоматически определенный язык
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_languageKey, systemLanguageCode);
       } else {
         // Если язык системы не поддерживается, используем английский
         _currentLocale = const Locale('en');
         print(
           '🌍 Язык системы $systemLanguageCode не поддерживается, используется английский',
         );
+
+        // Сохраняем английский как выбранный язык
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_languageKey, 'en');
       }
 
       notifyListeners();
@@ -87,6 +95,19 @@ class LanguageProvider with ChangeNotifier {
       await prefs.setString(_languageKey, locale.languageCode);
     } catch (e) {
       // Игнорируем ошибки сохранения
+    }
+  }
+
+  /// Сбросить язык к системному
+  Future<void> resetToSystemLanguage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_languageKey); // Удаляем сохраненный язык
+      await _detectSystemLanguage(); // Определяем язык системы заново
+    } catch (e) {
+      // При ошибке используем английский по умолчанию
+      _currentLocale = const Locale('en');
+      notifyListeners();
     }
   }
 

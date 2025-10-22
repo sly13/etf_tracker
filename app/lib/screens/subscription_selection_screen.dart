@@ -147,12 +147,7 @@ class _SubscriptionSelectionScreenState
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1,
-                                  ),
                                 ),
                                 child: Text(
                                   'subscription.unlock_premium_today'.tr(),

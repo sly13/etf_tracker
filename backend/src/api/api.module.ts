@@ -8,6 +8,7 @@ import { SummaryModule } from './summary/summary.module';
 import { FundsModule } from './funds/funds.module';
 import { MLModule } from './ml/ml.module';
 import { CandlesModule } from './candles/candles.module';
+import { DataSyncModule } from './sync/data-sync.module';
 import { TestNotificationController } from './test-notification.controller';
 
 @Module({
@@ -21,6 +22,7 @@ import { TestNotificationController } from './test-notification.controller';
     FundsModule,
     MLModule,
     CandlesModule,
+    DataSyncModule,
   ],
   controllers: [TestNotificationController],
   exports: [
@@ -33,6 +35,7 @@ import { TestNotificationController } from './test-notification.controller';
     FundsModule,
     MLModule,
     CandlesModule,
+    DataSyncModule,
   ],
 })
 export class ApiModule {}

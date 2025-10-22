@@ -32,102 +32,109 @@ class FlowChart extends StatelessWidget {
         right: ChartStyles.chartPadding.right,
         bottom: ChartStyles.chartPadding.bottom,
       ),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.start,
-          maxY: _getRoundedMaxY(),
-          minY: _getRoundedMinY(),
-          groupsSpace: ChartDimensions.groupsSpace,
-          barTouchData: BarTouchData(
-            enabled: true,
-            handleBuiltInTouches: true,
-            touchTooltipData: BarTouchTooltipData(
-              tooltipBgColor: ChartColors.cardBackground,
-              tooltipRoundedRadius: 8,
-              tooltipPadding: const EdgeInsets.all(12),
-              tooltipMargin: 10,
-              tooltipHorizontalAlignment: FLHorizontalAlignment.center,
-              maxContentWidth: 200,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final data = filteredData[group.x.toInt()];
-                final date = DateTime.parse(data.date);
-                String dateFormat;
-                switch (selectedPeriod) {
-                  case ChartPeriod.daily:
-                    dateFormat = 'dd MMM yyyy';
-                    break;
-                  case ChartPeriod.weekly:
-                    dateFormat = 'dd MMM yyyy';
-                    break;
-                  case ChartPeriod.monthly:
-                    dateFormat = 'MMM yyyy';
-                    break;
-                }
-                final valueInMillions = rod.toY;
-                return BarTooltipItem(
-                  '${DateFormat(dateFormat, 'en_US').format(date)}\n${_formatTooltipValue(valueInMillions)}',
-                  const TextStyle(
-                    color: ChartColors.primaryText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              },
-            ),
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: ChartDimensions.leftAxisReservedSize,
-                interval: _getLeftInterval(),
-                getTitlesWidget: (value, meta) {
-                  return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Container(
-                      width:
-                          45, // Фиксированная ширина для предотвращения переноса
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        _formatAxisValue(value),
-                        style: const TextStyle(
-                          color: ChartColors.secondaryText,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.right,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+      child: SizedBox(
+        height: 200, // Фиксированная высота для предотвращения переполнения
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.start,
+            maxY: _getRoundedMaxY(),
+            minY: _getRoundedMinY(),
+            groupsSpace: ChartDimensions.groupsSpace,
+            barTouchData: BarTouchData(
+              enabled: true,
+              handleBuiltInTouches: true,
+              touchTooltipData: BarTouchTooltipData(
+                tooltipBgColor: ChartColors.cardBackground,
+                tooltipRoundedRadius: 8,
+                tooltipPadding: const EdgeInsets.all(12),
+                tooltipMargin: 10,
+                tooltipHorizontalAlignment: FLHorizontalAlignment.center,
+                maxContentWidth: 200,
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  final data = filteredData[group.x.toInt()];
+                  final date = DateTime.parse(data.date);
+                  String dateFormat;
+                  switch (selectedPeriod) {
+                    case ChartPeriod.daily:
+                      dateFormat = 'dd MMM yyyy';
+                      break;
+                    case ChartPeriod.weekly:
+                      dateFormat = 'dd MMM yyyy';
+                      break;
+                    case ChartPeriod.monthly:
+                      dateFormat = 'MMM yyyy';
+                      break;
+                  }
+                  final valueInMillions = rod.toY;
+                  return BarTooltipItem(
+                    '${DateFormat(dateFormat, 'en_US').format(date)}\n${_formatTooltipValue(valueInMillions)}',
+                    const TextStyle(
+                      color: ChartColors.primaryText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
                   );
                 },
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: ChartDimensions.bottomAxisReservedSize,
-                interval: _getInterval(),
-                getTitlesWidget: (value, meta) {
-                  if (selectedPeriod == ChartPeriod.daily) {
-                    // Для дневного периода показываем только первую и последнюю дату
-                    if (value.toInt() == 0) {
-                      // Первая дата - позиционируем в начале
-                      final firstDate = DateTime.parse(filteredData.first.date);
-                      return SideTitleWidget(
+            titlesData: FlTitlesData(
+              show: true,
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: ChartDimensions.leftAxisReservedSize,
+                  interval: _getLeftInterval(),
+                  getTitlesWidget: (value, meta) {
+                    return SizedBox(
+                      height: 35, // Фиксированная высота для всего виджета
+                      child: SideTitleWidget(
                         axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+                        child: Container(
+                          width:
+                              45, // Фиксированная ширина для предотвращения переноса
+                          height:
+                              35, // Фиксированная высота для предотвращения переполнения
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            _formatAxisValue(value),
+                            style: const TextStyle(
+                              color: ChartColors.secondaryText,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: ChartDimensions.bottomAxisReservedSize,
+                  interval: _getInterval(),
+                  getTitlesWidget: (value, meta) {
+                    if (selectedPeriod == ChartPeriod.daily) {
+                      // Для дневного периода показываем только первую и последнюю дату
+                      if (value.toInt() == 0) {
+                        // Первая дата - позиционируем в начале
+                        final firstDate = DateTime.parse(
+                          filteredData.first.date,
+                        );
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
                           child: Padding(
-                            padding: const EdgeInsets.only(left: 50.0),
+                            padding: const EdgeInsets.only(left: 20.0),
                             child: Text(
                               DateFormat(
                                 'dd MMM yyyy',
@@ -135,49 +142,57 @@ class FlowChart extends StatelessWidget {
                               ).format(firstDate),
                               style: const TextStyle(
                                 color: ChartColors.secondaryText,
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      } else if (value.toInt() == filteredData.length - 1) {
+                        // Последняя дата - всегда показываем, но с правильным позиционированием
+                        final lastDate = DateTime.parse(filteredData.last.date);
+                        return SizedBox(
+                          height: 70, // Фиксированная высота для всего виджета
+                          child: SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Container(
+                              height:
+                                  70, // Фиксированная высота для предотвращения переполнения
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 60.0),
+                                child: Text(
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                    'en_US',
+                                  ).format(lastDate),
+                                  style: const TextStyle(
+                                    color: ChartColors.secondaryText,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    } else if (value.toInt() == filteredData.length - 1) {
-                      // Последняя дата - всегда показываем, но с правильным позиционированием
-                      final lastDate = DateTime.parse(filteredData.last.date);
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+                        );
+                      }
+                      return const Text('');
+                    } else if (selectedPeriod == ChartPeriod.weekly) {
+                      // Для недельного периода показываем только первую и последнюю дату
+                      if (value.toInt() == 0) {
+                        // Первая дата недели
+                        final firstDate = DateTime.parse(
+                          filteredData.first.date,
+                        );
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 60.0),
-                            child: Text(
-                              DateFormat(
-                                'dd MMM yyyy',
-                                'en_US',
-                              ).format(lastDate),
-                              style: const TextStyle(
-                                color: ChartColors.secondaryText,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    return const Text('');
-                  } else if (selectedPeriod == ChartPeriod.weekly) {
-                    // Для недельного периода показываем только первую и последнюю дату
-                    if (value.toInt() == 0) {
-                      // Первая дата недели
-                      final firstDate = DateTime.parse(filteredData.first.date);
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 50.0),
+                            padding: const EdgeInsets.only(left: 20.0),
                             child: Text(
                               DateFormat(
                                 'dd MMM yyyy',
@@ -185,22 +200,21 @@ class FlowChart extends StatelessWidget {
                               ).format(firstDate),
                               style: const TextStyle(
                                 color: ChartColors.secondaryText,
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w500,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                      );
-                    } else if (value.toInt() == filteredData.length - 1) {
-                      // Последняя дата недели
-                      final lastDate = DateTime.parse(filteredData.last.date);
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+                        );
+                      } else if (value.toInt() == filteredData.length - 1) {
+                        // Последняя дата недели
+                        final lastDate = DateTime.parse(filteredData.last.date);
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 80.0),
+                            padding: const EdgeInsets.only(right: 20.0),
                             child: Text(
                               DateFormat(
                                 'dd MMM yyyy',
@@ -208,85 +222,109 @@ class FlowChart extends StatelessWidget {
                               ).format(lastDate),
                               style: const TextStyle(
                                 color: ChartColors.secondaryText,
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    } else if (selectedPeriod == ChartPeriod.monthly) {
+                      // Для месячного периода показываем только первую и последнюю дату
+                      if (value.toInt() == 0) {
+                        // Первая дата месяца
+                        final firstDate = DateTime.parse(
+                          filteredData.first.date,
+                        );
+                        return SizedBox(
+                          height: 70, // Фиксированная высота для всего виджета
+                          child: SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Container(
+                              height:
+                                  70, // Фиксированная высота для предотвращения переполнения
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 50.0),
+                                child: Text(
+                                  DateFormat(
+                                    'MMM yyyy',
+                                    'en_US',
+                                  ).format(firstDate),
+                                  style: const TextStyle(
+                                    color: ChartColors.secondaryText,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
+                        );
+                      } else if (value.toInt() == filteredData.length - 1) {
+                        // Последняя дата месяца
+                        final lastDate = DateTime.parse(filteredData.last.date);
+                        return SizedBox(
+                          height: 70, // Фиксированная высота для всего виджета
+                          child: SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Container(
+                              height:
+                                  70, // Фиксированная высота для предотвращения переполнения
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 80.0),
+                                child: Text(
+                                  DateFormat(
+                                    'MMM yyyy',
+                                    'en_US',
+                                  ).format(lastDate),
+                                  style: const TextStyle(
+                                    color: ChartColors.secondaryText,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
                     }
                     return const Text('');
-                  } else if (selectedPeriod == ChartPeriod.monthly) {
-                    // Для месячного периода показываем только первую и последнюю дату
-                    if (value.toInt() == 0) {
-                      // Первая дата месяца
-                      final firstDate = DateTime.parse(filteredData.first.date);
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 50.0),
-                            child: Text(
-                              DateFormat('MMM yyyy', 'en_US').format(firstDate),
-                              style: const TextStyle(
-                                color: ChartColors.secondaryText,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (value.toInt() == filteredData.length - 1) {
-                      // Последняя дата месяца
-                      final lastDate = DateTime.parse(filteredData.last.date);
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 80.0),
-                            child: Text(
-                              DateFormat('MMM yyyy', 'en_US').format(lastDate),
-                              style: const TextStyle(
-                                color: ChartColors.secondaryText,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    return const Text('');
-                  }
-                  return const Text('');
-                },
+                  },
+                ),
               ),
             ),
-          ),
-          borderData: FlBorderData(show: false),
-          barGroups: _getBarGroups(),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            drawHorizontalLine: true,
-            horizontalInterval: _getLeftInterval(),
-            getDrawingHorizontalLine: (value) {
-              // Показываем линии на всех значениях оси
-              if (value == 0) {
+            borderData: FlBorderData(show: false),
+            barGroups: _getBarGroups(),
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              drawHorizontalLine: true,
+              horizontalInterval: _getLeftInterval(),
+              getDrawingHorizontalLine: (value) {
+                // Показываем линии на всех значениях оси
+                if (value == 0) {
+                  return const FlLine(
+                    color: ChartColors.zeroLine,
+                    strokeWidth: ChartStyles.zeroLineWidth,
+                  );
+                }
                 return const FlLine(
-                  color: ChartColors.zeroLine,
-                  strokeWidth: ChartStyles.zeroLineWidth,
+                  color: ChartColors.gridLine,
+                  strokeWidth: ChartStyles.gridLineWidth,
                 );
-              }
-              return const FlLine(
-                color: ChartColors.gridLine,
-                strokeWidth: ChartStyles.gridLineWidth,
-              );
-            },
+              },
+            ),
           ),
         ),
       ),

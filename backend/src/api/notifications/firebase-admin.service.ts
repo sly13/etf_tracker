@@ -9,7 +9,13 @@ export class FirebaseAdminService {
   private app: admin.app.App | null = null;
 
   constructor() {
-    this.initializeFirebase();
+    try {
+      this.initializeFirebase();
+    } catch (error) {
+      this.logger.warn(
+        '⚠️ Firebase не инициализирован, push уведомления недоступны',
+      );
+    }
   }
 
   private initializeFirebase() {

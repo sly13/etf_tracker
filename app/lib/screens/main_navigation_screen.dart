@@ -71,21 +71,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           'MainNavigationScreen: bitcoinData.length: ${etfProvider.bitcoinData.length}',
         );
 
-        // Показываем экран загрузки во время инициализации
-        if (etfProvider.isInitializing) {
-          debugPrint('MainNavigationScreen: Показываем экран инициализации');
-          return LoadingScreen(
-            message: 'loading.initializing_app'.tr(),
-            showProgress: true,
-            showDetailedProgress: true,
-          );
-        }
-
-        // Показываем экран загрузки если данные еще не готовы
-        if (!etfProvider.isDataReady) {
-          debugPrint(
-            'MainNavigationScreen: Данные не готовы, показываем экран загрузки',
-          );
+        // Показываем экран загрузки во время инициализации или если данные еще не готовы
+        if (etfProvider.isInitializing || !etfProvider.isDataReady) {
+          debugPrint('MainNavigationScreen: Показываем экран загрузки');
           String loadingMessage = 'loading.loading_data'.tr();
 
           if (etfProvider.error != null) {
@@ -204,8 +192,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ],
           ),
           child: SafeArea(
+            top: false, // Отключаем отступ сверху
+            bottom:
+                true, // Оставляем отступ снизу только для безопасной области
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: items.asMap().entries.map((entry) {

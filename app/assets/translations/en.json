@@ -146,7 +146,8 @@
     "plan_not_found": "Plan not found",
     "product_not_found": "Product not found in RevenueCat",
     "status": "Subscription Status",
-    "refresh_status": "Refresh Status"
+    "refresh_status": "Refresh Status",
+    "upgrade_to_pro": "Upgrade to Pro"
   },
   "premium": {
     "unlock": "Unlock",
@@ -154,6 +155,10 @@
     "upgrade_message": "Get access to advanced features:",
     "feature_charts": "📊 Detailed flow charts",
     "feature_analytics": "📈 Advanced analytics",
+    "charts": {
+      "title": "Premium Charts",
+      "description": "Get access to detailed ETF flow charts"
+    },
     "feature_history": "📅 Full data history",
     "feature_export": "💾 Data export",
     "subscribe": "Subscribe",
@@ -481,6 +486,7 @@
     "flow_amount_info": "Notifications will be sent when the specified amount is exceeded",
     "premium_required": "Premium Subscription Required",
     "premium_required_desc": "ETF notifications are available only for premium users. Subscribe to access this feature.",
+    "requesting_permissions": "Requesting permissions...",
     "upgrade": "Upgrade Now"
   }
 }

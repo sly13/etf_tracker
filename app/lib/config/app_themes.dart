@@ -32,12 +32,26 @@ class AppThemes {
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
+        elevation: 0, // Убираем тень
+        showUnselectedLabels: true,
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Colors.black87),
-        bodyMedium: TextStyle(color: Colors.black87),
-        titleLarge: TextStyle(color: Colors.black87),
-        titleMedium: TextStyle(color: Colors.black87),
+        // Используем адаптивные размеры шрифтов
+        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w400),
+        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w400),
+        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+        headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w400),
+        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+        headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+        titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        titleSmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+        bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -70,12 +84,86 @@ class AppThemes {
         unselectedItemColor: Colors.grey[500],
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF1A1A1A),
+        elevation: 0, // Убираем тень
+        showUnselectedLabels: true,
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white),
-        titleLarge: TextStyle(color: Colors.white),
-        titleMedium: TextStyle(color: Colors.white),
+        // Используем адаптивные размеры шрифтов для темной темы
+        displayLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        headlineLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
       ),
     );
   }

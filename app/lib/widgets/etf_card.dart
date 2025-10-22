@@ -3,6 +3,7 @@ import '../models/etf.dart';
 import '../services/fund_logo_service.dart';
 import 'package:intl/intl.dart';
 import '../utils/haptic_feedback.dart';
+import '../utils/adaptive_text_utils.dart';
 
 class ETFCard extends StatelessWidget {
   final ETF etf;
@@ -19,6 +20,9 @@ class ETFCard extends StatelessWidget {
     // Определяем ключ фонда по названию
     final fundKey = _getFundKeyFromName(etf.name);
 
+    // Получаем адаптивные размеры
+    final sizes = AdaptiveTextUtils.getETFCardSizes(context);
+
     return Card(
       elevation: 4,
       margin: EdgeInsets.zero,
@@ -29,7 +33,7 @@ class ETFCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(sizes['cardPadding']!),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -38,13 +42,13 @@ class ETFCard extends StatelessWidget {
                   // Логотип фонда
                   if (fundKey != null)
                     Container(
-                      width: 40,
-                      height: 40,
-                      margin: const EdgeInsets.only(right: 12),
+                      width: sizes['logoSize'],
+                      height: sizes['logoSize'],
+                      margin: EdgeInsets.only(right: sizes['spacing']! * 1.5),
                       child: FundLogoService.getLogoWidget(
                         fundKey,
-                        width: 40,
-                        height: 40,
+                        width: sizes['logoSize']!,
+                        height: sizes['logoSize']!,
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -56,17 +60,21 @@ class ETFCard extends StatelessWidget {
                       children: [
                         Text(
                           etf.ticker,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                            context,
+                            'titleLarge',
                             fontWeight: FontWeight.bold,
+                            customBaseSize: sizes['titleFontSize'],
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: sizes['spacing']! / 2),
                         Text(
                           etf.name,
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                            context,
+                            'bodyMedium',
                             color: Colors.grey[600],
+                            customBaseSize: sizes['subtitleFontSize'],
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -81,24 +89,33 @@ class ETFCard extends StatelessWidget {
                     children: [
                       Text(
                         '\$${etf.currentPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: AdaptiveTextUtils.createAdaptiveFinancialStyle(
+                          context,
+                          'headlineMedium',
                           fontWeight: FontWeight.bold,
+                          customBaseSize: sizes['priceFontSize'],
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: sizes['spacing']! / 2),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(changeIcon, size: 16, color: changeColor),
-                          const SizedBox(width: 4),
+                          Icon(
+                            changeIcon,
+                            size: sizes['iconSize'],
+                            color: changeColor,
+                          ),
+                          SizedBox(width: sizes['spacing']! / 2),
                           Text(
                             '${etf.changePercent.toStringAsFixed(2)}%',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: changeColor,
-                            ),
+                            style:
+                                AdaptiveTextUtils.createAdaptiveFinancialStyle(
+                                  context,
+                                  'bodyMedium',
+                                  fontWeight: FontWeight.w500,
+                                  color: changeColor,
+                                  customBaseSize: sizes['changeFontSize'],
+                                ),
                           ),
                         ],
                       ),
@@ -106,40 +123,50 @@ class ETFCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: sizes['cardSpacing']!),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildInfoItem(
+                    context,
                     'Класс активов',
                     etf.assetClass,
                     Icons.category,
+                    sizes,
                   ),
                   _buildInfoItem(
+                    context,
                     'Комиссия',
                     '${etf.expenseRatio.toStringAsFixed(2)}%',
                     Icons.percent,
+                    sizes,
                   ),
                   _buildInfoItem(
+                    context,
                     'Объем',
                     _formatVolume(etf.volume),
                     Icons.analytics,
+                    sizes,
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: sizes['spacing']!),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildInfoItem(
+                    context,
                     'Активы',
                     _formatCurrency(etf.totalAssets),
                     Icons.account_balance_wallet,
+                    sizes,
                   ),
                   _buildInfoItem(
+                    context,
                     'Обновлено',
                     DateFormat('yyyy-MM-dd').format(etf.lastUpdated),
                     Icons.access_time,
+                    sizes,
                   ),
                 ],
               ),
@@ -183,16 +210,35 @@ class ETFCard extends StatelessWidget {
     return null;
   }
 
-  Widget _buildInfoItem(String label, String value, IconData icon) {
+  Widget _buildInfoItem(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Map<String, double> sizes,
+  ) {
     return Column(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        const SizedBox(height: 2),
+        Icon(icon, size: sizes['iconSize']! * 1.25, color: Colors.grey[600]),
+        SizedBox(height: sizes['spacing']! / 2),
+        Text(
+          label,
+          style: AdaptiveTextUtils.createAdaptiveTextStyle(
+            context,
+            'labelSmall',
+            color: Colors.grey[600],
+            customBaseSize: sizes['subtitleFontSize']! * 0.85,
+          ),
+        ),
+        SizedBox(height: sizes['spacing']! / 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          style: AdaptiveTextUtils.createAdaptiveFinancialStyle(
+            context,
+            'labelSmall',
+            fontWeight: FontWeight.w500,
+            customBaseSize: sizes['subtitleFontSize']! * 0.85,
+          ),
           textAlign: TextAlign.center,
         ),
       ],

@@ -15,17 +15,21 @@ export class TelegramBotService implements OnModuleInit {
   onModuleInit() {
     this.logger.log('🚀 Initializing Telegram Bot Service...');
 
-    // Initialize bot first
-    this.botService.initializeBot();
+    // Temporarily disable bot initialization to avoid conflicts
+    // this.botService.initializeBot();
 
-    if (this.botService.isBotInitialized()) {
-      this.botHandler.setupHandlers();
-      this.logger.log('✅ Telegram Bot Service initialized successfully');
-    } else {
-      this.logger.warn(
-        '⚠️ Telegram Bot Service initialization skipped - bot not configured',
-      );
-    }
+    // if (this.botService.isBotInitialized()) {
+    //   this.botHandler.setupHandlers();
+    //   this.logger.log('✅ Telegram Bot Service initialized successfully');
+    // } else {
+    //   this.logger.warn(
+    //     '⚠️ Telegram Bot Service initialization skipped - bot not configured',
+    //   );
+    // }
+
+    this.logger.warn(
+      '⚠️ Telegram Bot Service initialization temporarily disabled',
+    );
   }
 
   /**

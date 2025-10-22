@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
-import '../widgets/pro_button.dart';
 import '../widgets/holdings_table_widget.dart';
 import '../utils/haptic_feedback.dart';
 import '../services/flow_calculation_service.dart';
+import '../utils/adaptive_text_utils.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -37,125 +37,115 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('etf.holdings'.tr()),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF0A0A0A)
-            : Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false, // Скрываем кнопку "назад"
-        actions: [
-          // Блок Pro
-          const ProButton(),
-        ],
-      ),
-      body: Consumer<ETFProvider>(
-        builder: (context, etfProvider, child) {
-          // Показываем ошибку только если она есть
-          if (etfProvider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${'common.error'.tr()}: ${etfProvider.error}',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      etfProvider.clearError();
-                      etfProvider.forceRefreshAllData();
-                    },
-                    child: Text('common.retry'.tr()),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (etfProvider.ethereumData.isEmpty &&
-              etfProvider.bitcoinData.isEmpty) {
-            return Center(
-              child: Text(
-                'common.no_data'.tr(),
-                style: const TextStyle(fontSize: 18),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Вибрация при начале обновления
-              HapticUtils.lightImpact();
-              try {
-                await etfProvider.forceRefreshAllData();
-                // Автоматически скроллим вниз после обновления
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.easeOut,
-                  );
-                }
-                // Вибрация при успешном обновлении
-                HapticUtils.notificationSuccess();
-              } catch (e) {
-                // Вибрация при ошибке
-                HapticUtils.notificationError();
-                rethrow;
-              }
-            },
-            color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1C1C1E)
-                : Colors.white,
-            strokeWidth: 2.5,
-            displacement: 40.0,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Заголовок и кнопка сортировки
-                  _buildHeader(),
-                  const SizedBox(height: 16),
-
-                  // Таблица владений
-                  HoldingsTableWidget(
-                    ethereumData: etfProvider.ethereumData,
-                    bitcoinData: etfProvider.bitcoinData,
-                    sortBy: _sortBy,
-                    sortAscending: _sortAscending,
-                    onSortChanged: (sortBy, ascending) {
-                      setState(() {
-                        _sortBy = sortBy;
-                        _sortAscending = ascending;
-                      });
-                    },
-                    selectedPeriod: _selectedPeriod,
-                    separateFlowChanges:
-                        FlowCalculationService.getSeparateChanges(
-                          etfProvider.ethereumData,
-                          etfProvider.bitcoinData,
-                          _selectedPeriod,
-                        ),
-                    totalHoldings: FlowCalculationService.getTotalHoldings(
-                      etfProvider.ethereumData,
-                      etfProvider.bitcoinData,
+      body: SafeArea(
+        child: Consumer<ETFProvider>(
+          builder: (context, etfProvider, child) {
+            // Показываем ошибку только если она есть
+            if (etfProvider.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${'common.error'.tr()}: ${etfProvider.error}',
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        etfProvider.clearError();
+                        etfProvider.forceRefreshAllData();
+                      },
+                      child: Text('common.retry'.tr()),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-                  // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                  const SizedBox(height: 100),
-                ],
+            if (etfProvider.ethereumData.isEmpty &&
+                etfProvider.bitcoinData.isEmpty) {
+              return Center(
+                child: Text(
+                  'common.no_data'.tr(),
+                  style: const TextStyle(fontSize: 18),
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Вибрация при начале обновления
+                HapticUtils.lightImpact();
+                try {
+                  await etfProvider.forceRefreshAllData();
+                  // Автоматически скроллим вниз после обновления
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                  // Вибрация при успешном обновлении
+                  HapticUtils.notificationSuccess();
+                } catch (e) {
+                  // Вибрация при ошибке
+                  HapticUtils.notificationError();
+                  rethrow;
+                }
+              },
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1C1C1E)
+                  : Colors.white,
+              strokeWidth: 2.5,
+              displacement: 40.0,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AdaptiveTextUtils.getContentPadding(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Заголовок и кнопка сортировки
+                    _buildHeader(),
+                    const SizedBox(height: 16),
+
+                    // Таблица владений
+                    HoldingsTableWidget(
+                      ethereumData: etfProvider.ethereumData,
+                      bitcoinData: etfProvider.bitcoinData,
+                      sortBy: _sortBy,
+                      sortAscending: _sortAscending,
+                      onSortChanged: (sortBy, ascending) {
+                        setState(() {
+                          _sortBy = sortBy;
+                          _sortAscending = ascending;
+                        });
+                      },
+                      selectedPeriod: _selectedPeriod,
+                      separateFlowChanges:
+                          FlowCalculationService.getSeparateChanges(
+                            etfProvider.ethereumData,
+                            etfProvider.bitcoinData,
+                            _selectedPeriod,
+                          ),
+                      totalHoldings: FlowCalculationService.getTotalHoldings(
+                        etfProvider.ethereumData,
+                        etfProvider.bitcoinData,
+                      ),
+                    ),
+
+                    // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -182,6 +172,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
             _showPeriodDialog(context);
           },
           child: Container(
+            width: 80, // Фиксированная ширина для одинакового размера
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
@@ -191,7 +182,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
               ),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.calendar_today,
@@ -199,12 +190,16 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                   color: Theme.of(context).colorScheme.secondary,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  _getPeriodDescription(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.secondary,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    _getPeriodDescription(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.secondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -219,6 +214,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
             _showSortDialog(context);
           },
           child: Container(
+            width: 80, // Фиксированная ширина для одинакового размера
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
@@ -228,7 +224,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
               ),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.sort,
@@ -236,12 +232,16 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  _getSortDescription(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    _getSortDescription(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
