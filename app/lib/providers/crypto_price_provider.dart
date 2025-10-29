@@ -20,6 +20,7 @@ class CryptoPriceProvider extends ChangeNotifier {
 
   double? get ethereumPrice => _prices['ETH'];
   double? get bitcoinPrice => _prices['BTC'];
+  double? get solanaPrice => _prices['SOL'];
 
   // Initialization - load prices when provider is created
   Future<void> initialize() async {
@@ -76,6 +77,20 @@ class CryptoPriceProvider extends ChangeNotifier {
       _setError('${'errors.price_refresh_error'.tr()}: $e');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  // Получить цену Solana
+  Future<double> getSolanaPrice() async {
+    try {
+      final price = await _cryptoPriceService.getSolanaPrice();
+      _prices['SOL'] = price;
+      _lastUpdateTime = await _cryptoPriceService.getLastPriceUpdateTime();
+      notifyListeners();
+      return price;
+    } catch (e) {
+      _setError('${'errors.ethereum_price_error'.tr()}: $e');
+      rethrow;
     }
   }
 

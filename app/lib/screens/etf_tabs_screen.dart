@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// duplicate removed
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
 import '../utils/haptic_feedback.dart';
+import 'package:provider/provider.dart';
+import '../providers/crypto_price_provider.dart';
+import '../models/etf_flow_data.dart';
+import '../components/flow_calendar.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../services/screenshot_service.dart';
 
@@ -14,7 +18,7 @@ class ETFTabsScreen extends StatefulWidget {
 }
 
 class _ETFTabsScreenState extends State<ETFTabsScreen> {
-  DateTime? _lastManualRefresh;
+  // Убран функционал ручного обновления
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -108,7 +112,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                         children: [
                           _buildSummaryCard(etfProvider),
                           const SizedBox(height: 24),
-                          _buildRecentUpdates(etfProvider),
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -176,10 +179,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     // Общая сводка
                     _buildSummaryCard(etfProvider),
                     const SizedBox(height: 24),
-
-                    // Последние обновления
-                    _buildRecentUpdates(etfProvider),
-
+                    // Календарь суммарных потоков (BTC+ETH+SOL)
+                    _buildCombinedCalendar(etfProvider),
                     // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
                     const SizedBox(height: 100),
                   ],
@@ -195,6 +196,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
   // Карточка с общей сводкой
   Widget _buildSummaryCard(ETFProvider etfProvider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Ранее здесь отображалась сумма притоков; теперь не используется
 
     return Card(
       elevation: 4,
@@ -213,11 +215,20 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 const SizedBox(width: 12),
                 Text(
                   'etf.summary'.tr(),
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: AdaptiveTextUtils.createAdaptiveTextStyle(
+                    context,
+                    'headlineSmall',
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    customBaseSize: 18.0,
                   ),
+                ),
+                const Spacer(),
+                // Кнопка скриншота
+                IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  onPressed: () => _createScreenshot(),
+                  tooltip: 'screenshot.tooltip'.tr(),
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ],
             ),
@@ -225,30 +236,75 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
             // Сводка по Bitcoin
             if (etfProvider.summaryData != null) ...[
-              _buildSummaryRow(
-                'etf.bitcoin'.tr(),
-                etfProvider.summaryData!['bitcoin']['totalAssets']
-                        ?.toDouble() ??
-                    0.0,
-                'assets/bitcoin.png',
-                Colors.orange,
-                'etf.total_assets'.tr(),
+              Builder(
+                builder: (context) {
+                  final btcPrice = context
+                      .watch<CryptoPriceProvider?>()
+                      ?.bitcoinPrice;
+                  final subtitle = btcPrice != null
+                      ? '\$${btcPrice.toStringAsFixed(2)}'
+                      : 'etf.total_assets'.tr();
+                  return _buildSummaryRow(
+                    'etf.bitcoin'.tr(),
+                    etfProvider.summaryData!['bitcoin']['totalAssets']
+                            ?.toDouble() ??
+                        0.0,
+                    'assets/bitcoin.png',
+                    Colors.orange,
+                    subtitle,
+                  );
+                },
               ),
               const SizedBox(height: 16),
             ],
 
             // Сводка по Ethereum
             if (etfProvider.summaryData != null) ...[
-              _buildSummaryRow(
-                'etf.ethereum'.tr(),
-                etfProvider.summaryData!['ethereum']['totalAssets']
-                        ?.toDouble() ??
-                    0.0,
-                'assets/ethereum.png',
-                Colors.blue,
-                'etf.total_assets'.tr(),
+              Builder(
+                builder: (context) {
+                  final ethPrice = context
+                      .watch<CryptoPriceProvider?>()
+                      ?.ethereumPrice;
+                  final subtitle = ethPrice != null
+                      ? '\$${ethPrice.toStringAsFixed(2)}'
+                      : 'etf.total_assets'.tr();
+                  return _buildSummaryRow(
+                    'etf.ethereum'.tr(),
+                    etfProvider.summaryData!['ethereum']['totalAssets']
+                            ?.toDouble() ??
+                        0.0,
+                    'assets/ethereum.png',
+                    Colors.blue,
+                    subtitle,
+                  );
+                },
               ),
             ],
+
+            // Сводка по Solana (показываем всегда, даже если пока 0)
+            const SizedBox(height: 16),
+            Builder(
+              builder: (context) {
+                final solPrice = context
+                    .watch<CryptoPriceProvider?>()
+                    ?.solanaPrice;
+                final subtitle = solPrice != null
+                    ? '\$${solPrice.toStringAsFixed(2)}'
+                    : 'etf.total_assets'.tr();
+                return _buildSummaryRow(
+                  'Solana ETF',
+                  (etfProvider.summaryData != null
+                          ? (etfProvider.summaryData!['solana']?['totalAssets']
+                                    ?.toDouble() ??
+                                0.0)
+                          : 0.0)
+                      .toDouble(),
+                  'assets/solana.png',
+                  Colors.teal,
+                  subtitle,
+                );
+              },
+            ),
 
             const SizedBox(height: 16),
             Text(
@@ -258,6 +314,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 fontSize: 12,
               ),
             ),
+
+            // Убрали календарь из карточки summary
           ],
         ),
       ),
@@ -350,225 +408,72 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     );
   }
 
-  // Последние обновления
-  Widget _buildRecentUpdates(ETFProvider etfProvider) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'etf.recent_updates'.tr(),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                // Общая дата и время сразу под заголовком
-                Text(
-                  _getLatestDateTime(etfProvider),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                // Кнопка скриншота
-                IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: () => _createScreenshot(),
-                  tooltip: 'screenshot.tooltip'.tr(),
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-                // Кнопка обновления (показывается только если прошло больше часа)
-                if (_shouldShowRefreshButton(etfProvider))
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () async {
-                      // Тактильная обратная связь при нажатии
-                      HapticUtils.lightImpact();
-                      _lastManualRefresh = DateTime.now();
+  // Суммарный календарь (BTC + ETH + SOL)
+  Widget _buildCombinedCalendar(ETFProvider etfProvider) {
+    // Собираем по дате суммы и разложение по компаниям
+    final Map<String, Map<String, double>> dateToCompanies = {};
+    final Map<String, Map<String, Map<String, double>>> dateToCompaniesByAsset =
+        {}; // date -> asset -> {company: amount}
 
-                      try {
-                        await context.read<ETFProvider>().forceRefreshAllData();
-                        // Успешное обновление
-                        HapticUtils.notificationSuccess();
-                      } catch (e) {
-                        // Ошибка обновления
-                        HapticUtils.notificationError();
-                      }
-                    },
-                    tooltip: 'etf.refresh'.tr(),
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+    void accumulate(BaseETFFlowData e, String asset) {
+      final date = e.date;
+      dateToCompanies.putIfAbsent(date, () => {});
+      final map = dateToCompanies[date]!;
+      dateToCompaniesByAsset.putIfAbsent(date, () => {});
+      dateToCompaniesByAsset[date]!.putIfAbsent(asset, () => {});
+      final assetMap = dateToCompaniesByAsset[date]![asset]!;
+      void add(String key, double? v) {
+        if (v == null) return;
+        map[key] = (map[key] ?? 0) + v;
+        assetMap[key] = (assetMap[key] ?? 0) + v;
+      }
 
-        if (etfProvider.bitcoinData.isNotEmpty)
-          _buildUpdateCard(
-            'etf.bitcoin'.tr(),
-            etfProvider.bitcoinData.first.date,
-            etfProvider.bitcoinData.first.total ?? 0,
-            Colors.orange,
-          ),
-
-        if (etfProvider.ethereumData.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _buildUpdateCard(
-            'etf.ethereum'.tr(),
-            etfProvider.ethereumData.first.date,
-            etfProvider.ethereumData.first.total ?? 0,
-            Colors.blue,
-          ),
-        ],
-      ],
-    );
-  }
-
-  // Карточка обновления
-  Widget _buildUpdateCard(
-    String title,
-    String date,
-    double total,
-    Color color,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Делаем Ethereum темнее
-    final adjustedColor = title.contains('Ethereum')
-        ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
-        : color;
-
-    // Определяем индекс таба для навигации
-    int? targetTabIndex;
-    if (title.contains('Bitcoin')) {
-      targetTabIndex = 1; // Bitcoin ETF таб
-    } else if (title.contains('Ethereum')) {
-      targetTabIndex = 2; // Ethereum ETF таб
+      add('blackrock', e.blackrock);
+      add('fidelity', e.fidelity);
+      add('bitwise', e.bitwise);
+      add('twentyOneShares', e.twentyOneShares);
+      add('vanEck', e.vanEck);
+      add('invesco', e.invesco);
+      add('franklin', e.franklin);
+      add('grayscale', e.grayscale);
+      add('total', e.total);
     }
+
+    for (final e in etfProvider.ethereumData) accumulate(e, 'ethereum');
+    for (final b in etfProvider.bitcoinData) accumulate(b, 'bitcoin');
+    for (final s in etfProvider.solanaData) accumulate(s, 'solana');
+
+    final combined = dateToCompanies.entries.map((entry) {
+      final date = entry.key;
+      final companies = entry.value;
+      final total = (companies['total'] ?? 0);
+      // убираем служебный ключ total из компаний
+      final companiesOnly = Map<String, double>.from(companies)
+        ..remove('total');
+      final byAsset = dateToCompaniesByAsset[date] ?? {};
+      // Убираем возможные total в подкартах (на всякий случай)
+      final cleanedByAsset = byAsset.map((asset, comp) {
+        final c = Map<String, double>.from(comp)..remove('total');
+        return MapEntry(asset, c);
+      });
+      return CombinedFlowData(
+        date: date,
+        companies: companiesOnly,
+        companiesByAsset: cleanedByAsset,
+        total: total,
+      );
+    }).toList()..sort((a, b) => b.date.compareTo(a.date));
 
     return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: targetTabIndex != null
-            ? () {
-                // Переключаем таб через Provider
-                context.read<ETFProvider>().switchNavigationTab(
-                  targetTabIndex!,
-                );
-              }
-            : null,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: AdaptiveTextUtils.getCardPadding(context),
-          child: Row(
-            children: [
-              Container(
-                width: 8,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: adjustedColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    _formatLargeNumber(total),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: adjustedColor,
-                    ),
-                  ),
-                  if (targetTabIndex != null) ...[
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      elevation: 4,
+      margin: EdgeInsets.zero,
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: FlowCalendar(flowData: combined, title: 'etf.flow_history'.tr()),
     );
   }
 
-  // Получить последнюю дату и время обновления
-  String _getLatestDateTime(ETFProvider etfProvider) {
-    DateTime? latestDate;
+  // Блок последних обновлений удалён; теперь инфо отображается в Summary
 
-    if (etfProvider.bitcoinData.isNotEmpty) {
-      latestDate = DateTime.parse(etfProvider.bitcoinData.first.date);
-    }
-
-    if (etfProvider.ethereumData.isNotEmpty) {
-      final ethDate = DateTime.parse(etfProvider.ethereumData.first.date);
-      if (latestDate == null || ethDate.isAfter(latestDate)) {
-        latestDate = ethDate;
-      }
-    }
-
-    if (latestDate != null) {
-      return DateFormat('yyyy-MM-dd').format(latestDate);
-    }
-
-    return '';
-  }
-
-  // Проверяем, нужно ли показывать кнопку обновления
-  bool _shouldShowRefreshButton(ETFProvider etfProvider) {
-    // Если данные еще не загружены, не показываем кнопку
-    if (etfProvider.ethereumData.isEmpty && etfProvider.bitcoinData.isEmpty) {
-      return false;
-    }
-
-    // Если было ручное обновление менее часа назад, не показываем кнопку
-    if (_lastManualRefresh != null) {
-      final now = DateTime.now();
-      final timeSinceManualRefresh = now.difference(_lastManualRefresh!);
-      if (timeSinceManualRefresh.inHours < 1) {
-        return false;
-      }
-    }
-
-    // Используем время последнего обновления из провайдера
-    final lastDataUpdate = etfProvider.lastDataUpdate;
-    if (lastDataUpdate == null) {
-      return false;
-    }
-
-    // Проверяем, прошло ли больше часа с последнего обновления данных
-    final now = DateTime.now();
-    final difference = now.difference(lastDataUpdate);
-
-    return difference.inHours >= 1;
-  }
+  // Удалены вспомогательные блоки Recent Updates
 }

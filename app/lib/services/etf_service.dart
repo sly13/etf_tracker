@@ -78,6 +78,34 @@ class ETFService {
     }
   }
 
+  // Получить данные Solana ETF потоков
+  Future<List<ETFFlowData>> getSolanaData() async {
+    try {
+      final url = AppConfig.getApiUrl('/etf-flow/solana');
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () => throw TimeoutException('errors.timeout'.tr()),
+          );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        // Маппим в ETFFlowData, лишние поля будут null
+        return jsonData.map((json) => ETFFlowData.fromJson(json)).toList();
+      } else {
+        throw Exception(
+          'Ошибка загрузки данных Solana ETF: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
   // Получить суммарные данные ETF потоков
   Future<Map<String, dynamic>> getSummaryData() async {
     try {

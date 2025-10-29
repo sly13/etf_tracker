@@ -18,6 +18,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
+  final Set<String> _expandedCompanyKeys = {};
 
   @override
   void initState() {
@@ -316,13 +317,11 @@ class _FlowCalendarState extends State<FlowCalendar> {
               ),
             ),
             onDaySelected: (selectedDay, focusedDay) {
-              if (!isSameDay(_selectedDay, selectedDay)) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-                _showDayDetailsModal(selectedDay);
-              }
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+              _showDayDetailsModal(selectedDay);
             },
             onPageChanged: (focusedDay) {
               setState(() {
@@ -341,6 +340,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
     final events = _getEventsForDay(selectedDay);
     final total = _getTotalForDay(selectedDay);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Set<String> expandedKeys = {};
 
     if (events.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -427,17 +427,32 @@ class _FlowCalendarState extends State<FlowCalendar> {
               color: isDark ? Colors.grey[700] : Colors.grey[200],
             ),
 
-            // Список компаний
+            // Список компаний (локальное состояние внутри модалки)
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  return _buildCompanyItem(event, isDark);
+              child: StatefulBuilder(
+                builder: (context, setModalState) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index];
+                      return _buildCompanyItemWithExpansion(
+                        event,
+                        isDark,
+                        expandedKeys,
+                        (key) => setModalState(() {
+                          if (expandedKeys.contains(key)) {
+                            expandedKeys.remove(key);
+                          } else {
+                            expandedKeys.add(key);
+                          }
+                        }),
+                      );
+                    },
+                  );
                 },
               ),
             ),
@@ -455,6 +470,10 @@ class _FlowCalendarState extends State<FlowCalendar> {
       companies = event.getCompanies();
     } else if (event is BTCFlowData) {
       companies = event.getCompanies();
+    } else if (event is CombinedFlowData) {
+      companies = event.companies.entries
+          .map((e) => MapEntry(e.key, e.value))
+          .toList();
     }
 
     // Фильтруем только компании с ненулевыми значениями и сортируем по сумме
@@ -472,13 +491,191 @@ class _FlowCalendarState extends State<FlowCalendar> {
 
     return Column(
       children: companiesWithData.map((entry) {
-        final companyName = event is ETFFlowData
-            ? ETFFlowData.getCompanyName(entry.key)
-            : BTCFlowData.getCompanyName(entry.key);
+        String companyName;
+        if (event is ETFFlowData) {
+          companyName = ETFFlowData.getCompanyName(entry.key);
+        } else if (event is BTCFlowData) {
+          companyName = BTCFlowData.getCompanyName(entry.key);
+        } else {
+          // Combined: пройдём через оба маппера, если не нашли — исходный ключ
+          companyName = ETFFlowData.getCompanyName(
+            BTCFlowData.getCompanyName(entry.key) == entry.key
+                ? entry.key
+                : BTCFlowData.getCompanyName(entry.key),
+          );
+        }
         final amount = entry.value ?? 0;
         final isPositive = amount >= 0;
 
-        return Container(
+        return InkWell(
+          onTap: () {
+            if (event is CombinedFlowData) {
+              setState(() {
+                if (_expandedCompanyKeys.contains(entry.key)) {
+                  _expandedCompanyKeys.remove(entry.key);
+                } else {
+                  _expandedCompanyKeys.add(entry.key);
+                }
+              });
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isDark ? Colors.grey[600]! : Colors.grey[200]!,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Иконка компании
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: isPositive
+                            ? Colors.green.withOpacity(0.15)
+                            : Colors.red.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        isPositive ? Icons.trending_up : Icons.trending_down,
+                        color: isPositive ? Colors.green : Colors.red,
+                        size: 16,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Название компании
+                    Expanded(
+                      child: Text(
+                        companyName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+
+                    // Сумма
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPositive
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        _formatAmount(amount),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isPositive ? Colors.green : Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (event is CombinedFlowData &&
+                    _expandedCompanyKeys.contains(entry.key))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Builder(
+                      builder: (context) {
+                        final br = _buildAssetRow(
+                          'Bitcoin',
+                          event.companiesByAsset['bitcoin']?[entry.key] ?? 0,
+                          isDark,
+                        );
+                        final er = _buildAssetRow(
+                          'Ethereum',
+                          event.companiesByAsset['ethereum']?[entry.key] ?? 0,
+                          isDark,
+                        );
+                        final sr = _buildAssetRow(
+                          'Solana',
+                          event.companiesByAsset['solana']?[entry.key] ?? 0,
+                          isDark,
+                        );
+                        return Column(
+                          children: [
+                            if (br != null) br,
+                            if (er != null) er,
+                            if (sr != null) sr,
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCompanyItemWithExpansion(
+    dynamic event,
+    bool isDark,
+    Set<String> expandedKeys,
+    void Function(String key) toggle,
+  ) {
+    // Получаем все компании с данными
+    List<MapEntry<String, double?>> companies = [];
+
+    if (event is ETFFlowData) {
+      companies = event.getCompanies();
+    } else if (event is BTCFlowData) {
+      companies = event.getCompanies();
+    } else if (event is CombinedFlowData) {
+      companies = event.companies.entries
+          .map((e) => MapEntry(e.key, e.value))
+          .toList();
+    }
+
+    final companiesWithData =
+        companies
+            .where((entry) => entry.value != null && entry.value != 0)
+            .toList()
+          ..sort(
+            (a, b) => (b.value ?? 0).abs().compareTo((a.value ?? 0).abs()),
+          );
+
+    if (companiesWithData.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: companiesWithData.map((entry) {
+        String companyName;
+        if (event is ETFFlowData) {
+          companyName = ETFFlowData.getCompanyName(entry.key);
+        } else if (event is BTCFlowData) {
+          companyName = BTCFlowData.getCompanyName(entry.key);
+        } else {
+          companyName = ETFFlowData.getCompanyName(
+            BTCFlowData.getCompanyName(entry.key) == entry.key
+                ? entry.key
+                : BTCFlowData.getCompanyName(entry.key),
+          );
+        }
+        final amount = entry.value ?? 0;
+        final isPositive = amount >= 0;
+
+        final content = Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -489,61 +686,145 @@ class _FlowCalendarState extends State<FlowCalendar> {
               width: 1,
             ),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Иконка компании
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: isPositive
-                      ? Colors.green.withOpacity(0.15)
-                      : Colors.red.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  isPositive ? Icons.trending_up : Icons.trending_down,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 16,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isPositive
+                          ? Colors.green.withOpacity(0.15)
+                          : Colors.red.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      isPositive ? Icons.trending_up : Icons.trending_down,
+                      color: isPositive ? Colors.green : Colors.red,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      companyName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isPositive
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      _formatAmount(amount),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: isPositive ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-
-              const SizedBox(width: 12),
-
-              // Название компании
-              Expanded(
-                child: Text(
-                  companyName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black,
+              if (event is CombinedFlowData && expandedKeys.contains(entry.key))
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    children: [
+                      if ((event.companiesByAsset['bitcoin']?[entry.key] ??
+                              0) !=
+                          0)
+                        _buildAssetRow(
+                          'Bitcoin',
+                          event.companiesByAsset['bitcoin']?[entry.key] ?? 0,
+                          isDark,
+                        )!,
+                      if ((event.companiesByAsset['ethereum']?[entry.key] ??
+                              0) !=
+                          0)
+                        _buildAssetRow(
+                          'Ethereum',
+                          event.companiesByAsset['ethereum']?[entry.key] ?? 0,
+                          isDark,
+                        )!,
+                      if ((event.companiesByAsset['solana']?[entry.key] ?? 0) !=
+                          0)
+                        _buildAssetRow(
+                          'Solana',
+                          event.companiesByAsset['solana']?[entry.key] ?? 0,
+                          isDark,
+                        )!,
+                    ],
                   ),
                 ),
-              ),
-
-              // Сумма
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isPositive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  _formatAmount(amount),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isPositive ? Colors.green : Colors.red,
-                  ),
-                ),
-              ),
             ],
           ),
         );
+
+        return GestureDetector(
+          onTap: () {
+            if (event is CombinedFlowData) toggle(entry.key);
+          },
+          behavior: HitTestBehavior.opaque,
+          child: content,
+        );
       }).toList(),
+    );
+  }
+
+  Widget? _buildAssetRow(String title, double amount, bool isDark) {
+    if (amount == 0) return null;
+    final positive = amount >= 0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF232323) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: positive
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              _formatAmount(amount),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: positive ? Colors.green : Colors.red,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

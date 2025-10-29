@@ -49,6 +49,20 @@ abstract class BaseETFFlowData {
   }
 }
 
+// Универсальная агрегированная запись для суммарного календаря
+class CombinedFlowData extends BaseETFFlowData {
+  final Map<String, double> companies; // ключи как в моделях
+  final Map<String, Map<String, double>>
+  companiesByAsset; // bitcoin/ethereum/solana -> {company: amount}
+
+  CombinedFlowData({
+    required super.date,
+    required this.companies,
+    required this.companiesByAsset,
+    double? total,
+  }) : super(total: total);
+}
+
 // Модель для Ethereum ETF данных
 class ETFFlowData extends BaseETFFlowData {
   final double? grayscaleCrypto;

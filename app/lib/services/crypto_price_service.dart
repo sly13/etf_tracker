@@ -101,8 +101,9 @@ class CryptoPriceService {
     try {
       final ethPrice = await getEthereumPrice();
       final btcPrice = await getBitcoinPrice();
+      final solPrice = await getSolanaPrice();
 
-      return {'ETH': ethPrice, 'BTC': btcPrice};
+      return {'ETH': ethPrice, 'BTC': btcPrice, 'SOL': solPrice};
     } catch (e) {
       throw Exception('Ошибка получения цен криптовалют: $e');
     }
@@ -169,6 +170,8 @@ class CryptoPriceService {
       await prefs.remove('crypto_price_ETH_timestamp');
       await prefs.remove('crypto_price_BTC');
       await prefs.remove('crypto_price_BTC_timestamp');
+      await prefs.remove('crypto_price_SOL');
+      await prefs.remove('crypto_price_SOL_timestamp');
     } catch (e) {
       // Игнорируем ошибки очистки кэша
     }
@@ -180,11 +183,16 @@ class CryptoPriceService {
       final prefs = await SharedPreferences.getInstance();
       final ethTimestamp = prefs.getInt('crypto_price_ETH_timestamp');
       final btcTimestamp = prefs.getInt('crypto_price_BTC_timestamp');
+      final solTimestamp = prefs.getInt('crypto_price_SOL_timestamp');
 
-      if (ethTimestamp != null && btcTimestamp != null) {
-        final latestTimestamp = ethTimestamp > btcTimestamp
-            ? ethTimestamp
-            : btcTimestamp;
+      if (ethTimestamp != null &&
+          btcTimestamp != null &&
+          solTimestamp != null) {
+        final latestTimestamp = [
+          ethTimestamp,
+          btcTimestamp,
+          solTimestamp,
+        ].reduce((a, b) => a > b ? a : b);
         return DateTime.fromMillisecondsSinceEpoch(latestTimestamp);
       }
 
@@ -200,8 +208,11 @@ class CryptoPriceService {
       final prefs = await SharedPreferences.getInstance();
       final ethTimestamp = prefs.getInt('crypto_price_ETH_timestamp');
       final btcTimestamp = prefs.getInt('crypto_price_BTC_timestamp');
+      final solTimestamp = prefs.getInt('crypto_price_SOL_timestamp');
 
-      if (ethTimestamp == null || btcTimestamp == null) {
+      if (ethTimestamp == null ||
+          btcTimestamp == null ||
+          solTimestamp == null) {
         return true; // Нет кэшированных данных
       }
 
@@ -209,9 +220,50 @@ class CryptoPriceService {
       final ethTimeDiff = now - ethTimestamp;
       final btcTimeDiff = now - btcTimestamp;
 
-      return ethTimeDiff > _cacheDuration || btcTimeDiff > _cacheDuration;
+      final solTimeDiff = now - solTimestamp;
+
+      return ethTimeDiff > _cacheDuration ||
+          btcTimeDiff > _cacheDuration ||
+          solTimeDiff > _cacheDuration;
     } catch (e) {
       return true;
+    }
+  }
+
+  // Получить цену Solana
+  Future<double> getSolanaPrice() async {
+    try {
+      final cachedPrice = await _getCachedPrice('SOL');
+      if (cachedPrice != null) return cachedPrice;
+
+      final url = '$_baseUrl?fsym=SOL&tsyms=USD';
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException(
+                'Превышено время ожидания ответа от сервера',
+              );
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final price = (data['USD'] as num).toDouble();
+        await _cachePrice('SOL', price);
+        return price;
+      } else {
+        throw Exception('Ошибка загрузки цены Solana: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception(
+          'Сервер не отвечает. Проверьте подключение к интернету.',
+        );
+      }
+      throw Exception('Ошибка получения цены Solana: $e');
     }
   }
 }

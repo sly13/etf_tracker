@@ -55,6 +55,12 @@ export class ETFFlowController {
     return await this.etfFlowService.getETFFlowData('bitcoin');
   }
 
+  // Получить данные Solana ETF
+  @Get('solana')
+  async getSolanaETFFlowData() {
+    return await this.etfFlowService.getETFFlowData('solana');
+  }
+
   @Get('daily/:date')
   async getDailyETFFlowData(@Param('date') date: string) {
     const targetDate = new Date(date);
@@ -66,6 +72,11 @@ export class ETFFlowController {
 
     // Получаем данные Bitcoin за день
     const bitcoinData = await this.prisma.bTCFlow.findUnique({
+      where: { date: targetDate },
+    });
+
+    // Получаем данные Solana за день
+    const solanaData = await (this.prisma as any).solFlow.findUnique({
       where: { date: targetDate },
     });
 
@@ -99,6 +110,13 @@ export class ETFFlowController {
             valkyrie: bitcoinData.valkyrie || 0,
             wisdomTree: bitcoinData.wisdomTree || 0,
             total: bitcoinData.total || 0,
+          }
+        : null,
+      solana: solanaData
+        ? {
+            bitwise: solanaData.bitwise || 0,
+            grayscale: solanaData.grayscale || 0,
+            total: solanaData.total || 0,
           }
         : null,
     };

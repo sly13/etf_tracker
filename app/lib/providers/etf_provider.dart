@@ -10,6 +10,7 @@ class ETFProvider with ChangeNotifier {
 
   List<ETFFlowData> _ethereumData = [];
   List<BTCFlowData> _bitcoinData = [];
+  List<ETFFlowData> _solanaData = [];
   List<ETFFlowData> _etfFlowData = [];
   Map<String, dynamic>? _fundHoldings;
   Map<String, dynamic>? _summaryData;
@@ -17,6 +18,7 @@ class ETFProvider with ChangeNotifier {
   bool _isInitializing = false;
   bool _isEthereumLoaded = false;
   bool _isBitcoinLoaded = false;
+  bool _isSolanaLoaded = false;
   bool _isSummaryLoaded = false;
   bool _isFundHoldingsLoaded = false;
   String? _error;
@@ -27,6 +29,7 @@ class ETFProvider with ChangeNotifier {
   // Getters
   List<ETFFlowData> get ethereumData => _ethereumData;
   List<BTCFlowData> get bitcoinData => _bitcoinData;
+  List<ETFFlowData> get solanaData => _solanaData;
   List<ETFFlowData> get etfFlowData => _etfFlowData;
   Map<String, dynamic>? get fundHoldings => _fundHoldings;
   List<BaseETFFlowData> get currentData =>
@@ -167,6 +170,24 @@ class ETFProvider with ChangeNotifier {
     }
   }
 
+  // Загрузить данные Solana
+  Future<void> loadSolanaData() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      debugPrint('ETFProvider: Загружаем Solana данные');
+      _solanaData = await _etfService.getSolanaData();
+      _isSolanaLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки Solana: $e');
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Загрузить суммарные данные
   Future<void> loadSummaryData() async {
     try {
@@ -229,6 +250,7 @@ class ETFProvider with ChangeNotifier {
       final results = await Future.wait([
         _etfService.getEthereumData(),
         _etfService.getBitcoinData(),
+        _etfService.getSolanaData(),
         _etfService.getSummaryData(),
         _etfService.getFundHoldings(),
       ]);
@@ -242,8 +264,9 @@ class ETFProvider with ChangeNotifier {
       // Сохраняем данные
       _ethereumData = results[0] as List<ETFFlowData>;
       _bitcoinData = results[1] as List<BTCFlowData>;
-      _summaryData = results[2] as Map<String, dynamic>;
-      _fundHoldings = results[3] as Map<String, dynamic>;
+      _solanaData = results[2] as List<ETFFlowData>;
+      _summaryData = results[3] as Map<String, dynamic>;
+      _fundHoldings = results[4] as Map<String, dynamic>;
 
       // Сохраняем в кэш
       await Future.wait([
@@ -256,6 +279,7 @@ class ETFProvider with ChangeNotifier {
       // Устанавливаем флаги готовности
       _isEthereumLoaded = _ethereumData.isNotEmpty;
       _isBitcoinLoaded = _bitcoinData.isNotEmpty;
+      _isSolanaLoaded = _solanaData.isNotEmpty;
       _isSummaryLoaded = _summaryData != null;
       _isFundHoldingsLoaded = _fundHoldings != null;
 
@@ -263,7 +287,7 @@ class ETFProvider with ChangeNotifier {
       _lastDataUpdate = DateTime.now();
 
       debugPrint(
-        'ETFProvider: Флаги установлены - Ethereum: $_isEthereumLoaded, Bitcoin: $_isBitcoinLoaded',
+        'ETFProvider: Флаги установлены - Ethereum: $_isEthereumLoaded, Bitcoin: $_isBitcoinLoaded, Solana: $_isSolanaLoaded',
       );
 
       notifyListeners();

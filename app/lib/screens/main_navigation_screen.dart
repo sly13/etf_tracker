@@ -8,6 +8,7 @@ import 'fund_holdings_screen.dart';
 import 'ethereum_etf_screen.dart';
 import 'bitcoin_etf_screen.dart';
 import 'settings_screen.dart';
+import 'solana_etf_screen.dart';
 import '../providers/etf_provider.dart';
 import '../widgets/loading_screen.dart';
 
@@ -25,6 +26,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const ETFTabsScreen(),
     const BitcoinETFScreen(),
     const EthereumETFScreen(),
+    const SolanaETFScreen(),
     const FundHoldingsScreen(),
     const SettingsScreen(),
   ];
@@ -162,6 +164,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             'label': 'navigation.ethereum_etf'.tr(),
             'type': 'image',
           },
+          {'icon': 'assets/solana.png', 'label': 'Solana ETF', 'type': 'image'},
           {
             'icon': Icons.account_balance,
             'label': 'navigation.holdings'.tr(),
@@ -217,6 +220,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             'analytics.screen_names.etf_tabs'.tr(),
                             'analytics.screen_names.bitcoin_etf'.tr(),
                             'analytics.screen_names.ethereum_etf'.tr(),
+                            'Solana ETF',
                             'analytics.screen_names.fund_holdings'.tr(),
                             'analytics.screen_names.settings'.tr(),
                           ];
