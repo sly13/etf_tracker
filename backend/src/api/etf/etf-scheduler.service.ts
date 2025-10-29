@@ -58,10 +58,22 @@ export class ETFSchedulerService {
         `✅ Bitcoin данные обновлены: ${bitcoinData.length} записей, новых: ${bitcoinSaveResult.newDataCount}`,
       );
 
+      // Парсинг Solana данных
+      this.logger.log('📊 Парсинг Solana ETF данных...');
+      const solanaData = await this.etfFlowService.parseETFFlowData('solana');
+      const solanaSaveResult = await this.etfFlowService.saveETFFlowData(
+        'solana',
+        solanaData,
+      );
+      this.logger.log(
+        `✅ Solana данные обновлены: ${solanaData.length} записей, новых: ${solanaSaveResult.newDataCount}`,
+      );
+
       // Отправляем уведомления о новых записях ETF
       const allNewRecords = [
         ...(ethereumSaveResult.newRecords || []),
         ...(bitcoinSaveResult.newRecords || []),
+        ...(solanaSaveResult.newRecords || []),
       ];
 
       if (allNewRecords.length > 0) {
@@ -74,12 +86,17 @@ export class ETFSchedulerService {
       }
 
       // Отправляем уведомление только если есть новые данные (старая система для совместимости)
-      if (ethereumSaveResult.hasNewData || bitcoinSaveResult.hasNewData) {
+      if (
+        ethereumSaveResult.hasNewData ||
+        bitcoinSaveResult.hasNewData ||
+        solanaSaveResult.hasNewData
+      ) {
         await this.sendETFUpdateNotification(
           ethereumData,
           bitcoinData,
           ethereumSaveResult,
           bitcoinSaveResult,
+          solanaSaveResult,
         );
       } else {
         this.logger.log(
@@ -151,14 +168,16 @@ export class ETFSchedulerService {
     bitcoinData: any[],
     ethereumSaveResult?: any,
     bitcoinSaveResult?: any,
+    solanaSaveResult?: any,
   ) {
     try {
       // Используем только новые данные для уведомления
       const ethereumNewData = ethereumSaveResult?.newData;
       const bitcoinNewData = bitcoinSaveResult?.newData;
+      const solanaNewData = solanaSaveResult?.newData;
 
       // Если нет новых данных, не отправляем уведомление
-      if (!ethereumNewData && !bitcoinNewData) {
+      if (!ethereumNewData && !bitcoinNewData && !solanaNewData) {
         this.logger.log('📭 Нет новых данных для отправки уведомления');
         return;
       }
@@ -175,20 +194,28 @@ export class ETFSchedulerService {
       // Используем новые данные если есть, иначе последние
       const ethereumFlow = ethereumNewData?.total || latestEthereum.total || 0;
       const bitcoinFlow = bitcoinNewData?.total || latestBitcoin.total || 0;
+      const solanaFlow = solanaNewData?.total || 0;
 
       // Отправляем уведомление только если есть значительные потоки
-      if (Math.abs(ethereumFlow) > 0.1 || Math.abs(bitcoinFlow) > 0.1) {
+      if (
+        Math.abs(ethereumFlow) > 0.1 ||
+        Math.abs(bitcoinFlow) > 0.1 ||
+        Math.abs(solanaFlow) > 0.1
+      ) {
         const notificationData = {
           bitcoinFlow,
           ethereumFlow,
+          solanaFlow,
           bitcoinTotal: bitcoinFlow,
           ethereumTotal: ethereumFlow,
+          solanaTotal: solanaFlow,
           date:
             ethereumNewData?.date ||
             latestEthereum.date ||
             new Date().toISOString(),
           bitcoinData: bitcoinNewData || latestBitcoin,
           ethereumData: ethereumNewData || latestEthereum,
+          solanaData: solanaNewData || undefined,
         };
 
         await this.notificationService.sendETFNotifications(

@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import type { ParsingResult } from './universal-etf-flow.service';
+import type { ParsingResult } from './etf-types';
 
 interface IETFFlowService {
   parseAllETFFlowData(): Promise<{
     ethereum: ParsingResult;
     bitcoin: ParsingResult;
+    solana?: ParsingResult;
   }>;
 }
 

@@ -1,33 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import * as puppeteer from 'puppeteer';
-
-export interface ETFFlowData {
-  date: string;
-  blackrock: number;
-  fidelity: number;
-  bitwise: number;
-  twentyOneShares: number;
-  vanEck: number;
-  invesco: number;
-  franklin: number;
-  grayscale: number;
-  grayscaleCrypto: number;
-  total: number;
-}
-
-export interface BTCFlowData extends ETFFlowData {
-  valkyrie: number;
-  wisdomTree: number;
-  grayscaleBtc: number;
-}
-
-export interface ParsingResult {
-  success: boolean;
-  count: number;
-  message?: string;
-  error?: string;
-}
+import {
+  ETFFlowData,
+  BTCFlowData,
+  SolFlowData,
+  ParsingResult,
+} from './etf-types';
+import { parseEthereum } from './parsers/ethereum.parser';
+import { parseBitcoin } from './parsers/bitcoin.parser';
+import { parseSolana } from './parsers/solana.parser';
 
 @Injectable()
 export class UniversalETFFlowService {
@@ -36,13 +18,14 @@ export class UniversalETFFlowService {
   private readonly urls = {
     ethereum: 'https://farside.co.uk/ethereum-etf-flow-all-data/',
     bitcoin: 'https://farside.co.uk/bitcoin-etf-flow-all-data/',
+    solana: process.env.SOLANA_FLOW_URL || 'https://farside.co.uk/sol/',
   };
 
   constructor(private readonly prisma: PrismaService) {}
 
   async parseETFFlowData(
-    type: 'ethereum' | 'bitcoin',
-  ): Promise<ETFFlowData[] | BTCFlowData[]> {
+    type: 'ethereum' | 'bitcoin' | 'solana',
+  ): Promise<ETFFlowData[] | BTCFlowData[] | SolFlowData[]> {
     let browser: puppeteer.Browser | undefined;
 
     try {
@@ -130,446 +113,22 @@ export class UniversalETFFlowService {
       this.logger.log(
         `Найдено ${rowCount} строк в таблице ${type.toUpperCase()} ETF`,
       );
-
       if (type === 'ethereum') {
-        const flowData: ETFFlowData[] = await page.evaluate(() => {
-          const table = document.querySelector('table.etf');
-          if (!table) return [];
-
-          const tbody = table.querySelector('tbody');
-          if (!tbody) return [];
-
-          const rows = tbody.querySelectorAll('tr');
-          const data: any[] = [];
-
-          // Функция для правильного парсинга даты
-          function parseDate(dateText: string): string | null {
-            try {
-              // Ожидаемый формат: "29 Aug 2025"
-              const parts = dateText.trim().split(' ');
-              if (parts.length !== 3) return null;
-
-              const day = parseInt(parts[0]);
-              const month = parts[1];
-              const year = parseInt(parts[2]);
-
-              if (isNaN(day) || isNaN(year)) return null;
-
-              // Маппинг месяцев
-              const monthMap: { [key: string]: number } = {
-                Jan: 0,
-                Feb: 1,
-                Mar: 2,
-                Apr: 3,
-                May: 4,
-                Jun: 5,
-                Jul: 6,
-                Aug: 7,
-                Sep: 8,
-                Oct: 9,
-                Nov: 10,
-                Dec: 11,
-              };
-
-              const monthIndex = monthMap[month];
-              if (monthIndex === undefined) return null;
-
-              // Создаем дату в UTC для избежания проблем с временными зонами
-              const date = new Date(Date.UTC(year, monthIndex, day));
-
-              // Проверяем валидность даты
-              if (
-                date.getUTCFullYear() !== year ||
-                date.getUTCMonth() !== monthIndex ||
-                date.getUTCDate() !== day
-              ) {
-                return null;
-              }
-
-              // Возвращаем дату в формате YYYY-MM-DD
-              return date.toISOString().split('T')[0];
-            } catch (error) {
-              console.log('Ошибка парсинга даты:', dateText, error);
-              return null;
-            }
-          }
-
-          const seenDates = new Set<string>();
-
-          rows.forEach((row, index) => {
-            const cells = row.querySelectorAll('td');
-
-            if (cells.length >= 11) {
-              console.log(
-                `Ethereum processing row ${index + 1} with ${cells.length} cells`,
-              );
-              const firstCellText = cells[0]
-                .querySelector('span.tabletext')
-                ?.textContent?.trim();
-
-              // Обрабатываем seed данные отдельно
-              if (firstCellText === 'Seed') {
-                console.log('Ethereum processing Seed data');
-                const seedData = {
-                  date: '2024-07-22', // За день до старта Ethereum ETF
-                  blackrock: parseNumber(
-                    cells[1].querySelector('span.tabletext')?.textContent,
-                  ),
-                  fidelity: parseNumber(
-                    cells[2].querySelector('span.tabletext')?.textContent,
-                  ),
-                  bitwise: parseNumber(
-                    cells[3].querySelector('span.tabletext')?.textContent,
-                  ),
-                  twentyOneShares: parseNumber(
-                    cells[4].querySelector('span.tabletext')?.textContent,
-                  ),
-                  vanEck: parseNumber(
-                    cells[5].querySelector('span.tabletext')?.textContent,
-                  ),
-                  invesco: parseNumber(
-                    cells[6].querySelector('span.tabletext')?.textContent,
-                  ),
-                  franklin: parseNumber(
-                    cells[7].querySelector('span.tabletext')?.textContent,
-                  ),
-                  grayscale: parseNumber(
-                    cells[8].querySelector('span.tabletext')?.textContent,
-                  ),
-                  grayscaleCrypto: parseNumber(
-                    cells[9].querySelector('span.tabletext')?.textContent,
-                  ),
-                  total: parseNumber(
-                    cells[10].querySelector('span.tabletext')?.textContent,
-                  ),
-                };
-
-                // Проверяем, что не все значения равны нулю только для сегодняшнего дня
-                const today = new Date().toISOString().split('T')[0];
-                const isToday = seedData.date === today;
-
-                if (isToday) {
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { date, ...numericValues } = seedData;
-                  const allValuesZero = Object.values(numericValues).every(
-                    (value) => value === 0,
-                  );
-
-                  if (allValuesZero) {
-                    console.log(
-                      'Ethereum Seed data skipped for today - all values are zero',
-                    );
-                    return;
-                  }
-                }
-
-                if (!seenDates.has(seedData.date)) {
-                  seenDates.add(seedData.date);
-                  data.push(seedData);
-                  console.log('Ethereum Seed data saved:', seedData);
-                } else {
-                  console.log(
-                    'Ethereum Seed data already exists for date:',
-                    seedData.date,
-                  );
-                }
-                return;
-              }
-
-              // Обрабатываем обычные данные
-              if (firstCellText && firstCellText !== 'Seed') {
-                console.log(
-                  `Ethereum Row ${index + 1}: processing date "${firstCellText}"`,
-                );
-                try {
-                  const parsedDate = parseDate(firstCellText);
-                  if (parsedDate && !seenDates.has(parsedDate)) {
-                    console.log(
-                      `Ethereum successfully parsed date: ${parsedDate}`,
-                    );
-                    seenDates.add(parsedDate);
-
-                    const flowDataItem = {
-                      date: parsedDate,
-                      blackrock: parseNumber(
-                        cells[1].querySelector('span.tabletext')?.textContent,
-                      ),
-                      fidelity: parseNumber(
-                        cells[2].querySelector('span.tabletext')?.textContent,
-                      ),
-                      bitwise: parseNumber(
-                        cells[3].querySelector('span.tabletext')?.textContent,
-                      ),
-                      twentyOneShares: parseNumber(
-                        cells[4].querySelector('span.tabletext')?.textContent,
-                      ),
-                      vanEck: parseNumber(
-                        cells[5].querySelector('span.tabletext')?.textContent,
-                      ),
-                      invesco: parseNumber(
-                        cells[6].querySelector('span.tabletext')?.textContent,
-                      ),
-                      franklin: parseNumber(
-                        cells[7].querySelector('span.tabletext')?.textContent,
-                      ),
-                      grayscale: parseNumber(
-                        cells[8].querySelector('span.tabletext')?.textContent,
-                      ),
-                      grayscaleCrypto: parseNumber(
-                        cells[9].querySelector('span.tabletext')?.textContent,
-                      ),
-                      total: parseNumber(
-                        cells[10].querySelector('span.tabletext')?.textContent,
-                      ),
-                    };
-
-                    // Проверяем, что не все значения равны нулю только для сегодняшнего дня
-                    const today = new Date().toISOString().split('T')[0];
-                    const isToday = parsedDate === today;
-
-                    if (isToday) {
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      const { date, ...numericValues } = flowDataItem;
-                      const allValuesZero = Object.values(numericValues).every(
-                        (value) => value === 0,
-                      );
-
-                      if (allValuesZero) {
-                        console.log(
-                          `Ethereum data skipped for today - all values are zero`,
-                        );
-                        return;
-                      }
-                    }
-
-                    data.push(flowDataItem);
-                    console.log(`Ethereum data added for date: ${parsedDate}`);
-                  }
-                } catch (error) {
-                  console.log(
-                    `Ошибка при обработке строки ${index + 1}:`,
-                    error,
-                  );
-                }
-              }
-            }
-          });
-
-          return data;
-
-          function parseNumber(text: string | null | undefined): number {
-            if (!text) return 0;
-
-            try {
-              const cleanText = text.replace(/[^\d.,-]/g, '');
-
-              if (text.includes('(') && text.includes(')')) {
-                const number = parseFloat(cleanText.replace(/[()]/g, ''));
-                return isNaN(number) ? 0 : -number;
-              }
-
-              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
-              // Оставляем точку как десятичный разделитель
-              const numberText = cleanText.replace(/,/g, '');
-              const number = parseFloat(numberText);
-              return isNaN(number) ? 0 : number;
-            } catch {
-              return 0;
-            }
-          }
-        });
-
+        const flowData = await parseEthereum(page);
         this.logger.log(
-          `Успешно спарсено ${flowData.length} записей о потоках ${type.toUpperCase()} ETF`,
+          `Успешно спарсено ${flowData.length} записей о потоках ETHEREUM ETF`,
         );
-        console.log('Ethereum total records parsed:', flowData.length);
+        return flowData;
+      } else if (type === 'bitcoin') {
+        const flowData = await parseBitcoin(page);
+        this.logger.log(
+          `Успешно спарсено ${flowData.length} записей о потоках BITCOIN ETF`,
+        );
         return flowData;
       } else {
-        // Bitcoin парсинг с дополнительными полями
-        const flowData: BTCFlowData[] = await page.evaluate(() => {
-          const table = document.querySelector('table.etf');
-          if (!table) return [];
-
-          const tbody = table.querySelector('tbody');
-          if (!tbody) return [];
-
-          const rows = tbody.querySelectorAll('tr');
-          const data: any[] = [];
-
-          // Функция для правильного парсинга даты
-          function parseDate(dateText: string): string | null {
-            try {
-              // Ожидаемый формат: "29 Aug 2025"
-              const parts = dateText.trim().split(' ');
-              if (parts.length !== 3) return null;
-
-              const day = parseInt(parts[0]);
-              const month = parts[1];
-              const year = parseInt(parts[2]);
-
-              if (isNaN(day) || isNaN(year)) return null;
-
-              // Маппинг месяцев
-              const monthMap: { [key: string]: number } = {
-                Jan: 0,
-                Feb: 1,
-                Mar: 2,
-                Apr: 3,
-                May: 4,
-                Jun: 5,
-                Jul: 6,
-                Aug: 7,
-                Sep: 8,
-                Oct: 9,
-                Nov: 10,
-                Dec: 11,
-              };
-
-              const monthIndex = monthMap[month];
-              if (monthIndex === undefined) return null;
-
-              // Создаем дату в UTC для избежания проблем с временными зонами
-              const date = new Date(Date.UTC(year, monthIndex, day));
-
-              // Проверяем валидность даты
-              if (
-                date.getUTCFullYear() !== year ||
-                date.getUTCMonth() !== monthIndex ||
-                date.getUTCDate() !== day
-              ) {
-                return null;
-              }
-
-              // Возвращаем дату в формате YYYY-MM-DD
-              return date.toISOString().split('T')[0];
-            } catch (error) {
-              console.log('Ошибка парсинга даты:', dateText, error);
-              return null;
-            }
-          }
-
-          rows.forEach((row, index) => {
-            const cells = row.querySelectorAll('td');
-
-            if (cells.length >= 13) {
-              const firstCellText = cells[0]
-                .querySelector('span.tabletext')
-                ?.textContent?.trim();
-
-              console.log(
-                `Row ${index + 1}: processing date "${firstCellText}"`,
-              );
-
-              if (firstCellText && firstCellText !== 'Seed') {
-                try {
-                  const parsedDate = parseDate(firstCellText);
-                  if (parsedDate) {
-                    console.log(`Successfully parsed date: ${parsedDate}`);
-                    const flowDataItem = {
-                      date: parsedDate,
-                      blackrock: parseNumber(
-                        cells[1].querySelector('span.tabletext')?.textContent,
-                      ),
-                      fidelity: parseNumber(
-                        cells[2].querySelector('span.tabletext')?.textContent,
-                      ),
-                      bitwise: parseNumber(
-                        cells[3].querySelector('span.tabletext')?.textContent,
-                      ),
-                      twentyOneShares: parseNumber(
-                        cells[4].querySelector('span.tabletext')?.textContent,
-                      ),
-                      invesco: parseNumber(
-                        cells[5].querySelector('span.tabletext')?.textContent,
-                      ),
-                      franklin: parseNumber(
-                        cells[6].querySelector('span.tabletext')?.textContent,
-                      ),
-                      valkyrie: parseNumber(
-                        cells[7].querySelector('span.tabletext')?.textContent,
-                      ),
-                      vanEck: parseNumber(
-                        cells[8].querySelector('span.tabletext')?.textContent,
-                      ),
-                      wisdomTree: parseNumber(
-                        cells[9].querySelector('span.tabletext')?.textContent,
-                      ),
-                      grayscale: parseNumber(
-                        cells[10].querySelector('span.tabletext')?.textContent,
-                      ),
-                      grayscaleBtc: parseNumber(
-                        cells[11].querySelector('span.tabletext')?.textContent,
-                      ),
-                      total: parseNumber(
-                        cells[12].querySelector('span.tabletext')?.textContent,
-                      ),
-                    };
-
-                    // Проверяем, что не все значения равны нулю только для сегодняшнего дня
-                    const today = new Date().toISOString().split('T')[0];
-                    const isToday = flowDataItem.date === today;
-
-                    if (isToday) {
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      const { date, ...numericValues } = flowDataItem;
-                      const allValuesZero = Object.values(numericValues).every(
-                        (value) => value === 0,
-                      );
-
-                      if (allValuesZero) {
-                        console.log(
-                          `Bitcoin data skipped for today - all values are zero`,
-                        );
-                        return;
-                      }
-                    }
-
-                    data.push(flowDataItem);
-                    console.log(
-                      'Bitcoin Grayscale BTC parsed value:',
-                      flowDataItem.grayscaleBtc,
-                    );
-                    console.log('Bitcoin data date:', flowDataItem.date);
-                    console.log(
-                      `Bitcoin data added for date: ${flowDataItem.date}`,
-                    );
-                  }
-                } catch (error) {
-                  console.log(
-                    `Ошибка при обработке строки ${index + 1}:`,
-                    error,
-                  );
-                }
-              }
-            }
-          });
-
-          return data;
-
-          function parseNumber(text: string | null | undefined): number {
-            if (!text) return 0;
-
-            try {
-              const cleanText = text.replace(/[^\d.,-]/g, '');
-
-              if (text.includes('(') && text.includes(')')) {
-                const number = parseFloat(cleanText.replace(/[()]/g, ''));
-                return isNaN(number) ? 0 : -number;
-              }
-
-              // Заменяем все запятые на пустую строку (убираем разделители тысяч)
-              // Оставляем точку как десятичный разделитель
-              const numberText = cleanText.replace(/,/g, '');
-              const number = parseFloat(numberText);
-              return isNaN(number) ? 0 : number;
-            } catch {
-              return 0;
-            }
-          }
-        });
-
+        const flowData = await parseSolana(page);
         this.logger.log(
-          `Успешно спарсено ${flowData.length} записей о потоках ${type.toUpperCase()} ETF`,
+          `Успешно спарсено ${flowData.length} записей о потоках SOLANA ETF`,
         );
         return flowData;
       }
@@ -588,8 +147,8 @@ export class UniversalETFFlowService {
   }
 
   async saveETFFlowData(
-    type: 'ethereum' | 'bitcoin',
-    flowData: ETFFlowData[] | BTCFlowData[],
+    type: 'ethereum' | 'bitcoin' | 'solana',
+    flowData: ETFFlowData[] | BTCFlowData[] | SolFlowData[],
   ): Promise<{
     hasNewData: boolean;
     newDataCount: number;
@@ -613,6 +172,7 @@ export class UniversalETFFlowService {
         const date = new Date(data.date);
 
         if (type === 'ethereum') {
+          const ethData = data as ETFFlowData;
           // Получаем существующую запись для сравнения
           const existingRecord = await this.prisma.eTFFlow.findUnique({
             where: { date },
@@ -637,44 +197,44 @@ export class UniversalETFFlowService {
           await this.prisma.eTFFlow.upsert({
             where: { date },
             update: {
-              blackrock: data.blackrock,
-              fidelity: data.fidelity,
-              bitwise: data.bitwise,
-              twentyOneShares: data.twentyOneShares,
-              vanEck: data.vanEck,
-              invesco: data.invesco,
-              franklin: data.franklin,
-              grayscale: data.grayscale,
-              grayscaleEth: data.grayscaleCrypto,
-              total: data.total,
+              blackrock: ethData.blackrock,
+              fidelity: ethData.fidelity,
+              bitwise: ethData.bitwise,
+              twentyOneShares: ethData.twentyOneShares,
+              vanEck: ethData.vanEck,
+              invesco: ethData.invesco,
+              franklin: ethData.franklin,
+              grayscale: ethData.grayscale,
+              grayscaleEth: ethData.grayscaleCrypto,
+              total: ethData.total,
               updatedAt: new Date(),
             },
             create: {
               date,
-              blackrock: data.blackrock,
-              fidelity: data.fidelity,
-              bitwise: data.bitwise,
-              twentyOneShares: data.twentyOneShares,
-              vanEck: data.vanEck,
-              invesco: data.invesco,
-              franklin: data.franklin,
-              grayscale: data.grayscale,
-              grayscaleEth: data.grayscaleCrypto,
-              total: data.total,
+              blackrock: ethData.blackrock,
+              fidelity: ethData.fidelity,
+              bitwise: ethData.bitwise,
+              twentyOneShares: ethData.twentyOneShares,
+              vanEck: ethData.vanEck,
+              invesco: ethData.invesco,
+              franklin: ethData.franklin,
+              grayscale: ethData.grayscale,
+              grayscaleEth: ethData.grayscaleCrypto,
+              total: ethData.total,
             },
           });
 
           // Обнаруживаем новые записи для каждой компании
           const companies = [
-            { name: 'blackrock', value: data.blackrock },
-            { name: 'fidelity', value: data.fidelity },
-            { name: 'bitwise', value: data.bitwise },
-            { name: 'twentyOneShares', value: data.twentyOneShares },
-            { name: 'vanEck', value: data.vanEck },
-            { name: 'invesco', value: data.invesco },
-            { name: 'franklin', value: data.franklin },
-            { name: 'grayscale', value: data.grayscale },
-            { name: 'grayscaleEth', value: data.grayscaleCrypto },
+            { name: 'blackrock', value: ethData.blackrock },
+            { name: 'fidelity', value: ethData.fidelity },
+            { name: 'bitwise', value: ethData.bitwise },
+            { name: 'twentyOneShares', value: ethData.twentyOneShares },
+            { name: 'vanEck', value: ethData.vanEck },
+            { name: 'invesco', value: ethData.invesco },
+            { name: 'franklin', value: ethData.franklin },
+            { name: 'grayscale', value: ethData.grayscale },
+            { name: 'grayscaleEth', value: ethData.grayscaleCrypto },
           ];
 
           for (const company of companies) {
@@ -705,12 +265,12 @@ export class UniversalETFFlowService {
           // Если записи не было, то это новые данные
           if (!wasExisting) {
             newDataCount++;
-            latestNewData = data;
+            latestNewData = ethData;
             this.logger.log(
-              `🆕 Новая запись Ethereum ETF для даты: ${data.date}`,
+              `🆕 Новая запись Ethereum ETF для даты: ${ethData.date}`,
             );
           }
-        } else {
+        } else if (type === 'bitcoin') {
           const btcData = data as BTCFlowData;
 
           // Получаем существующую запись для сравнения
@@ -818,6 +378,63 @@ export class UniversalETFFlowService {
               `🆕 Новая запись Bitcoin ETF для даты: ${data.date}`,
             );
           }
+        } else {
+          const solData = data as SolFlowData;
+
+          const existingRecord = await (this.prisma as any).solFlow.findUnique({
+            where: { date },
+            select: {
+              id: true,
+              total: true,
+              bitwise: true,
+              grayscale: true,
+            },
+          });
+
+          const wasExisting = !!existingRecord;
+
+          await (this.prisma as any).solFlow.upsert({
+            where: { date },
+            update: {
+              bitwise: solData.bitwise,
+              grayscale: solData.grayscale,
+              total: solData.total,
+              updatedAt: new Date(),
+            },
+            create: {
+              date,
+              bitwise: solData.bitwise,
+              grayscale: solData.grayscale,
+              total: solData.total,
+            },
+          });
+
+          const companies = [
+            { name: 'bitwise', value: solData.bitwise },
+            { name: 'grayscale', value: solData.grayscale },
+          ];
+          for (const company of companies) {
+            const previousValue = existingRecord?.[company.name] || 0;
+            const currentValue = company.value || 0;
+            const isNewRecord = this.isNewRecord(previousValue, currentValue);
+            if (isNewRecord) {
+              const newRecord = await this.createETFNewRecord({
+                date,
+                assetType: 'solana',
+                company: company.name,
+                amount: currentValue,
+                previousAmount: previousValue,
+              });
+
+              if (newRecord) newRecords.push(newRecord);
+            }
+          }
+
+          if (!wasExisting) {
+            newDataCount++;
+            latestNewData = data;
+            // записали новую дату для Solana
+          }
         }
       }
 
@@ -842,9 +459,10 @@ export class UniversalETFFlowService {
 
   async getETFFlowData(type: 'ethereum'): Promise<ETFFlowData[]>;
   async getETFFlowData(type: 'bitcoin'): Promise<BTCFlowData[]>;
+  async getETFFlowData(type: 'solana'): Promise<SolFlowData[]>;
   async getETFFlowData(
-    type: 'ethereum' | 'bitcoin',
-  ): Promise<ETFFlowData[] | BTCFlowData[]> {
+    type: 'ethereum' | 'bitcoin' | 'solana',
+  ): Promise<ETFFlowData[] | BTCFlowData[] | SolFlowData[]> {
     try {
       if (type === 'ethereum') {
         const flows = await this.prisma.eTFFlow.findMany({
@@ -864,7 +482,7 @@ export class UniversalETFFlowService {
           grayscaleCrypto: flow.grayscaleEth || 0,
           total: flow.total || 0,
         }));
-      } else {
+      } else if (type === 'bitcoin') {
         const flows = await this.prisma.bTCFlow.findMany({
           orderBy: { date: 'desc' },
         });
@@ -887,6 +505,17 @@ export class UniversalETFFlowService {
               total: flow.total || 0,
             }) as BTCFlowData,
         );
+      } else {
+        const flows = await (this.prisma as any).solFlow.findMany({
+          orderBy: { date: 'desc' },
+        });
+
+        return flows.map((flow) => ({
+          date: flow.date.toISOString().split('T')[0],
+          bitwise: flow.bitwise || 0,
+          grayscale: flow.grayscale || 0,
+          total: flow.total || 0,
+        }));
       }
     } catch (error) {
       this.logger.error(
@@ -925,7 +554,7 @@ export class UniversalETFFlowService {
    */
   private async createETFNewRecord(data: {
     date: Date;
-    assetType: 'bitcoin' | 'ethereum';
+    assetType: 'bitcoin' | 'ethereum' | 'solana';
     company: string;
     amount: number;
     previousAmount: number;
@@ -998,7 +627,7 @@ export class UniversalETFFlowService {
       today.setHours(0, 0, 0, 0); // Начало дня
 
       // Проверяем последние записи для Ethereum и Bitcoin
-      const [latestEthereum, latestBitcoin] = await Promise.all([
+      const [latestEthereum, latestBitcoin, latestSolana] = await Promise.all([
         this.prisma.eTFFlow.findFirst({
           orderBy: { date: 'desc' },
           select: { date: true },
@@ -1007,13 +636,18 @@ export class UniversalETFFlowService {
           orderBy: { date: 'desc' },
           select: { date: true },
         }),
+        (this.prisma as any).solFlow.findFirst({
+          orderBy: { date: 'desc' },
+          select: { date: true },
+        }),
       ]);
 
       const ethereumDate = latestEthereum?.date;
       const bitcoinDate = latestBitcoin?.date;
+      const solanaDate = latestSolana?.date;
 
       // Если нет данных вообще, нужно обновлять
-      if (!ethereumDate || !bitcoinDate) {
+      if (!ethereumDate || !bitcoinDate || !solanaDate) {
         this.logger.log('📊 Нет данных в базе, требуется обновление');
         return true;
       }
@@ -1021,8 +655,9 @@ export class UniversalETFFlowService {
       // Проверяем, есть ли данные за сегодня
       const ethereumToday = ethereumDate >= today;
       const bitcoinToday = bitcoinDate >= today;
+      const solanaToday = solanaDate >= today;
 
-      if (ethereumToday && bitcoinToday) {
+      if (ethereumToday && bitcoinToday && solanaToday) {
         this.logger.log(
           '✅ Данные за сегодня уже есть, обновление не требуется',
         );
@@ -1048,6 +683,11 @@ export class UniversalETFFlowService {
       newDataCount?: number;
       newData?: any;
     };
+    solana: ParsingResult & {
+      hasNewData?: boolean;
+      newDataCount?: number;
+      newData?: any;
+    };
   }> {
     this.logger.log('🚀 Начинаю парсинг данных о потоках всех ETF...');
 
@@ -1068,6 +708,12 @@ export class UniversalETFFlowService {
           hasNewData: false,
           newDataCount: 0,
         },
+        solana: {
+          success: true,
+          count: 0,
+          hasNewData: false,
+          newDataCount: 0,
+        },
       };
     }
 
@@ -1083,6 +729,16 @@ export class UniversalETFFlowService {
         newData?: any;
       },
       bitcoin: {
+        success: false,
+        count: 0,
+        hasNewData: false,
+        newDataCount: 0,
+      } as ParsingResult & {
+        hasNewData: boolean;
+        newDataCount: number;
+        newData?: any;
+      },
+      solana: {
         success: false,
         count: 0,
         hasNewData: false,
@@ -1146,6 +802,33 @@ export class UniversalETFFlowService {
         error: error.message,
       };
       this.logger.error('❌ Ошибка при парсинге Bitcoin ETF:', error);
+    }
+
+    try {
+      this.logger.log('📊 Парсинг Solana ETF...');
+      const solData = await this.parseETFFlowData('solana');
+      if (solData && solData.length > 0) {
+        const saveResult = await this.saveETFFlowData('solana', solData);
+        results.solana = {
+          success: true,
+          count: solData.length,
+          hasNewData: saveResult.hasNewData,
+          newDataCount: saveResult.newDataCount,
+          newData: saveResult.newData,
+        };
+        this.logger.log(
+          `✅ Solana ETF: ${solData.length} записей, новых: ${saveResult.newDataCount}`,
+        );
+      }
+    } catch (error) {
+      results.solana = {
+        success: false,
+        count: 0,
+        hasNewData: false,
+        newDataCount: 0,
+        error: error.message,
+      };
+      this.logger.error('❌ Ошибка при парсинге Solana ETF:', error);
     }
 
     this.logger.log('🎯 Парсинг всех ETF завершен');

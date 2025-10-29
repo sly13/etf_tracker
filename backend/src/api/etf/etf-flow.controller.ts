@@ -1,9 +1,6 @@
 import { Controller, Get, Post, Param } from '@nestjs/common';
-import {
-  UniversalETFFlowService,
-  ETFFlowData,
-  BTCFlowData,
-} from './universal-etf-flow.service';
+import { UniversalETFFlowService } from './universal-etf-flow.service';
+import type { ETFFlowData, BTCFlowData } from './etf-types';
 import { ETFSchedulerService } from './etf-scheduler.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 

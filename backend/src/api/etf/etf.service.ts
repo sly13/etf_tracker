@@ -46,4 +46,50 @@ export class EtfService {
       where: { date },
     });
   }
+
+  // Получить все Solana потоки
+  findAllSolana() {
+    return this.prisma.solFlow.findMany({
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  // Получить Solana поток по ID
+  findOneSolana(id: string) {
+    return this.prisma.solFlow.findUnique({
+      where: { id },
+    });
+  }
+
+  // Получить Solana поток по дате
+  findByDateSolana(date: Date) {
+    return this.prisma.solFlow.findUnique({
+      where: { date },
+    });
+  }
+
+  // Upsert Solana поток на дату
+  async upsertSolana(params: {
+    date: Date;
+    bitwise?: number | null;
+    grayscale?: number | null;
+    total?: number | null;
+  }) {
+    const { date, bitwise, grayscale, total } = params;
+    return this.prisma.solFlow.upsert({
+      where: { date },
+      update: {
+        bitwise,
+        grayscale,
+        total,
+        updatedAt: new Date(),
+      },
+      create: {
+        date,
+        bitwise: bitwise ?? null,
+        grayscale: grayscale ?? null,
+        total: total ?? null,
+      },
+    });
+  }
 }

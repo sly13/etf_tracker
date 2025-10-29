@@ -47,6 +47,18 @@ model BTCFlow {
   @@map("btc_flows")
 }
 
+model SolFlow {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  bitwise   Float?
+  grayscale Float?
+  total     Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sol_flow")
+}
+
 model NotificationLog {
   id           String   @id @default(cuid())
   type         String
