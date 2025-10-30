@@ -15,7 +15,7 @@ class FundHoldingsScreen extends StatefulWidget {
 }
 
 class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
-  String _sortBy = 'btc'; // 'name', 'btc', 'eth'
+  String _sortBy = 'btc'; // 'name', 'btc', 'eth', 'sol'
   bool _sortAscending =
       false; // false = descending (large to small) - по умолчанию BTC от большего к меньшему
   String _selectedPeriod =
@@ -135,6 +135,7 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
                       totalHoldings: FlowCalculationService.getTotalHoldings(
                         etfProvider.ethereumData,
                         etfProvider.bitcoinData,
+                        etfProvider.solanaData,
                       ),
                     ),
 

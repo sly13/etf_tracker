@@ -350,7 +350,7 @@ class FlowCalculationService {
       }
 
       if (!companyChanges.containsKey(companyName)) {
-        companyChanges[companyName] = {'BTC': 0.0, 'ETH': 0.0};
+        companyChanges[companyName] = {'BTC': 0.0, 'ETH': 0.0, 'SOL': 0.0};
       }
 
       companyChanges[companyName]![type] = value;
@@ -496,6 +496,7 @@ class FlowCalculationService {
   static Map<String, Map<String, double>> getTotalHoldings(
     List<ETFFlowData> ethereumData,
     List<BTCFlowData> bitcoinData,
+    List<ETFFlowData> solanaData,
   ) {
     final result = <String, Map<String, double>>{};
 
@@ -604,6 +605,27 @@ class FlowCalculationService {
         result['WisdomTree'] ??= {'BTC': 0.0};
         result['WisdomTree']!['BTC'] =
             (result['WisdomTree']!['BTC'] ?? 0.0) + btcData.wisdomTree!;
+      }
+    }
+
+    // Суммируем все Solana данные
+    for (var solData in solanaData) {
+      if (solData.bitwise != null) {
+        result['Bitwise'] ??= {'BTC': 0.0, 'ETH': 0.0, 'SOL': 0.0};
+        result['Bitwise']!['SOL'] =
+            (result['Bitwise']!['SOL'] ?? 0.0) + solData.bitwise!;
+      }
+      if (solData.grayscale != null) {
+        result['Grayscale'] ??= {'BTC': 0.0, 'ETH': 0.0, 'SOL': 0.0};
+        result['Grayscale']!['SOL'] =
+            (result['Grayscale']!['SOL'] ?? 0.0) + solData.grayscale!;
+      }
+    }
+
+    // Инициализируем SOL для всех компаний, если его еще нет
+    for (var entry in result.entries) {
+      if (!entry.value.containsKey('SOL')) {
+        entry.value['SOL'] = 0.0;
       }
     }
 

@@ -150,6 +150,33 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
               ),
             ),
           ),
+          // SOL колонка
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _handleSort('sol'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'SOL',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _getSortIcon('sol'),
+                    size: 16,
+                    color: widget.sortBy == 'sol'
+                        ? Colors.purple
+                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -159,6 +186,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final company = data['company'] as String;
     final btcValue = data['btc'] as double?;
     final ethValue = data['eth'] as double?;
+    final solValue = data['sol'] as double?;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -175,20 +203,20 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
           // Колонка с логотипом и названием компании
           Expanded(
             flex: 2,
-            child: Row(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Логотип компании
                 _buildCompanyLogo(company),
-                const SizedBox(width: 8),
+                const SizedBox(height: 6),
                 // Название компании
-                Expanded(
-                  child: Text(
-                    company,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
+                Text(
+                  company,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ],
@@ -232,6 +260,25 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
               ],
             ),
           ),
+          // SOL значение
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  solValue != null ? _formatValue(solValue) : '-',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: solValue != null ? Colors.purple : Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                _buildFlowChange(company, 'SOL', isDark),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -249,6 +296,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
         'company': company,
         'btc': holdings['BTC'],
         'eth': holdings['ETH'],
+        'sol': holdings['SOL'],
       });
     }
 
@@ -271,6 +319,12 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
           return widget.sortAscending
               ? aEth.compareTo(bEth)
               : bEth.compareTo(aEth);
+        case 'sol':
+          final aSol = a['sol'] as double? ?? 0;
+          final bSol = b['sol'] as double? ?? 0;
+          return widget.sortAscending
+              ? aSol.compareTo(bSol)
+              : bSol.compareTo(aSol);
         default:
           return 0;
       }
@@ -296,7 +350,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
 
     return Container(
       width: 50,
-      height: 20,
+      height: 32,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
@@ -307,19 +361,19 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
             FundLogoService.getLogoWidget(
               logoKey,
               width: 50,
-              height: 20,
+              height: 32,
               fit: BoxFit.contain,
             ) ??
             Container(
               width: 50,
-              height: 20,
+              height: 32,
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Icon(
                 Icons.account_balance,
-                size: 12,
+                size: 16,
                 color: Colors.grey[600],
               ),
             ),
