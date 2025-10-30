@@ -54,66 +54,66 @@ services:
     restart: unless-stopped
 
   # Trade Bot (NestJS)
-  trade_bot:
-    build:
-      context: ./trade_bot
-      dockerfile: Dockerfile
-    container_name: etf_trade_bot_prod
-    environment:
-      - NODE_ENV=production
-      - PORT=3088
-      - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
-      - CORS_ORIGIN=https://trade-monitoring.vadimsemenko.ru,https://admin-etf.vadimsemenko.ru
-      - MIN_FLOW_THRESHOLD=1000000
-      - MAX_POSITION_SIZE=1000
-      - CHECK_INTERVAL=60000
-      - TZ=Europe/Moscow
-      - OKX_API_KEY=your_production_api_key_here
-      - OKX_SECRET_KEY=your_production_secret_key_here
-      - OKX_PASSPHRASE=your_production_passphrase_here
-      - OKX_SANDBOX=false
-    ports:
-      - "3088:3088"
-    depends_on:
-      - postgres
-    networks:
-      - etf_network_prod
-    restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
+  # trade_bot:
+  #   build:
+  #     context: ./trade_bot
+  #     dockerfile: Dockerfile
+  #   container_name: etf_trade_bot_prod
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3088
+  #     - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
+  #     - CORS_ORIGIN=https://trade-monitoring.vadimsemenko.ru,https://admin-etf.vadimsemenko.ru
+  #     - MIN_FLOW_THRESHOLD=1000000
+  #     - MAX_POSITION_SIZE=1000
+  #     - CHECK_INTERVAL=60000
+  #     - TZ=Europe/Moscow
+  #     - OKX_API_KEY=your_production_api_key_here
+  #     - OKX_SECRET_KEY=your_production_secret_key_here
+  #     - OKX_PASSPHRASE=your_production_passphrase_here
+  #     - OKX_SANDBOX=false
+  #   ports:
+  #     - "3088:3088"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - etf_network_prod
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - /etc/timezone:/etc/timezone:ro
 
-  # Trade Monitoring (React App)
-  trade_monitoring:
-    build:
-      context: ./trade_bot_monitoring
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=https://trade-bot.vadimsemenko.ru
-        - REACT_APP_ENVIRONMENT=production
-    container_name: etf_trade_monitoring_prod
-    ports:
-      - "3089:80"
-    depends_on:
-      - trade_bot
-    networks:
-      - etf_network_prod
-    restart: unless-stopped
+  # # Trade Monitoring (React App)
+  # trade_monitoring:
+  #   build:
+  #     context: ./trade_bot_monitoring
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - REACT_APP_API_URL=https://trade-bot.vadimsemenko.ru
+  #       - REACT_APP_ENVIRONMENT=production
+  #   container_name: etf_trade_monitoring_prod
+  #   ports:
+  #     - "3089:80"
+  #   depends_on:
+  #     - trade_bot
+  #   networks:
+  #     - etf_network_prod
+  #   restart: unless-stopped
 
-  # Website (Next.js App)
-  website:
-    build:
-      context: ./website
-      dockerfile: Dockerfile
-    container_name: etf_website_prod
-    ports:
-      - "3070:3000"
-    networks:
-      - etf_network_prod
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
+  # # Website (Next.js App)
+  # website:
+  #   build:
+  #     context: ./website
+  #     dockerfile: Dockerfile
+  #   container_name: etf_website_prod
+  #   ports:
+  #     - "3070:3000"
+  #   networks:
+  #     - etf_network_prod
+  #   restart: unless-stopped
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3000
 
 volumes:
   postgres_data_prod:
