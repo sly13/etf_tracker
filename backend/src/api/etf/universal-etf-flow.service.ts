@@ -381,7 +381,7 @@ export class UniversalETFFlowService {
         } else {
           const solData = data as SolFlowData;
 
-          const existingRecord = await (this.prisma as any).solFlow.findUnique({
+          const existingRecord = await this.prisma.solFlow.findUnique({
             where: { date },
             select: {
               id: true,
@@ -393,7 +393,7 @@ export class UniversalETFFlowService {
 
           const wasExisting = !!existingRecord;
 
-          await (this.prisma as any).solFlow.upsert({
+          await this.prisma.solFlow.upsert({
             where: { date },
             update: {
               bitwise: solData.bitwise,
@@ -506,9 +506,18 @@ export class UniversalETFFlowService {
             }) as BTCFlowData,
         );
       } else {
-        const flows = await (this.prisma as any).solFlow.findMany({
+        // Solana
+        this.logger.log('Запрос данных Solana ETF из базы данных');
+        const flows = await this.prisma.solFlow.findMany({
           orderBy: { date: 'desc' },
         });
+
+        this.logger.log(`Найдено ${flows.length} записей Solana ETF`);
+
+        if (flows.length === 0) {
+          this.logger.warn('База данных Solana ETF пуста, возвращаем пустой массив');
+          return [];
+        }
 
         return flows.map((flow) => ({
           date: flow.date.toISOString().split('T')[0],
@@ -522,6 +531,7 @@ export class UniversalETFFlowService {
         `Ошибка при получении данных ${type.toUpperCase()} ETF:`,
         error,
       );
+      this.logger.error(`Stack trace: ${error.stack}`);
       throw error;
     }
   }
@@ -636,7 +646,7 @@ export class UniversalETFFlowService {
           orderBy: { date: 'desc' },
           select: { date: true },
         }),
-        (this.prisma as any).solFlow.findFirst({
+        this.prisma.solFlow.findFirst({
           orderBy: { date: 'desc' },
           select: { date: true },
         }),

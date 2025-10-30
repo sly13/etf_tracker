@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { UniversalETFFlowService } from './universal-etf-flow.service';
 import type { ETFFlowData, BTCFlowData } from './etf-types';
 import { ETFSchedulerService } from './etf-scheduler.service';
@@ -6,6 +14,8 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 
 @Controller('etf-flow')
 export class ETFFlowController {
+  private readonly logger = new Logger(ETFFlowController.name);
+
   constructor(
     private readonly etfFlowService: UniversalETFFlowService,
     private readonly etfSchedulerService: ETFSchedulerService,
@@ -58,7 +68,26 @@ export class ETFFlowController {
   // Получить данные Solana ETF
   @Get('solana')
   async getSolanaETFFlowData() {
-    return await this.etfFlowService.getETFFlowData('solana');
+    try {
+      this.logger.log('Запрос данных Solana ETF');
+      const data = await this.etfFlowService.getETFFlowData('solana');
+      this.logger.log(`Успешно получено ${data.length} записей Solana ETF`);
+      return data;
+    } catch (error) {
+      this.logger.error('Ошибка при получении данных Solana ETF:', error);
+      this.logger.error(`Stack trace: ${error.stack}`);
+      
+      // Возвращаем информативную ошибку вместо простого throw
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Ошибка загрузки данных Solana ETF',
+          error: error.message,
+          timestamp: new Date().toISOString(),
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('daily/:date')
@@ -76,7 +105,7 @@ export class ETFFlowController {
     });
 
     // Получаем данные Solana за день
-    const solanaData = await (this.prisma as any).solFlow.findUnique({
+    const solanaData = await this.prisma.solFlow.findUnique({
       where: { date: targetDate },
     });
 
