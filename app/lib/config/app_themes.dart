@@ -22,11 +22,11 @@ class AppThemes {
         foregroundColor: Colors.black87,
       ),
       cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 0, // Нативный Apple стиль - без elevation, используем мягкие тени
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: Colors.white,
       ),
-      scaffoldBackgroundColor: Colors.grey[50],
+      scaffoldBackgroundColor: Colors.grey[50], // Нативный Apple стиль - светлый фон
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
@@ -74,11 +74,11 @@ class AppThemes {
         surfaceTintColor: Color(0xFF0A0A0A), // Явно указываем цвет поверхности
       ),
       cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: const Color(0xFF1A1A1A),
+        elevation: 0, // Премиум-криптовый стиль - используем кастомные глубокие тени
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: const Color(0xFF1A1A1A), // Графитовый цвет для карточек
       ),
-      scaffoldBackgroundColor: const Color(0xFF0A0A0A),
+      scaffoldBackgroundColor: const Color(0xFF0A0A0A), // Премиум-криптовый стиль - глубокий черный
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         selectedItemColor: Colors.blue[300],
         unselectedItemColor: Colors.grey[500],

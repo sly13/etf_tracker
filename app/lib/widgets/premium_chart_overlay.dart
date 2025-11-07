@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import '../screens/subscription_selection_screen.dart';
 import '../providers/subscription_provider.dart';
 import 'package:provider/provider.dart';
+import '../utils/card_style_utils.dart';
 
 class PremiumChartOverlay extends StatelessWidget {
   final Widget child;
@@ -40,130 +40,184 @@ class PremiumChartOverlay extends StatelessWidget {
           return this.child;
         }
 
-        // Если не премиум - показываем заблокированный контент с ограниченной высотой
+        // Если не премиум - показываем заблокированный контент
         print('🔧 PremiumChartOverlay: Показываем заблокированный контент');
-        return SizedBox(
-          height:
-              lockedHeight ??
-              200, // Используем переданную высоту или 200 по умолчанию
-          child: _buildLockedContent(context),
-        );
+        if (lockedHeight != null) {
+          // Если указана фиксированная высота, используем её с обрезкой переполнения
+          return ClipRect(
+            child: SizedBox(
+              height: lockedHeight,
+              child: _buildLockedContent(context, isCompact: true),
+            ),
+          );
+        }
+        // Иначе блок адаптируется под содержимое
+        return _buildLockedContent(context, isCompact: false);
       },
     );
   }
 
-  Widget _buildLockedContent(BuildContext context) {
-    return Stack(
-      children: [
-        // Размытый контент
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Opacity(opacity: 0.3, child: child),
-          ),
-        ),
+  Widget _buildLockedContent(BuildContext context, {required bool isCompact}) {
+    // Уменьшаем размеры для компактного режима
+    final iconSize = isCompact ? 44.0 : 60.0;
+    final iconInnerSize = isCompact ? 20.0 : 28.0;
+    final titleFontSize = isCompact ? 18.0 : 24.0;
+    final descriptionFontSize = isCompact ? 13.0 : 16.0;
+    // Отступы между элементами
+    final iconToTitleSpacing = isCompact ? 16.0 : 20.0; // Между иконкой и заголовком
+    final titleToDescSpacing = isCompact ? 8.0 : 12.0; // Между заголовком и описанием
+    final descToButtonSpacing = isCompact ? 16.0 : 20.0; // Между описанием и кнопкой
+    final buttonPadding = isCompact
+        ? const EdgeInsets.symmetric(horizontal: 18, vertical: 10)
+        : const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    final cardPadding = isCompact
+        ? const EdgeInsets.all(16)
+        : CardStyleUtils.getCardPadding(context);
 
-        // Overlay с замком и кнопкой
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withValues(alpha: 0.1)
-                : Colors.white.withValues(alpha: 0.8),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Иконка замка
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.lock,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
+    return Container(
+      width: double.infinity,
+      decoration: CardStyleUtils.getCardDecoration(context),
+      child: isCompact
+          ? SingleChildScrollView(
+              child: Padding(
+                padding: cardPadding,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _buildContentChildren(
+                    context,
+                    iconSize,
+                    iconInnerSize,
+                    titleFontSize,
+                    descriptionFontSize,
+                    iconToTitleSpacing,
+                    titleToDescSpacing,
+                    descToButtonSpacing,
+                    buttonPadding,
+                    isCompact,
                   ),
                 ),
-
-                const SizedBox(height: 10),
-
-                // Заголовок
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
+              ),
+            )
+          : Padding(
+              padding: cardPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: _buildContentChildren(
+                  context,
+                  iconSize,
+                  iconInnerSize,
+                  titleFontSize,
+                  descriptionFontSize,
+                  iconToTitleSpacing,
+                  titleToDescSpacing,
+                  descToButtonSpacing,
+                  buttonPadding,
+                  isCompact,
                 ),
-
-                const SizedBox(height: 6),
-
-                // Описание
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Кнопка подписки
-                ElevatedButton.icon(
-                  onPressed:
-                      onSubscribe ??
-                      () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const SubscriptionSelectionScreen(),
-                          ),
-                        );
-                      },
-                  icon: const Icon(Icons.star, size: 16),
-                  label: Text(
-                    'premium.unlock'.tr(),
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+    );
+  }
+
+  List<Widget> _buildContentChildren(
+    BuildContext context,
+    double iconSize,
+    double iconInnerSize,
+    double titleFontSize,
+    double descriptionFontSize,
+    double iconToTitleSpacing,
+    double titleToDescSpacing,
+    double descToButtonSpacing,
+    EdgeInsets buttonPadding,
+    bool isCompact,
+  ) {
+    return [
+      // Иконка замка в круге
+      Container(
+        width: iconSize,
+        height: iconSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.5,
+          ),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        ),
+        child: Icon(
+          Icons.lock,
+          size: iconInnerSize,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+
+      SizedBox(height: iconToTitleSpacing),
+
+      // Заголовок
+      Text(
+        title,
+        style: TextStyle(
+          fontSize: titleFontSize,
+          fontWeight: FontWeight.bold,
+          color: CardStyleUtils.getTitleColor(context),
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+
+      SizedBox(height: titleToDescSpacing),
+
+      // Описание
+      Text(
+        description,
+        style: TextStyle(
+          fontSize: descriptionFontSize,
+          color: CardStyleUtils.getSubtitleColor(context),
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+
+      SizedBox(height: descToButtonSpacing),
+
+      // Кнопка подписки
+      ElevatedButton.icon(
+        onPressed:
+            onSubscribe ??
+            () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SubscriptionSelectionScreen(),
+                ),
+              );
+            },
+        icon: Icon(Icons.star, size: isCompact ? 14 : 18),
+        label: Text(
+          'premium.unlock'.tr(),
+          style: TextStyle(
+            fontSize: isCompact ? 13 : 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
-      ],
-    );
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          padding: buttonPadding,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          elevation: 0,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      ),
+    ];
   }
 }

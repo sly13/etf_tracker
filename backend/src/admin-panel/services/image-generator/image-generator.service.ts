@@ -43,8 +43,8 @@ interface Translations {
   bitcoinETF: string;
   solanaETF: string;
   total: string;
-  overallTotals: string;
-  overallTotal: string;
+  company: string;
+  flow: string;
   createdBy: string;
 }
 
@@ -65,9 +65,9 @@ export class ImageGeneratorService {
         bitcoinETF: 'Bitcoin ETF',
         solanaETF: 'Solana ETF',
         total: 'Итого',
-        overallTotals: 'Общие итоги',
-        overallTotal: 'Общий итог',
-        createdBy: 'Создано в ETF Tracker',
+        company: 'Company',
+        flow: 'Flow',
+        createdBy: 'Created by ETF Tracker',
       },
       en: {
         dataFor: 'Data for',
@@ -75,8 +75,8 @@ export class ImageGeneratorService {
         bitcoinETF: 'Bitcoin ETF',
         solanaETF: 'Solana ETF',
         total: 'Total',
-        overallTotals: 'Overall Totals',
-        overallTotal: 'Overall Total',
+        company: 'Company',
+        flow: 'Flow',
         createdBy: 'Created by ETF Tracker',
       },
     };
@@ -95,8 +95,8 @@ export class ImageGeneratorService {
       // Получаем данные за день
       const data = await this.getDailyETFData(date);
 
-      // Создаем canvas
-      const canvas = createCanvas(900, 1500);
+      // Создаем canvas (увеличиваем высоту для нового дизайна)
+      const canvas = createCanvas(900, 1600);
       const ctx = canvas.getContext('2d');
 
       // Настраиваем стили
@@ -115,12 +115,13 @@ export class ImageGeneratorService {
         yOffset = this.drawCryptoSection(
           ctx,
           'Ethereum ETF',
-          'Ξ',
-          '#3B82F6',
+          'ETH',
+          '#007AFF',
           data.ethereum,
           yOffset,
+          lang,
         );
-        yOffset += 50;
+        yOffset += 30;
       }
 
       // Рисуем данные Bitcoin
@@ -128,12 +129,13 @@ export class ImageGeneratorService {
         yOffset = this.drawCryptoSection(
           ctx,
           'Bitcoin ETF',
-          '₿',
-          '#F97316',
+          'BTC',
+          '#FFA500',
           data.bitcoin,
           yOffset,
+          lang,
         );
-        yOffset += 50;
+        yOffset += 30;
       }
 
       // Рисуем данные Solana
@@ -141,16 +143,14 @@ export class ImageGeneratorService {
         yOffset = this.drawCryptoSection(
           ctx,
           'Solana ETF',
-          '◎',
-          '#14F195',
+          'SOL',
+          '#8A2BE2',
           data.solana,
           yOffset,
+          lang,
         );
-        yOffset += 50;
+        yOffset += 30;
       }
-
-      // Рисуем итоги
-      this.drawSummarySection(ctx, data, yOffset, lang);
 
       // Рисуем подвал
       this.drawFooter(ctx, canvas.width, canvas.height, lang);
@@ -334,42 +334,110 @@ export class ImageGeneratorService {
   private drawCryptoSection(
     ctx: CanvasRenderingContext2D,
     title: string,
-    icon: string,
+    tag: string,
     color: string,
     data: any,
     yOffset: number,
+    lang: string = 'ru',
   ): number {
-    const x = 80;
-    const width = 740;
-    const padding = 30;
+    const x = 50;
+    const width = 800;
+    const padding = 24;
+    const t = this.getTranslations(lang);
 
     // Вычисляем высоту секции на основе количества компаний
     const companies = this.getCompaniesFromData(data);
-    const baseHeight = 100; // заголовок + отступы
-    const companyHeight = 28; // высота одной строки компании
-    const totalHeight = Math.max(
-      450,
-      baseHeight + companies.length * companyHeight + 80,
-    ); // минимум 450px
+    const headerHeight = 80;
+    const tableHeaderHeight = 30;
+    const companyHeight = 35;
+    const totalHeight = 50;
+    const sectionHeight =
+      headerHeight +
+      tableHeaderHeight +
+      companies.length * companyHeight +
+      totalHeight +
+      padding * 2;
 
-    // Фон секции с закругленными углами
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    this.drawRoundedRect(ctx, x, yOffset, width, totalHeight, 15);
+    // Фон карточки с закругленными углами (#2C2C2C)
+    ctx.fillStyle = '#2C2C2C';
+    this.drawRoundedRect(ctx, x, yOffset, width, sectionHeight, 12);
     ctx.fill();
 
-    // Граница с закругленными углами
-    ctx.strokeStyle = color + '4D';
+    // Иконка слева (круглая с цветной границей)
+    const iconX = x + padding;
+    const iconY = yOffset + padding + 20;
+    const iconRadius = 12;
+
+    // Внешний круг (граница)
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    this.drawRoundedRect(ctx, x, yOffset, width, totalHeight, 15);
+    ctx.beginPath();
+    ctx.arc(iconX + iconRadius, iconY, iconRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Внутренний круг (заливка)
+    ctx.fillStyle = color + '33'; // 20% прозрачности
+    ctx.beginPath();
+    ctx.arc(iconX + iconRadius, iconY, iconRadius - 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Вертикальная линия от иконки
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(iconX + iconRadius, iconY + iconRadius);
+    ctx.lineTo(iconX + iconRadius, yOffset + sectionHeight - padding);
     ctx.stroke();
 
     // Заголовок секции
-    ctx.fillStyle = color;
-    ctx.font = 'bold 28px Arial';
-    ctx.fillText(icon, x + padding, yOffset + padding);
-    ctx.fillText(title, x + padding + 50, yOffset + padding);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(title, iconX + iconRadius * 2 + 15, iconY - 8);
 
-    let currentY = yOffset + padding + 50;
+    // Тег справа
+    const tagX = x + width - padding - 60;
+    const tagY = yOffset + padding + 15;
+    const tagWidth = 50;
+    const tagHeight = 28;
+
+    // Фон тега
+    ctx.fillStyle = color + '33';
+    this.drawRoundedRect(ctx, tagX, tagY, tagWidth, tagHeight, 14);
+    ctx.fill();
+
+    // Граница тега
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    this.drawRoundedRect(ctx, tagX, tagY, tagWidth, tagHeight, 14);
+    ctx.stroke();
+
+    // Текст тега
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(tag, tagX + tagWidth / 2, tagY + 7);
+    ctx.textAlign = 'left';
+
+    // Заголовки таблицы
+    let currentY = yOffset + headerHeight;
+    ctx.strokeStyle = '#555555';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + padding, currentY);
+    ctx.lineTo(x + width - padding, currentY);
+    ctx.stroke();
+
+    currentY += 10;
+    ctx.fillStyle = '#AAAAAA';
+    ctx.font = '14px Arial';
+    ctx.fillText(t.company, x + padding, currentY);
+
+    ctx.fillStyle = '#AAAAAA';
+    ctx.textAlign = 'right';
+    ctx.fillText(t.flow, x + width - padding, currentY);
+    ctx.textAlign = 'left';
+
+    currentY += 25;
 
     // Компании
     companies.forEach(([name, amount]) => {
@@ -381,21 +449,23 @@ export class ImageGeneratorService {
         currentY,
         width - 2 * padding,
       );
-      currentY += 28;
+      currentY += companyHeight;
     });
 
-    // Итого
-    currentY += 15;
-    ctx.strokeStyle = color + '4D';
+    // Разделитель перед итогом
+    currentY += 10;
+    ctx.strokeStyle = '#555555';
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(x + padding, currentY);
     ctx.lineTo(x + width - padding, currentY);
     ctx.stroke();
 
+    // Итого
     currentY += 20;
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 18px Arial';
-    ctx.fillText('Итого:', x + padding, currentY);
+    ctx.fillText(t.total, x + padding, currentY);
 
     ctx.fillStyle = color;
     ctx.textAlign = 'right';
@@ -403,7 +473,7 @@ export class ImageGeneratorService {
     ctx.fillText(this.formatAmount(data.total), x + width - padding, currentY);
     ctx.textAlign = 'left';
 
-    return yOffset + totalHeight;
+    return yOffset + sectionHeight;
   }
 
   /**
@@ -418,7 +488,7 @@ export class ImageGeneratorService {
     width: number,
   ): void {
     const isPositive = amount > 0;
-    const amountColor = isPositive ? '#10B981' : '#EF4444';
+    const amountColor = isPositive ? '#00FF00' : '#FF0000';
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '16px Arial';
@@ -427,138 +497,10 @@ export class ImageGeneratorService {
     ctx.fillStyle = amountColor;
     ctx.textAlign = 'right';
     ctx.font = '16px Arial';
-    ctx.fillText(
-      `${isPositive ? '+' : ''}${this.formatAmount(amount)}`,
-      x + width,
-      y,
-    );
-    ctx.textAlign = 'left';
-  }
-
-  /**
-   * Нарисовать секцию итогов
-   */
-  private drawSummarySection(
-    ctx: CanvasRenderingContext2D,
-    data: DailyETFData,
-    yOffset: number,
-    lang: string = 'ru',
-  ): void {
-    const x = 80;
-    const width = 740;
-    const padding = 30;
-
-    // Фон секции с закругленными углами
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    this.drawRoundedRect(ctx, x, yOffset, width, 220, 15);
-    ctx.fill();
-
-    // Граница с закругленными углами
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 2;
-    this.drawRoundedRect(ctx, x, yOffset, width, 220, 15);
-    ctx.stroke();
-
-    const t = this.getTranslations(lang);
-
-    // Заголовок
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText(t.overallTotals, x + padding, yOffset + padding);
-
-    let currentY = yOffset + padding + 35;
-
-    // Ethereum итог
-    if (data.ethereum) {
-      this.drawSummaryRow(
-        ctx,
-        'Ethereum',
-        data.ethereum.total,
-        x + padding,
-        currentY,
-        width - 2 * padding,
-        '#3B82F6',
-      );
-      currentY += 30;
-    }
-
-    // Bitcoin итог
-    if (data.bitcoin) {
-      this.drawSummaryRow(
-        ctx,
-        'Bitcoin',
-        data.bitcoin.total,
-        x + padding,
-        currentY,
-        width - 2 * padding,
-        '#F97316',
-      );
-      currentY += 30;
-    }
-
-    // Solana итог
-    if (data.solana) {
-      this.drawSummaryRow(
-        ctx,
-        'Solana',
-        data.solana.total,
-        x + padding,
-        currentY,
-        width - 2 * padding,
-        '#14F195',
-      );
-      currentY += 30;
-    }
-
-    // Общий итог
-    const overallTotal =
-      (data.ethereum?.total || 0) +
-      (data.bitcoin?.total || 0) +
-      (data.solana?.total || 0);
-    currentY += 20;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.beginPath();
-    ctx.moveTo(x + padding, currentY);
-    ctx.lineTo(x + width - padding, currentY);
-    ctx.stroke();
-
-    currentY += 25;
-    const overallColor = overallTotal > 0 ? '#10B981' : '#EF4444';
-    this.drawSummaryRow(
-      ctx,
-      t.overallTotal,
-      overallTotal,
-      x + padding,
-      currentY,
-      width - 2 * padding,
-      overallColor,
-      true,
-    );
-  }
-
-  /**
-   * Нарисовать строку итогов
-   */
-  private drawSummaryRow(
-    ctx: CanvasRenderingContext2D,
-    label: string,
-    amount: number,
-    x: number,
-    y: number,
-    width: number,
-    color: string,
-    isBold = false,
-  ): void {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = isBold ? 'bold 18px Arial' : '16px Arial';
-    ctx.fillText(label, x, y);
-
-    ctx.fillStyle = color;
-    ctx.font = isBold ? 'bold 20px Arial' : '16px Arial';
-    ctx.textAlign = 'right';
     ctx.fillText(this.formatAmount(amount), x + width, y);
     ctx.textAlign = 'left';
   }
+
 
   /**
    * Нарисовать подвал
@@ -621,15 +563,15 @@ export class ImageGeneratorService {
    * Форматировать сумму
    */
   private formatAmount(amount: number): string {
-    if (amount === 0) return '0.0M$';
+    if (amount === 0) return '0.0M';
 
     const absAmount = Math.abs(amount);
     const sign = amount < 0 ? '-' : '';
 
     if (absAmount >= 1000) {
-      return `${sign}${(absAmount / 1000).toFixed(1)}B$`;
+      return `${sign}${(absAmount / 1000).toFixed(1)}B`;
     } else {
-      return `${sign}${absAmount.toFixed(1)}M$`;
+      return `${sign}${absAmount.toFixed(1)}M`;
     }
   }
 }

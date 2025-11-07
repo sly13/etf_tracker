@@ -16,6 +16,7 @@ import '../services/subscription_service.dart';
 import '../services/notification_service.dart';
 import '../services/analytics_service.dart';
 import '../utils/haptic_feedback.dart';
+import '../utils/card_style_utils.dart';
 import '../config/app_config.dart';
 import 'notification_settings_screen.dart';
 import 'theme_selection_screen.dart';
@@ -68,10 +69,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Text(
                 'settings.title'.tr(),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                style: TextStyle(
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  fontSize: 32, // Увеличен размер шрифта
-                  color: Theme.of(context).textTheme.headlineMedium?.color,
+                  color: CardStyleUtils.getTitleColor(context),
                 ),
               ),
             ),

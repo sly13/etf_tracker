@@ -9,6 +9,7 @@ import '../models/etf_flow_data.dart';
 import '../components/flow_calendar.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../services/screenshot_service.dart';
+import '../utils/card_style_utils.dart';
 
 class ETFTabsScreen extends StatefulWidget {
   const ETFTabsScreen({super.key});
@@ -195,13 +196,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   // Карточка с общей сводкой
   Widget _buildSummaryCard(ETFProvider etfProvider) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Ранее здесь отображалась сумма притоков; теперь не используется
 
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: CardStyleUtils.getCardDecoration(context),
       child: Padding(
-        padding: AdaptiveTextUtils.getCardPadding(context),
+        padding: CardStyleUtils.getCardPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -214,19 +214,33 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     'headlineSmall',
                     fontWeight: FontWeight.bold,
                     customBaseSize: 18.0,
+                  ).copyWith(
+                    color: CardStyleUtils.getTitleColor(context),
                   ),
                 ),
                 const Spacer(),
-                // Кнопка скриншота
-                IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: () => _createScreenshot(),
-                  tooltip: 'screenshot.tooltip'.tr(),
-                  color: isDark ? Colors.white : Colors.black87,
+                // Кнопка скриншота с темным фоном
+                GestureDetector(
+                  onTap: () => _createScreenshot(),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[800]
+                          : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: CardStyleUtils.getSpacing(context)),
 
             // Сводка по Bitcoin
             if (etfProvider.summaryData != null) ...[
@@ -249,7 +263,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: CardStyleUtils.getSpacing(context)),
             ],
 
             // Сводка по Ethereum
@@ -276,7 +290,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ],
 
             // Сводка по Solana (показываем всегда, даже если пока 0)
-            const SizedBox(height: 16),
+            SizedBox(height: CardStyleUtils.getSpacing(context)),
             Builder(
               builder: (context) {
                 final solPrice = context
@@ -300,11 +314,11 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               },
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: CardStyleUtils.getSpacing(context)),
             Text(
               '${'common.updated'.tr()}: ${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
               style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: CardStyleUtils.getSubtitleColor(context),
                 fontSize: 12,
               ),
             ),
@@ -345,14 +359,16 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
         : color;
 
+    final iconColor = CardStyleUtils.getIconColor(context, adjustedColor);
+
     return Row(
       children: [
         Container(
           width: 48,
           height: 48,
-          decoration: BoxDecoration(
-            color: adjustedColor.withOpacity(isDark ? 0.2 : 0.1),
-            borderRadius: BorderRadius.circular(12),
+          decoration: CardStyleUtils.getIconContainerDecoration(
+            context,
+            adjustedColor,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -362,12 +378,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 imageAsset,
                 width: 32,
                 height: 32,
-                color: adjustedColor,
+                color: iconColor,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: CardStyleUtils.getSpacing(context)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,14 +393,14 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: CardStyleUtils.getTitleColor(context),
                 ),
               ),
               Text(
                 subtitle,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: CardStyleUtils.getSubtitleColor(context),
                 ),
               ),
             ],
@@ -395,7 +411,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: CardStyleUtils.getTitleColor(context),
           ),
         ),
       ],
@@ -458,11 +474,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       );
     }).toList()..sort((a, b) => b.date.compareTo(a.date));
 
-    return Card(
-      elevation: 4,
-      margin: EdgeInsets.zero,
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: CardStyleUtils.getCardDecoration(context),
       child: FlowCalendar(flowData: combined, title: 'etf.flow_history'.tr()),
     );
   }

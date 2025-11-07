@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import '../utils/adaptive_text_utils.dart';
+import '../utils/card_style_utils.dart';
 
 class FlowCalendar extends StatefulWidget {
   final List<dynamic> flowData;
@@ -18,7 +19,6 @@ class _FlowCalendarState extends State<FlowCalendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
-  final Set<String> _expandedCompanyKeys = {};
 
   @override
   void initState() {
@@ -77,25 +77,16 @@ class _FlowCalendarState extends State<FlowCalendar> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalForMonth = _getTotalForMonth(_focusedDay);
 
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black26 : Colors.grey.shade300,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: CardStyleUtils.getCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Заголовок
           Padding(
-            padding: AdaptiveTextUtils.getCardPadding(context),
+            padding: CardStyleUtils.getCardPadding(context),
             child: Row(
               children: [
                 Text(
@@ -105,20 +96,24 @@ class _FlowCalendarState extends State<FlowCalendar> {
                     'headlineSmall',
                     fontWeight: FontWeight.bold,
                     customBaseSize: 18.0,
+                  ).copyWith(
+                    color: CardStyleUtils.getTitleColor(context),
                   ),
                 ),
                 const Spacer(),
                 if (_selectedDay != null)
                   Text(
-                    _formatAmount(_getTotalForMonth(_focusedDay)),
+                    _formatAmount(totalForMonth),
                     style: AdaptiveTextUtils.createAdaptiveTextStyle(
                       context,
                       'bodyMedium',
                       fontWeight: FontWeight.bold,
-                      color: _getTotalForMonth(_focusedDay) >= 0
-                          ? Colors.green
-                          : Colors.red,
                       customBaseSize: 14.0,
+                    ).copyWith(
+                      color: CardStyleUtils.getFlowTagTextColor(
+                        context,
+                        totalForMonth >= 0,
+                      ),
                     ),
                   ),
               ],
@@ -164,7 +159,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black,
+                          color: CardStyleUtils.getTitleColor(context),
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -175,16 +170,20 @@ class _FlowCalendarState extends State<FlowCalendar> {
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: total >= 0
-                                ? Colors.green.withOpacity(0.2)
-                                : Colors.red.withOpacity(0.2),
+                            color: CardStyleUtils.getFlowTagColor(
+                              context,
+                              total >= 0,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             _formatAmount(total),
                             style: TextStyle(
                               fontSize: 7,
-                              color: total >= 0 ? Colors.green : Colors.red,
+                              color: CardStyleUtils.getFlowTagTextColor(
+                                context,
+                                total >= 0,
+                              ),
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 1,
@@ -206,21 +205,14 @@ class _FlowCalendarState extends State<FlowCalendar> {
                   margin: const EdgeInsets.all(1.0),
                   padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent, // Прозрачный фон
-                    borderRadius: BorderRadius.circular(8), // Скругленные углы для квадрата
-                    border: Border.all(
-                      color: const Color(0xFF1E3A8A), // Темно-синий финансово-деловой цвет для обводки
-                      width: 2,
-                    ),
-                  ),
+                  decoration: CardStyleUtils.getSelectedDayDecoration(context),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '${day.day}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -261,12 +253,13 @@ class _FlowCalendarState extends State<FlowCalendar> {
 
                 if (!hasData) return null;
 
+                final isDark = Theme.of(context).brightness == Brightness.dark;
                 return Container(
                   margin: const EdgeInsets.all(1.0),
                   padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.3),
+                    color: Colors.orange.withOpacity(isDark ? 0.3 : 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Column(
@@ -278,7 +271,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black,
+                          color: CardStyleUtils.getTitleColor(context),
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -289,16 +282,20 @@ class _FlowCalendarState extends State<FlowCalendar> {
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
-                            color: total >= 0
-                                ? Colors.green.withOpacity(0.2)
-                                : Colors.red.withOpacity(0.2),
+                            color: CardStyleUtils.getFlowTagColor(
+                              context,
+                              total >= 0,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             _formatAmount(total),
                             style: TextStyle(
                               fontSize: 7,
-                              color: total >= 0 ? Colors.green : Colors.red,
+                              color: CardStyleUtils.getFlowTagTextColor(
+                                context,
+                                total >= 0,
+                              ),
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 1,
@@ -315,21 +312,14 @@ class _FlowCalendarState extends State<FlowCalendar> {
               outsideDaysVisible: false,
               cellPadding: const EdgeInsets.all(2),
               weekendTextStyle: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: CardStyleUtils.getSubtitleColor(context),
               ),
               defaultTextStyle: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: CardStyleUtils.getTitleColor(context),
               ),
-              selectedDecoration: BoxDecoration(
-                color: Colors.transparent, // Прозрачный фон
-                borderRadius: BorderRadius.circular(8), // Скругленные углы для квадрата
-                border: Border.all(
-                  color: const Color(0xFF1E3A8A), // Темно-синий финансово-деловой цвет для обводки
-                  width: 2,
-                ),
-              ),
+              selectedDecoration: CardStyleUtils.getSelectedDayDecoration(context),
               todayDecoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.3),
+                color: Colors.orange.withOpacity(isDark ? 0.3 : 0.2),
                 shape: BoxShape.circle,
               ),
               markersMaxCount:
@@ -341,15 +331,15 @@ class _FlowCalendarState extends State<FlowCalendar> {
               titleTextStyle: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: CardStyleUtils.getTitleColor(context),
               ),
               leftChevronIcon: Icon(
                 Icons.chevron_left,
-                color: isDark ? Colors.white : Colors.black,
+                color: CardStyleUtils.getTitleColor(context),
               ),
               rightChevronIcon: Icon(
                 Icons.chevron_right,
-                color: isDark ? Colors.white : Colors.black,
+                color: CardStyleUtils.getTitleColor(context),
               ),
             ),
             onDaySelected: (selectedDay, focusedDay) {
@@ -398,7 +388,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+          color: CardStyleUtils.getCardColor(context),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -416,7 +406,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[600] : Colors.grey[300],
+                      color: CardStyleUtils.getDividerColor(context),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -430,7 +420,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black,
+                          color: CardStyleUtils.getTitleColor(context),
                         ),
                       ),
                       const Spacer(),
@@ -461,7 +451,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
             // Разделитель
             Container(
               height: 1,
-              color: isDark ? Colors.grey[700] : Colors.grey[200],
+              color: CardStyleUtils.getDividerColor(context),
             ),
 
             // Список компаний (локальное состояние внутри модалки)
@@ -496,171 +486,6 @@ class _FlowCalendarState extends State<FlowCalendar> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildCompanyItem(dynamic event, bool isDark) {
-    // Получаем все компании с данными
-    List<MapEntry<String, double?>> companies = [];
-
-    if (event is ETFFlowData) {
-      companies = event.getCompanies();
-    } else if (event is BTCFlowData) {
-      companies = event.getCompanies();
-    } else if (event is CombinedFlowData) {
-      companies = event.companies.entries
-          .map((e) => MapEntry(e.key, e.value))
-          .toList();
-    }
-
-    // Фильтруем только компании с ненулевыми значениями и сортируем по сумме
-    final companiesWithData =
-        companies
-            .where((entry) => entry.value != null && entry.value != 0)
-            .toList()
-          ..sort(
-            (a, b) => (b.value ?? 0).abs().compareTo((a.value ?? 0).abs()),
-          );
-
-    if (companiesWithData.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: companiesWithData.map((entry) {
-        String companyName;
-        if (event is ETFFlowData) {
-          companyName = ETFFlowData.getCompanyName(entry.key);
-        } else if (event is BTCFlowData) {
-          companyName = BTCFlowData.getCompanyName(entry.key);
-        } else {
-          // Combined: пройдём через оба маппера, если не нашли — исходный ключ
-          companyName = ETFFlowData.getCompanyName(
-            BTCFlowData.getCompanyName(entry.key) == entry.key
-                ? entry.key
-                : BTCFlowData.getCompanyName(entry.key),
-          );
-        }
-        final amount = entry.value ?? 0;
-        final isPositive = amount >= 0;
-
-        return InkWell(
-          onTap: () {
-            if (event is CombinedFlowData) {
-              setState(() {
-                if (_expandedCompanyKeys.contains(entry.key)) {
-                  _expandedCompanyKeys.remove(entry.key);
-                } else {
-                  _expandedCompanyKeys.add(entry.key);
-                }
-              });
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDark ? Colors.grey[600]! : Colors.grey[200]!,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    // Иконка компании
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: isPositive
-                            ? Colors.green.withOpacity(0.15)
-                            : Colors.red.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        isPositive ? Icons.trending_up : Icons.trending_down,
-                        color: isPositive ? Colors.green : Colors.red,
-                        size: 16,
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // Название компании
-                    Expanded(
-                      child: Text(
-                        companyName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-
-                    // Сумма
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isPositive
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        _formatAmount(amount),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isPositive ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (event is CombinedFlowData &&
-                    _expandedCompanyKeys.contains(entry.key))
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Builder(
-                      builder: (context) {
-                        final br = _buildAssetRow(
-                          'Bitcoin',
-                          event.companiesByAsset['bitcoin']?[entry.key] ?? 0,
-                          isDark,
-                        );
-                        final er = _buildAssetRow(
-                          'Ethereum',
-                          event.companiesByAsset['ethereum']?[entry.key] ?? 0,
-                          isDark,
-                        );
-                        final sr = _buildAssetRow(
-                          'Solana',
-                          event.companiesByAsset['solana']?[entry.key] ?? 0,
-                          isDark,
-                        );
-                        return Column(
-                          children: [
-                            if (br != null) br,
-                            if (er != null) er,
-                            if (sr != null) sr,
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
@@ -715,14 +540,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
         final content = Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDark ? Colors.grey[600]! : Colors.grey[200]!,
-              width: 1,
-            ),
-          ),
+          decoration: CardStyleUtils.getCompanyItemDecoration(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -750,7 +568,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: CardStyleUtils.getTitleColor(context),
                       ),
                     ),
                   ),
@@ -760,9 +578,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: isPositive
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                      color: CardStyleUtils.getFlowTagColor(context, isPositive),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -770,7 +586,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: isPositive ? Colors.green : Colors.red,
+                        color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
                       ),
                     ),
                   ),
@@ -781,7 +597,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                       expandedKeys.contains(entry.key)
                           ? Icons.expand_less
                           : Icons.expand_more,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      color: CardStyleUtils.getSubtitleColor(context),
                       size: 20,
                     ),
                   ],
@@ -840,7 +656,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF232323) : Colors.grey[100],
+        color: CardStyleUtils.getNestedCardColor(context),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -850,16 +666,14 @@ class _FlowCalendarState extends State<FlowCalendar> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black,
+              color: CardStyleUtils.getTitleColor(context),
             ),
           ),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: positive
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+              color: CardStyleUtils.getFlowTagColor(context, positive),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -867,7 +681,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: positive ? Colors.green : Colors.red,
+                color: CardStyleUtils.getFlowTagTextColor(context, positive),
               ),
             ),
           ),
@@ -889,3 +703,4 @@ class _FlowCalendarState extends State<FlowCalendar> {
     }
   }
 }
+

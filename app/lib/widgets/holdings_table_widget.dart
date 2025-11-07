@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import '../services/fund_logo_service.dart';
+import '../utils/card_style_utils.dart';
 
 class HoldingsTableWidget extends StatefulWidget {
   final List<ETFFlowData> ethereumData;
@@ -10,6 +11,7 @@ class HoldingsTableWidget extends StatefulWidget {
   final bool sortAscending;
   final Function(String, bool) onSortChanged;
   final String selectedPeriod;
+  final String? selectedAsset; // Для фильтрации по активу
   final Map<String, Map<String, double>> separateFlowChanges;
   final Map<String, Map<String, double>> totalHoldings;
 
@@ -21,6 +23,7 @@ class HoldingsTableWidget extends StatefulWidget {
     required this.sortAscending,
     required this.onSortChanged,
     required this.selectedPeriod,
+    this.selectedAsset,
     required this.separateFlowChanges,
     required this.totalHoldings,
   });
@@ -38,36 +41,48 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final tableData = _getTableData();
 
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-          width: 1,
+      decoration: CardStyleUtils.getCardDecoration(context),
+      child: Padding(
+        padding: CardStyleUtils.getCardPadding(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Заголовок таблицы
+            _buildTableHeader(context, isDark),
+            SizedBox(height: CardStyleUtils.getSpacing(context)),
+            // Данные таблицы - каждая компания как строка
+            ...tableData.asMap().entries.map((entry) {
+              final index = entry.key;
+              final data = entry.value;
+              return Column(
+                children: [
+                  _buildTableRow(context, data, isDark),
+                  if (index < tableData.length - 1) ...[
+                    const SizedBox(height: 12),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: CardStyleUtils.getDividerColor(context),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              );
+            }),
+          ],
         ),
-      ),
-      child: Column(
-        children: [
-          // Заголовок таблицы
-          _buildTableHeader(isDark),
-          // Данные таблицы
-          ...tableData.map((data) => _buildTableRow(data, isDark)),
-        ],
       ),
     );
   }
 
-  Widget _buildTableHeader(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.grey[50],
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
-      ),
-      child: Row(
+  Widget _buildTableHeader(BuildContext context, bool isDark) {
+    // Адаптивные размеры для разных экранов
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    final columnSpacing = isSmallScreen ? 16.0 : 20.0;
+    final columnPadding = isSmallScreen ? 2.0 : 4.0;
+
+    return Row(
         children: [
           // Название компании
           Expanded(
@@ -79,208 +94,272 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
                   Text(
                     'holdings.company'.tr(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: CardStyleUtils.getSubtitleColor(context),
                     ),
                   ),
                   const SizedBox(width: 4),
                   Icon(
                     _getSortIcon('name'),
-                    size: 16,
+                    size: 14,
                     color: widget.sortBy == 'name'
-                        ? (isDark ? Colors.white : Colors.black87)
-                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ? CardStyleUtils.getTitleColor(context)
+                        : CardStyleUtils.getSubtitleColor(context),
                   ),
                 ],
               ),
             ),
           ),
+          SizedBox(width: columnSpacing),
           // BTC колонка
           Expanded(
-            child: GestureDetector(
-              onTap: () => _handleSort('btc'),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'BTC',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.orange,
-                    ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: GestureDetector(
+                onTap: () => _handleSort('btc'),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'BTC',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _getSortIcon('btc'),
+                        size: 14,
+                        color: widget.sortBy == 'btc'
+                            ? Colors.orange
+                            : CardStyleUtils.getSubtitleColor(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _getSortIcon('btc'),
-                    size: 16,
-                    color: widget.sortBy == 'btc'
-                        ? Colors.orange
-                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+          SizedBox(width: columnSpacing),
           // ETH колонка
           Expanded(
-            child: GestureDetector(
-              onTap: () => _handleSort('eth'),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'ETH',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.blue,
-                    ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: GestureDetector(
+                onTap: () => _handleSort('eth'),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'ETH',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _getSortIcon('eth'),
+                        size: 14,
+                        color: widget.sortBy == 'eth'
+                            ? Colors.blue
+                            : CardStyleUtils.getSubtitleColor(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _getSortIcon('eth'),
-                    size: 16,
-                    color: widget.sortBy == 'eth'
-                        ? Colors.blue
-                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+          SizedBox(width: columnSpacing),
           // SOL колонка
           Expanded(
-            child: GestureDetector(
-              onTap: () => _handleSort('sol'),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'SOL',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.purple,
-                    ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: GestureDetector(
+                onTap: () => _handleSort('sol'),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'SOL',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _getSortIcon('sol'),
+                        size: 14,
+                        color: widget.sortBy == 'sol'
+                            ? Colors.purple
+                            : CardStyleUtils.getSubtitleColor(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _getSortIcon('sol'),
-                    size: 16,
-                    color: widget.sortBy == 'sol'
-                        ? Colors.purple
-                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ],
-      ),
     );
   }
 
-  Widget _buildTableRow(Map<String, dynamic> data, bool isDark) {
+  Widget _buildTableRow(BuildContext context, Map<String, dynamic> data, bool isDark) {
     final company = data['company'] as String;
     final btcValue = data['btc'] as double?;
     final ethValue = data['eth'] as double?;
     final solValue = data['sol'] as double?;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Row(
+    // Адаптивные размеры для разных экранов
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    final columnSpacing = isSmallScreen ? 16.0 : 20.0;
+    final columnPadding = isSmallScreen ? 2.0 : 4.0;
+    final valueFontSize = isSmallScreen ? 11.0 : 12.0;
+    final changeFontSize = isSmallScreen ? 10.0 : 11.0;
+
+    return Row(
         children: [
           // Колонка с логотипом и названием компании
           Expanded(
             flex: 2,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Логотип компании
                 _buildCompanyLogo(company),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 // Название компании
                 Text(
                   company,
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: CardStyleUtils.getTitleColor(context),
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+          SizedBox(width: columnSpacing),
           // BTC значение
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  btcValue != null ? _formatValue(btcValue) : '-',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: btcValue != null ? Colors.orange : Colors.grey,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        btcValue != null ? _formatValue(btcValue) : '—',
+                        style: TextStyle(
+                          fontSize: valueFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: btcValue != null ? Colors.orange : CardStyleUtils.getSubtitleColor(context),
+                        ),
+                        textAlign: TextAlign.right,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                _buildFlowChange(company, 'BTC', isDark),
-              ],
+                  const SizedBox(height: 4),
+                  _buildFlowChange(company, 'BTC', isDark, changeFontSize),
+                ],
+              ),
             ),
           ),
+          SizedBox(width: columnSpacing),
           // ETH значение
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  ethValue != null ? _formatValue(ethValue) : '-',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: ethValue != null ? Colors.blue : Colors.grey,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        ethValue != null ? _formatValue(ethValue) : '—',
+                        style: TextStyle(
+                          fontSize: valueFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: ethValue != null ? Colors.blue : CardStyleUtils.getSubtitleColor(context),
+                        ),
+                        textAlign: TextAlign.right,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                _buildFlowChange(company, 'ETH', isDark),
-              ],
+                  const SizedBox(height: 4),
+                  _buildFlowChange(company, 'ETH', isDark, changeFontSize),
+                ],
+              ),
             ),
           ),
+          SizedBox(width: columnSpacing),
           // SOL значение
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  solValue != null ? _formatValue(solValue) : '-',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: solValue != null ? Colors.purple : Colors.grey,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: columnPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        solValue != null ? _formatValue(solValue) : '—',
+                        style: TextStyle(
+                          fontSize: valueFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: solValue != null ? Colors.purple : CardStyleUtils.getSubtitleColor(context),
+                        ),
+                        textAlign: TextAlign.right,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                _buildFlowChange(company, 'SOL', isDark),
-              ],
+                  const SizedBox(height: 4),
+                  _buildFlowChange(company, 'SOL', isDark, changeFontSize),
+                ],
+              ),
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -338,43 +417,46 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final prefix = value < 0 ? '\$-' : '\$';
 
     if (absValue >= 1000) {
-      return '$prefix${(absValue / 1000).toStringAsFixed(2)}B';
+      // Для больших чисел используем 1 знак после запятой для компактности
+      return '$prefix${(absValue / 1000).toStringAsFixed(1)}B';
     } else {
-      return '$prefix${absValue.toStringAsFixed(2)}M';
+      // Для миллионов также используем 1 знак после запятой
+      return '$prefix${absValue.toStringAsFixed(1)}M';
     }
   }
 
   Widget _buildCompanyLogo(String companyName) {
     // Преобразуем название компании в ключ для логотипа
     String logoKey = _getCompanyLogoKey(companyName);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      width: 50,
-      height: 32,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
+        color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(8),
         child:
             FundLogoService.getLogoWidget(
               logoKey,
-              width: 50,
-              height: 32,
+              width: 40,
+              height: 40,
               fit: BoxFit.contain,
             ) ??
             Container(
-              width: 50,
-              height: 32,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(4),
+                color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.account_balance,
-                size: 16,
-                color: Colors.grey[600],
+                size: 20,
+                color: CardStyleUtils.getSubtitleColor(context),
               ),
             ),
       ),
@@ -408,33 +490,50 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     }
   }
 
-  Widget _buildFlowChange(String companyName, String type, bool isDark) {
+  Widget _buildFlowChange(String companyName, String type, bool isDark, double fontSize) {
     final companyChanges = widget.separateFlowChanges[companyName];
     final change = companyChanges?[type];
 
     if (change == null || change == 0) {
-      return Text(
-        '0.0',
-        style: TextStyle(
-          fontSize: 10,
-          color: Colors.grey[600],
-          fontWeight: FontWeight.w500,
+      return ClipRect(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            '0.0',
+            style: TextStyle(
+              fontSize: fontSize,
+              color: CardStyleUtils.getSubtitleColor(context),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.right,
+            softWrap: false,
+            overflow: TextOverflow.clip,
+          ),
         ),
-        textAlign: TextAlign.center,
       );
     }
-
-    // Отладочная информация
-    print('🔍 FlowChange Debug: $companyName $type = $change');
 
     final isPositive = change > 0;
     final color = isPositive ? Colors.green : Colors.red;
     final sign = isPositive ? '+' : '-';
 
-    return Text(
-      '$sign${_formatValue(change.abs())}',
-      style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
-      textAlign: TextAlign.center,
+    return ClipRect(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Text(
+          '$sign${_formatValue(change.abs())}',
+          style: TextStyle(
+            fontSize: fontSize,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+          textAlign: TextAlign.right,
+          softWrap: false,
+          overflow: TextOverflow.clip,
+        ),
+      ),
     );
   }
 

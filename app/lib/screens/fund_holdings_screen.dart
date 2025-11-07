@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/etf_provider.dart';
@@ -6,6 +7,7 @@ import '../widgets/holdings_table_widget.dart';
 import '../utils/haptic_feedback.dart';
 import '../services/flow_calculation_service.dart';
 import '../utils/adaptive_text_utils.dart';
+import '../utils/card_style_utils.dart';
 
 class FundHoldingsScreen extends StatefulWidget {
   const FundHoldingsScreen({super.key});
@@ -154,100 +156,62 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            'etf.holdings'.tr(),
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-        ),
-        // Кнопка выбора периода
-        GestureDetector(
-          onTap: () {
-            HapticUtils.lightImpact();
-            _showPeriodDialog(context);
-          },
-          child: Container(
-            width: 80, // Фиксированная ширина для одинакового размера
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+        // Заголовок и кнопка Day
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'etf.holdings'.tr(),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: CardStyleUtils.getTitleColor(context),
+                ),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _getPeriodDescription(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
+            // Кнопка выбора периода (Day)
+            GestureDetector(
+              onTap: () {
+                HapticUtils.lightImpact();
+                _showPeriodDialog(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark 
+                      ? const Color(0xFF2A2A2A)
+                      : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CardStyleUtils.getDividerColor(context),
+                    width: 0.5,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Кнопка сортировки
-        GestureDetector(
-          onTap: () {
-            HapticUtils.lightImpact();
-            _showSortDialog(context);
-          },
-          child: Container(
-            width: 80, // Фиксированная ширина для одинакового размера
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: CardStyleUtils.getSubtitleColor(context),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _getPeriodDescription(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: CardStyleUtils.getSubtitleColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.sort,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _getSortDescription(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -384,78 +348,107 @@ class _FundHoldingsScreenState extends State<FundHoldingsScreen> {
   void _showPeriodDialog(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    showDialog(
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+        return CupertinoActionSheet(
           title: Text(
             'holdings.period_changes'.tr(),
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: isDark ? CupertinoColors.secondaryLabel : CupertinoColors.secondaryLabel.darkColor,
             ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPeriodOption('day', 'holdings.period_day'.tr(), isDark),
-              _buildPeriodOption('week', 'holdings.period_week'.tr(), isDark),
-              _buildPeriodOption('month', 'holdings.period_month'.tr(), isDark),
-              _buildPeriodOption(
-                'quarter',
-                'holdings.period_3months'.tr(),
-                isDark,
-              ),
-              _buildPeriodOption(
-                'half_year',
-                'holdings.period_half_year'.tr(),
-                isDark,
-              ),
-              _buildPeriodOption('year', 'holdings.period_year'.tr(), isDark),
-            ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('common.cancel'.tr()),
+            _buildCupertinoPeriodOption(
+              context,
+              'day',
+              'holdings.period_day'.tr(),
+              isDark,
+            ),
+            _buildCupertinoPeriodOption(
+              context,
+              'week',
+              'holdings.period_week'.tr(),
+              isDark,
+            ),
+            _buildCupertinoPeriodOption(
+              context,
+              'month',
+              'holdings.period_month'.tr(),
+              isDark,
+            ),
+            _buildCupertinoPeriodOption(
+              context,
+              'quarter',
+              'holdings.period_3months'.tr(),
+              isDark,
+            ),
+            _buildCupertinoPeriodOption(
+              context,
+              'half_year',
+              'holdings.period_half_year'.tr(),
+              isDark,
+            ),
+            _buildCupertinoPeriodOption(
+              context,
+              'year',
+              'holdings.period_year'.tr(),
+              isDark,
             ),
           ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'common.cancel'.tr(),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isDark ? CupertinoColors.activeBlue : CupertinoColors.activeBlue.darkColor,
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildPeriodOption(String value, String title, bool isDark) {
-    return ListTile(
-      onTap: () {
+  Widget _buildCupertinoPeriodOption(
+    BuildContext context,
+    String value,
+    String title,
+    bool isDark,
+  ) {
+    final isSelected = _selectedPeriod == value;
+    
+    return CupertinoActionSheetAction(
+      onPressed: () {
+        HapticUtils.lightImpact();
         setState(() {
           _selectedPeriod = value;
         });
         Navigator.pop(context);
       },
-      splashColor: Colors.transparent,
-      hoverColor: Colors.transparent,
-      title: Text(
-        title,
-        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-      ),
-      trailing: Radio<String>(
-        value: value,
-        groupValue: _selectedPeriod,
-        onChanged: (String? newValue) {
-          if (newValue != null) {
-            setState(() {
-              _selectedPeriod = newValue;
-            });
-            Navigator.pop(context);
-          }
-        },
-        activeColor: Theme.of(context).colorScheme.secondary,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+              color: isDark ? CupertinoColors.white : CupertinoColors.black,
+            ),
+          ),
+          if (isSelected) ...[
+            const SizedBox(width: 8),
+            Icon(
+              CupertinoIcons.check_mark,
+              size: 20,
+              color: isDark ? CupertinoColors.activeBlue : CupertinoColors.activeBlue.darkColor,
+            ),
+          ],
+        ],
       ),
     );
   }

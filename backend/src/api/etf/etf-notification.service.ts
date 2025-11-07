@@ -106,7 +106,6 @@ export class ETFNotificationService {
         where: {
           application: { name: appName },
           isActive: true,
-          deviceToken: { not: null as any },
           settings: {
             path: ['etfNotifications', 'enabled'],
             equals: true,
@@ -121,6 +120,10 @@ export class ETFNotificationService {
       });
 
       return users.filter((user) => {
+        // Фильтруем пользователей с deviceToken и включенными уведомлениями
+        if (!user.deviceToken) {
+          return false;
+        }
         const settings = user.settings as any;
         return settings?.etfNotifications?.enabled !== false;
       });

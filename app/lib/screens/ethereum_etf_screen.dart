@@ -43,7 +43,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                   padding: EdgeInsets.only(
                     left: AdaptiveTextUtils.getContentPadding(context).left,
                     right: AdaptiveTextUtils.getContentPadding(context).right,
-                    top: 12, // Небольшой верхний отступ
+                    top: 28, // Уменьшенный верхний отступ после табов
                     bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
                   child: Column(
