@@ -103,6 +103,8 @@ function transformKlineData(kline) {
  */
 async function getLastOpenTime() {
 	try {
+		console.log(`🔍 Поиск последней даты для: symbol=${config.symbol}, interval=${config.interval}, source=${config.source}`);
+		
 		const lastCandle = await prisma.bTCandle.findFirst({
 			where: {
 				symbol: config.symbol,
@@ -116,6 +118,29 @@ async function getLastOpenTime() {
 				openTime: true,
 			},
 		});
+
+		if (lastCandle) {
+			console.log(`✅ Найдена последняя дата в БД: ${lastCandle.openTime.toISOString()}`);
+		} else {
+			console.log(`⚠️ Последняя дата не найдена в БД для указанных параметров`);
+			// Проверяем, есть ли вообще записи в БД
+			const anyCandle = await prisma.bTCandle.findFirst({
+				orderBy: {
+					openTime: 'desc',
+				},
+				select: {
+					openTime: true,
+					symbol: true,
+					interval: true,
+					source: true,
+				},
+			});
+			if (anyCandle) {
+				console.log(`ℹ️ В БД есть записи, но с другими параметрами: symbol=${anyCandle.symbol}, interval=${anyCandle.interval}, source=${anyCandle.source}, openTime=${anyCandle.openTime.toISOString()}`);
+			} else {
+				console.log(`ℹ️ В БД нет записей вообще`);
+			}
+		}
 
 		return lastCandle ? lastCandle.openTime : null;
 	} catch (error) {
