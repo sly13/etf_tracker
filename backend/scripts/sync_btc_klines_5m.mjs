@@ -18,6 +18,11 @@ const config = {
 	interval: process.env.INTERVAL || '5m',
 	source: process.env.SOURCE || 'binance_spot',
 	startFrom: process.env.START_FROM || '2017-09-01T00:00:00Z',
+	
+	// Ограничение диапазона синхронизации (только для периодической синхронизации)
+	// Если установлено, синхронизирует только последние N часов от текущего момента
+	// Если не установлено или 0, синхронизирует все данные от последней даты в БД
+	maxHoursBack: process.env.MAX_HOURS_BACK ? parseInt(process.env.MAX_HOURS_BACK) : 0,
 
 	// Настройки запросов
 	batchSize: 1000,
@@ -192,6 +197,16 @@ async function syncKlines() {
 		}
 
 		const now = new Date();
+
+		// Если установлено ограничение по времени, ограничиваем стартовую дату
+		if (config.maxHoursBack > 0) {
+			const minStartTime = new Date(now.getTime() - config.maxHoursBack * 60 * 60 * 1000);
+			if (startTime < minStartTime) {
+				console.log(`⏰ Ограничение диапазона: синхронизируем только последние ${config.maxHoursBack} часов`);
+				startTime = minStartTime;
+				mode = 'incremental';
+			}
+		}
 
 		// Проверяем, нужно ли что-то синхронизировать
 		if (startTime >= now) {

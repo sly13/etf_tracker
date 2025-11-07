@@ -11,12 +11,13 @@ export class DataSyncService {
   /**
    * Синхронизация данных при старте приложения (запускается в фоне)
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async onApplicationBootstrap() {
     this.logger.log(
       '🚀 Запуск начальной синхронизации данных в фоновом режиме...',
     );
     // Запускаем в фоне, не блокируя старт сервера
-    this.syncAllDataInBackground().catch((error) => {
+    void this.syncAllDataInBackground().catch((error) => {
       this.logger.error('❌ Ошибка при фоновой синхронизации:', error);
     });
   }
@@ -66,26 +67,34 @@ export class DataSyncService {
   /**
    * Синхронизация BTC klines
    */
-  async syncBTCKlines(): Promise<void> {
+  async syncBTCKlines(maxHoursBack?: number): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         this.logger.log('🟠 Синхронизация BTC klines...');
+
+        // Подготавливаем переменные окружения
+        const env = { ...process.env };
+        if (maxHoursBack !== undefined && maxHoursBack > 0) {
+          env.MAX_HOURS_BACK = maxHoursBack.toString();
+          this.logger.log(
+            `⏰ Ограничение: синхронизируем только последние ${maxHoursBack} часов`,
+          );
+        }
 
         // Используем spawn для потоковой обработки вывода
         const childProcess = spawn('npm', ['run', 'sync:btc-klines'], {
           cwd: process.cwd(),
           shell: true,
           stdio: ['ignore', 'pipe', 'pipe'],
+          env,
         });
 
         this.syncProcess = childProcess;
 
-        let stdout = '';
         let stderr = '';
 
         childProcess.stdout?.on('data', (data) => {
           const output = data.toString();
-          stdout += output;
           // Логируем прогресс
           if (
             output.includes('Батч') ||
@@ -130,7 +139,7 @@ export class DataSyncService {
         });
       } catch (error) {
         this.logger.error('❌ Ошибка при синхронизации BTC klines:', error);
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -138,26 +147,34 @@ export class DataSyncService {
   /**
    * Синхронизация ETH klines
    */
-  async syncETHKlines(): Promise<void> {
+  async syncETHKlines(maxHoursBack?: number): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         this.logger.log('🔵 Синхронизация ETH klines...');
+
+        // Подготавливаем переменные окружения
+        const env = { ...process.env };
+        if (maxHoursBack !== undefined && maxHoursBack > 0) {
+          env.MAX_HOURS_BACK = maxHoursBack.toString();
+          this.logger.log(
+            `⏰ Ограничение: синхронизируем только последние ${maxHoursBack} часов`,
+          );
+        }
 
         // Используем spawn для потоковой обработки вывода
         const childProcess = spawn('npm', ['run', 'sync:eth-klines'], {
           cwd: process.cwd(),
           shell: true,
           stdio: ['ignore', 'pipe', 'pipe'],
+          env,
         });
 
         this.syncProcess = childProcess;
 
-        let stdout = '';
         let stderr = '';
 
         childProcess.stdout?.on('data', (data) => {
           const output = data.toString();
-          stdout += output;
           // Логируем прогресс
           if (
             output.includes('Батч') ||
@@ -202,23 +219,58 @@ export class DataSyncService {
         });
       } catch (error) {
         this.logger.error('❌ Ошибка при синхронизации ETH klines:', error);
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
 
   /**
-   * Автоматическая синхронизация каждые 5 минут
+   * Автоматическая синхронизация каждые 30 минут
+   * Синхронизирует от последней даты в БД (без ограничения по времени)
    */
-  @Cron('*/5 * * * *')
+  @Cron('*/30 * * * *')
   async handlePeriodicSync() {
-    this.logger.log('⏰ Запуск периодической синхронизации данных...');
-    await this.syncAllData();
+    this.logger.log(
+      '⏰ Запуск периодической синхронизации данных (от последней даты в БД)...',
+    );
+
+    if (this.syncInProgress) {
+      this.logger.warn(
+        '⚠️ Синхронизация уже выполняется, пропускаем периодическую синхронизацию...',
+      );
+      return;
+    }
+
+    this.syncInProgress = true;
+    try {
+      // Синхронизируем от последней даты в БД (без ограничения по времени)
+      // Передаем undefined, чтобы скрипт использовал последнюю дату из БД
+      const maxHoursBack = undefined;
+
+      // Синхронизация BTC klines
+      await this.syncBTCKlines(maxHoursBack);
+
+      // Небольшая пауза между синхронизациями
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Синхронизация ETH klines
+      await this.syncETHKlines(maxHoursBack);
+
+      this.logger.log('✅ Периодическая синхронизация завершена');
+    } catch (error) {
+      this.logger.error(
+        '❌ Ошибка при периодической синхронизации данных:',
+        error,
+      );
+    } finally {
+      this.syncInProgress = false;
+    }
   }
 
   /**
    * Ручной запуск синхронизации (для API)
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async triggerManualSync(): Promise<{ success: boolean; message: string }> {
     if (this.syncInProgress) {
       return {
@@ -230,7 +282,7 @@ export class DataSyncService {
     try {
       this.logger.log('🔧 Ручной запуск синхронизации данных...');
       // Запускаем в фоне, не блокируя ответ API
-      this.syncAllDataInBackground().catch((error) => {
+      void this.syncAllDataInBackground().catch((error) => {
         this.logger.error('❌ Ошибка при ручной синхронизации:', error);
       });
 
@@ -261,7 +313,9 @@ export class DataSyncService {
 
   /**
    * Прервать синхронизацию (если выполняется)
+   * Метод async для совместимости, но не использует await
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async stopSync(): Promise<{ success: boolean; message: string }> {
     if (!this.syncInProgress || !this.syncProcess) {
       return {
