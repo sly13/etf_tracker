@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Delete, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DataSyncService } from './data-sync.service';
 
@@ -20,11 +20,20 @@ export class DataSyncController {
    */
   @Get('status')
   async getSyncStatus() {
+    const status = this.dataSyncService.getSyncStatus();
     return {
-      message: 'Сервис синхронизации активен',
+      ...status,
       cronSchedule: 'Каждые 5 минут',
-      lastSync: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Прервать текущую синхронизацию
+   */
+  @Delete('stop')
+  async stopSync() {
+    return await this.dataSyncService.stopSync();
   }
 }
 
