@@ -595,7 +595,14 @@ export class UniversalETFFlowService {
 
       this.logger.log(`Создана новая запись ETF: ${dedupeKey}`);
       return newRecord;
-    } catch (error) {
+    } catch (error: any) {
+      // Проверяем, является ли ошибка отсутствием таблицы (P2021)
+      if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+        this.logger.warn(
+          `⚠️ Таблица etf_new_records не существует. Пропускаем создание записи. Примените миграцию: npx prisma migrate deploy`,
+        );
+        return null;
+      }
       this.logger.error(`Ошибка при создании новой записи ETF:`, error);
       return null;
     }
@@ -619,7 +626,14 @@ export class UniversalETFFlowService {
       });
 
       return records;
-    } catch (error) {
+    } catch (error: any) {
+      // Проверяем, является ли ошибка отсутствием таблицы (P2021)
+      if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+        this.logger.warn(
+          '⚠️ Таблица etf_new_records не существует. Возвращаем пустой массив. Примените миграцию: npx prisma migrate deploy',
+        );
+        return [];
+      }
       this.logger.error(
         'Ошибка при получении новых записей для уведомлений:',
         error,

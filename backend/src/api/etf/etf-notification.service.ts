@@ -141,17 +141,29 @@ export class ETFNotificationService {
       this.logger.log('🔔 Начинаю отправку уведомлений о новых записях ETF...');
 
       // Получаем новые записи без отправленных уведомлений
-      const newRecords = await this.prisma.eTFNewRecord.findMany({
-        where: {
-          deliveries: {
-            none: {}, // Записи без доставок уведомлений
+      let newRecords;
+      try {
+        newRecords = await this.prisma.eTFNewRecord.findMany({
+          where: {
+            deliveries: {
+              none: {}, // Записи без доставок уведомлений
+            },
           },
-        },
-        orderBy: {
-          detectedAt: 'desc',
-        },
-        take: 20, // Ограничиваем количество для обработки
-      });
+          orderBy: {
+            detectedAt: 'desc',
+          },
+          take: 20, // Ограничиваем количество для обработки
+        });
+      } catch (error: any) {
+        // Проверяем, является ли ошибка отсутствием таблицы (P2021)
+        if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+          this.logger.warn(
+            '⚠️ Таблица etf_new_records не существует. Пропускаем отправку уведомлений. Примените миграцию: npx prisma migrate deploy',
+          );
+          return;
+        }
+        throw error; // Пробрасываем другие ошибки
+      }
 
       if (newRecords.length === 0) {
         this.logger.log('📭 Новых записей для уведомлений не найдено');
@@ -196,14 +208,28 @@ export class ETFNotificationService {
             }
 
             // Создаем запись о доставке
-            const delivery = await this.prisma.eTFNotificationDelivery.create({
-              data: {
-                userId: user.id,
-                recordId: record.id,
-                sent: false,
-                channel: 'push',
-              },
-            });
+            let delivery;
+            try {
+              delivery = await this.prisma.eTFNotificationDelivery.create({
+                data: {
+                  userId: user.id,
+                  recordId: record.id,
+                  sent: false,
+                  channel: 'push',
+                },
+              });
+            } catch (error: any) {
+              // Проверяем, является ли ошибка отсутствием таблицы (P2021)
+              if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+                this.logger.warn(
+                  '⚠️ Таблица etf_notification_deliveries не существует. Продолжаем без записи доставки.',
+                );
+                // Продолжаем отправку уведомления, но без записи доставки
+                delivery = null;
+              } else {
+                throw error;
+              }
+            }
 
             // Отправляем push уведомление
             const title = this.formatNotificationTitle(record);
@@ -223,14 +249,23 @@ export class ETFNotificationService {
               },
             );
 
-            // Отмечаем как отправленное
-            await this.prisma.eTFNotificationDelivery.update({
-              where: { id: delivery.id },
-              data: {
-                sent: true,
-                sentAt: new Date(),
-              },
-            });
+            // Отмечаем как отправленное (если запись доставки была создана)
+            if (delivery) {
+              try {
+                await this.prisma.eTFNotificationDelivery.update({
+                  where: { id: delivery.id },
+                  data: {
+                    sent: true,
+                    sentAt: new Date(),
+                  },
+                });
+              } catch (error: any) {
+                // Игнорируем ошибки обновления, если таблица не существует
+                if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+                  this.logger.error('Ошибка обновления статуса доставки:', error);
+                }
+              }
+            }
 
             totalSent++;
             this.logger.log(
@@ -246,15 +281,22 @@ export class ETFNotificationService {
                 );
 
                 // Создаем запись о Telegram доставке
-                await this.prisma.eTFNotificationDelivery.create({
-                  data: {
-                    userId: user.id,
-                    recordId: record.id,
-                    sent: true,
-                    sentAt: new Date(),
-                    channel: 'telegram',
-                  },
-                });
+                try {
+                  await this.prisma.eTFNotificationDelivery.create({
+                    data: {
+                      userId: user.id,
+                      recordId: record.id,
+                      sent: true,
+                      sentAt: new Date(),
+                      channel: 'telegram',
+                    },
+                  });
+                } catch (error: any) {
+                  // Игнорируем ошибки создания записи, если таблица не существует
+                  if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+                    this.logger.error('Ошибка создания записи Telegram доставки:', error);
+                  }
+                }
 
                 this.logger.log(
                   `📱 Telegram уведомление отправлено пользователю ${user.id}`,
@@ -285,11 +327,14 @@ export class ETFNotificationService {
                   error: error.message,
                 },
               });
-            } catch (updateError) {
-              this.logger.error(
-                'Ошибка обновления статуса доставки:',
-                updateError,
-              );
+            } catch (updateError: any) {
+              // Игнорируем ошибки, если таблица не существует
+              if (updateError?.code !== 'P2021' && !updateError?.message?.includes('does not exist')) {
+                this.logger.error(
+                  'Ошибка обновления статуса доставки:',
+                  updateError,
+                );
+              }
             }
           }
         }
@@ -425,7 +470,18 @@ export class ETFNotificationService {
         totalFailed: failedCount,
         lastNotification: lastNotification?.sentAt || null,
       };
-    } catch (error) {
+    } catch (error: any) {
+      // Проверяем, является ли ошибка отсутствием таблицы (P2021)
+      if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+        this.logger.warn(
+          '⚠️ Таблица etf_notification_deliveries не существует. Возвращаем пустую статистику.',
+        );
+        return {
+          totalSent: 0,
+          totalFailed: 0,
+          lastNotification: null,
+        };
+      }
       this.logger.error('Ошибка при получении статистики уведомлений:', error);
       return {
         totalSent: 0,
