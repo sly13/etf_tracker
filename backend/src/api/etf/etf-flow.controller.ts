@@ -8,7 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { UniversalETFFlowService } from './universal-etf-flow.service';
-import type { ETFFlowData, BTCFlowData } from './etf-types';
+import type { ETFFlowData, BTCFlowData, SolFlowData } from './etf-types';
 import { ETFSchedulerService } from './etf-scheduler.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 
@@ -76,7 +76,7 @@ export class ETFFlowController {
     } catch (error) {
       this.logger.error('Ошибка при получении данных Solana ETF:', error);
       this.logger.error(`Stack trace: ${error.stack}`);
-      
+
       // Возвращаем информативную ошибку вместо простого throw
       throw new HttpException(
         {
@@ -454,6 +454,8 @@ export class ETFFlowController {
         await this.etfFlowService.getETFFlowData('ethereum');
       const bitcoinData: BTCFlowData[] =
         await this.etfFlowService.getETFFlowData('bitcoin');
+      const solanaData: SolFlowData[] =
+        await this.etfFlowService.getETFFlowData('solana');
 
       // Функция для получения дневного притока (используем поле total)
       const getDailyFlow = (item: any): number => {
@@ -472,10 +474,12 @@ export class ETFFlowController {
       // Берем только последние данные для каждого типа
       const latestEthereum = ethereumData[0];
       const latestBitcoin = bitcoinData[0];
+      const latestSolana = solanaData[0];
 
       // Рассчитываем текущие потоки как сумму всех фондов за последний день
       let ethereumDailyFlow: number = getDailyFlow(latestEthereum || {});
       let bitcoinDailyFlow: number = getDailyFlow(latestBitcoin || {});
+      let solanaDailyFlow: number = getDailyFlow(latestSolana || {});
 
       // Если текущий поток равен 0, берем среднее за последние 10 дней
       if (ethereumDailyFlow === 0 && ethereumData.length > 0) {
@@ -492,9 +496,18 @@ export class ETFFlowController {
             .reduce((sum, item) => sum + getDailyFlow(item), 0) / 10;
       }
 
+      if (solanaDailyFlow === 0 && solanaData.length > 0) {
+        solanaDailyFlow =
+          solanaData
+            .slice(0, Math.min(10, solanaData.length))
+            .reduce((sum, item) => sum + getDailyFlow(item), 0) / 10;
+      }
+
       // Считаем общий итог как сумму текущих потоков
       const totalFlow =
-        Math.round((ethereumDailyFlow + bitcoinDailyFlow) * 100) / 100;
+        Math.round(
+          (ethereumDailyFlow + bitcoinDailyFlow + solanaDailyFlow) * 100,
+        ) / 100;
 
       // Вычисляем общие активы (total assets) - суммируем все фонды за все дни
       const ethereumTotalAssets =
@@ -513,44 +526,90 @@ export class ETFFlowController {
           ) * 100,
         ) / 100;
 
+      const solanaTotalAssets =
+        Math.round(
+          solanaData.reduce((sum, item) => sum + calculateDailyTotal(item), 0) *
+            100,
+        ) / 100;
+
       // Для графика берем последние 10 дней и рассчитываем дневные потоки
       const ethLast10 = ethereumData.slice(0, 10);
       const btcLast10 = bitcoinData.slice(0, 10);
+      const solLast10 = solanaData.slice(0, 10);
 
       // Рассчитываем дневные потоки для графика
       const ethereumDailyFlows: number[] = [];
       const bitcoinDailyFlows: number[] = [];
+      const solanaDailyFlows: number[] = [];
       const dates: string[] = [];
 
-      for (let i = 0; i < Math.max(ethLast10.length, btcLast10.length); i++) {
+      const maxLength = Math.max(
+        ethLast10.length,
+        btcLast10.length,
+        solLast10.length,
+      );
+
+      for (let i = 0; i < maxLength; i++) {
         const ethItem = ethLast10[i];
         const btcItem = btcLast10[i];
+        const solItem = solLast10[i];
 
-        if (ethItem || btcItem) {
-          const date = ethItem?.date || btcItem?.date;
+        if (ethItem || btcItem || solItem) {
+          const date = ethItem?.date || btcItem?.date || solItem?.date;
           dates.push(date);
 
           // Дневной поток - это значение поля total
           const ethDailyFlow = ethItem ? getDailyFlow(ethItem) : 0;
           const btcDailyFlow = btcItem ? getDailyFlow(btcItem) : 0;
+          const solDailyFlow = solItem ? getDailyFlow(solItem) : 0;
 
           ethereumDailyFlows.push(ethDailyFlow);
           bitcoinDailyFlows.push(btcDailyFlow);
+          solanaDailyFlows.push(solDailyFlow);
         }
       }
 
-      // Объединяем потоки для общего графика
+      // Объединяем потоки для общего графика (включая Solana)
       const combinedDailyFlows: number[] = [];
-      const maxLength = Math.max(
-        ethereumDailyFlows.length,
-        bitcoinDailyFlows.length,
-      );
       for (let i = 0; i < maxLength; i++) {
         const ethFlow =
           i < ethereumDailyFlows.length ? ethereumDailyFlows[i] : 0;
         const btcFlow = i < bitcoinDailyFlows.length ? bitcoinDailyFlows[i] : 0;
-        combinedDailyFlows.push(Math.round((ethFlow + btcFlow) * 100) / 100);
+        const solFlow = i < solanaDailyFlows.length ? solanaDailyFlows[i] : 0;
+        combinedDailyFlows.push(
+          Math.round((ethFlow + btcFlow + solFlow) * 100) / 100,
+        );
       }
+
+      // Получаем данные по фондам за последний день
+      const getFundFlows = (item: any) => {
+        if (!item) return {};
+        return {
+          blackrock: Math.round((Number(item.blackrock) || 0) * 100) / 100,
+          fidelity: Math.round((Number(item.fidelity) || 0) * 100) / 100,
+          bitwise: Math.round((Number(item.bitwise) || 0) * 100) / 100,
+          twentyOneShares:
+            Math.round((Number(item.twentyOneShares) || 0) * 100) / 100,
+          vanEck: Math.round((Number(item.vanEck) || 0) * 100) / 100,
+          invesco: Math.round((Number(item.invesco) || 0) * 100) / 100,
+          franklin: Math.round((Number(item.franklin) || 0) * 100) / 100,
+          grayscale: Math.round((Number(item.grayscale) || 0) * 100) / 100,
+          grayscaleCrypto:
+            Math.round(
+              (Number(item.grayscaleCrypto || item.grayscaleEth) || 0) * 100,
+            ) / 100,
+        };
+      };
+
+      const getBTCFundFlows = (item: any) => {
+        if (!item) return {};
+        const base = getFundFlows(item);
+        return {
+          ...base,
+          valkyrie: Math.round((Number(item.valkyrie) || 0) * 100) / 100,
+          wisdomTree: Math.round((Number(item.wisdomTree) || 0) * 100) / 100,
+        };
+      };
 
       return {
         // Основные данные для отображения
@@ -558,11 +617,19 @@ export class ETFFlowController {
           totalAssets: bitcoinTotalAssets,
           dailyFlow: bitcoinDailyFlow,
           latestDate: latestBitcoin?.date || null,
+          fundFlows: getBTCFundFlows(latestBitcoin),
         },
         ethereum: {
           totalAssets: ethereumTotalAssets,
           dailyFlow: ethereumDailyFlow,
           latestDate: latestEthereum?.date || null,
+          fundFlows: getFundFlows(latestEthereum),
+        },
+        solana: {
+          totalAssets: solanaTotalAssets,
+          dailyFlow: solanaDailyFlow,
+          latestDate: latestSolana?.date || null,
+          fundFlows: getFundFlows(latestSolana),
         },
         overall: {
           totalFlow: totalFlow,
@@ -574,6 +641,7 @@ export class ETFFlowController {
           dates: dates,
           ethereumDailyFlows: ethereumDailyFlows,
           bitcoinDailyFlows: bitcoinDailyFlows,
+          solanaDailyFlows: solanaDailyFlows,
           combinedDailyFlows: combinedDailyFlows,
         },
       };

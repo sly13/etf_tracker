@@ -126,54 +126,69 @@ class _FlowCalendarState extends State<FlowCalendar> {
           ),
 
           // Календарь
-          TableCalendar<dynamic>(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            eventLoader: (day) => _getEventsForDay(day),
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, focusedDay) {
-                final total = _getTotalForDay(day);
-                final hasData = _getEventsForDay(day).isNotEmpty;
+          // Оборачиваем в GestureDetector для правильной обработки жестов скролла
+          // Это позволяет вертикальным жестам проходить к родительскому ScrollView
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            // Пропускаем вертикальные жесты к родительскому ScrollView
+            onVerticalDragUpdate: (_) {},
+            onVerticalDragEnd: (_) {},
+            onVerticalDragStart: (_) {},
+            // Горизонтальные жесты для переключения месяцев обрабатываются внутренним PageView календаря
+            child: TableCalendar<dynamic>(
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) {
+                return isSameDay(_selectedDay, day);
+              },
+              eventLoader: (day) => _getEventsForDay(day),
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              calendarBuilders: CalendarBuilders(
+                defaultBuilder: (context, day, focusedDay) {
+                    final total = _getTotalForDay(day);
+                    final hasData = _getEventsForDay(day).isNotEmpty;
 
-                if (!hasData) return null;
+                    if (!hasData) return null;
 
-                return Container(
-                  margin: const EdgeInsets.all(2.0),
+                    return Container(
+                  margin: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   alignment: Alignment.center,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '${day.day}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: total >= 0
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _formatAmount(total),
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: total >= 0 ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 1),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: total >= 0
+                                ? Colors.green.withOpacity(0.2)
+                                : Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _formatAmount(total),
+                            style: TextStyle(
+                              fontSize: 7,
+                              color: total >= 0 ? Colors.green : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -188,41 +203,51 @@ class _FlowCalendarState extends State<FlowCalendar> {
                 if (!hasData) return null;
 
                 return Container(
-                  margin: const EdgeInsets.all(2.0),
+                  margin: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
+                    color: Colors.transparent, // Прозрачный фон
+                    borderRadius: BorderRadius.circular(8), // Скругленные углы для квадрата
+                    border: Border.all(
+                      color: const Color(0xFF1E3A8A), // Темно-синий финансово-деловой цвет для обводки
+                      width: 2,
+                    ),
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '${day.day}',
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: total >= 0
-                              ? Colors.green.withOpacity(0.8)
-                              : Colors.red.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _formatAmount(total),
-                          style: const TextStyle(
-                            fontSize: 8,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 1),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: total >= 0
+                                ? Colors.green.withOpacity(0.8)
+                                : Colors.red.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _formatAmount(total),
+                            style: const TextStyle(
+                              fontSize: 7,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -237,41 +262,47 @@ class _FlowCalendarState extends State<FlowCalendar> {
                 if (!hasData) return null;
 
                 return Container(
-                  margin: const EdgeInsets.all(2.0),
+                  margin: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.3),
                     shape: BoxShape.circle,
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '${day.day}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: total >= 0
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _formatAmount(total),
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: total >= 0 ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 1),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: total >= 0
+                                ? Colors.green.withOpacity(0.2)
+                                : Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _formatAmount(total),
+                            style: TextStyle(
+                              fontSize: 7,
+                              color: total >= 0 ? Colors.green : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -282,6 +313,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
             ),
             calendarStyle: CalendarStyle(
               outsideDaysVisible: false,
+              cellPadding: const EdgeInsets.all(2),
               weekendTextStyle: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
               ),
@@ -289,8 +321,12 @@ class _FlowCalendarState extends State<FlowCalendar> {
                 color: isDark ? Colors.white : Colors.black,
               ),
               selectedDecoration: BoxDecoration(
-                color: Colors.orange,
-                shape: BoxShape.circle,
+                color: Colors.transparent, // Прозрачный фон
+                borderRadius: BorderRadius.circular(8), // Скругленные углы для квадрата
+                border: Border.all(
+                  color: const Color(0xFF1E3A8A), // Темно-синий финансово-деловой цвет для обводки
+                  width: 2,
+                ),
               ),
               todayDecoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.3),
@@ -298,8 +334,8 @@ class _FlowCalendarState extends State<FlowCalendar> {
               ),
               markersMaxCount:
                   0, // Убираем маркеры, так как используем кастомные билдеры
-            ),
-            headerStyle: HeaderStyle(
+                ),
+                headerStyle: HeaderStyle(
               formatButtonVisible: false,
               titleCentered: true,
               titleTextStyle: TextStyle(
@@ -328,6 +364,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                 _focusedDay = focusedDay;
               });
             },
+            ),
           ),
 
           // Убираем старый блок с деталями, теперь используем модальное окно
@@ -737,6 +774,17 @@ class _FlowCalendarState extends State<FlowCalendar> {
                       ),
                     ),
                   ),
+                  // Добавляем иконку chevron для индикации кликабельности
+                  if (event is CombinedFlowData) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      expandedKeys.contains(entry.key)
+                          ? Icons.expand_less
+                          : Icons.expand_more,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      size: 20,
+                    ),
+                  ],
                 ],
               ),
               if (event is CombinedFlowData && expandedKeys.contains(entry.key))
@@ -774,11 +822,11 @@ class _FlowCalendarState extends State<FlowCalendar> {
           ),
         );
 
-        return GestureDetector(
+        return InkWell(
           onTap: () {
             if (event is CombinedFlowData) toggle(entry.key);
           },
-          behavior: HitTestBehavior.opaque,
+          borderRadius: BorderRadius.circular(8),
           child: content,
         );
       }).toList(),

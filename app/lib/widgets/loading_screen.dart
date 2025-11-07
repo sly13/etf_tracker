@@ -165,32 +165,41 @@ class LoadingScreen extends StatelessWidget {
                         ),
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _buildLoadingItem(
-                            'etf.bitcoin'.tr(),
+                            'BTC ETF',
                             'assets/bitcoin.png',
                             Colors.orange,
                             etfProvider.isBitcoinLoaded,
                             isImage: true,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           _buildLoadingItem(
-                            'etf.ethereum'.tr(),
+                            'ETH ETF',
                             'assets/ethereum.png',
                             Colors.blue,
                             etfProvider.isEthereumLoaded,
                             isImage: true,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           _buildLoadingItem(
-                            'loading.summary_data'.tr(),
+                            'SOL ETF',
+                            'assets/solana.png',
+                            Colors.teal,
+                            etfProvider.isSolanaLoaded,
+                            isImage: true,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildLoadingItem(
+                            'Summary',
                             Icons.analytics,
                             Colors.green,
                             etfProvider.isSummaryLoaded,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           _buildLoadingItem(
-                            'loading.fund_data'.tr(),
+                            'Fund Data',
                             Icons.account_balance,
                             Colors.purple,
                             etfProvider.isFundHoldingsLoaded,
@@ -214,25 +223,34 @@ class LoadingScreen extends StatelessWidget {
                     ),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       _buildLoadingItem(
-                        'etf.bitcoin'.tr(),
+                        'BTC ETF',
                         'assets/bitcoin.png',
                         Colors.orange,
                         false,
                         isImage: true,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       _buildLoadingItem(
-                        'etf.ethereum'.tr(),
+                        'ETH ETF',
                         'assets/ethereum.png',
                         Colors.blue,
                         false,
                         isImage: true,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       _buildLoadingItem(
-                        'loading.fund_data'.tr(),
+                        'SOL ETF',
+                        'assets/solana.png',
+                        Colors.teal,
+                        false,
+                        isImage: true,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLoadingItem(
+                        'Fund Data',
                         Icons.account_balance,
                         Colors.green,
                         false,
@@ -257,6 +275,7 @@ class LoadingScreen extends StatelessWidget {
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (isImage)
           ClipRRect(

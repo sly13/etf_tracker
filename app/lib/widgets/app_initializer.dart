@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/onboarding_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../screens/main_navigation_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/subscription_selection_screen.dart';
+import '../utils/revenuecat_checker.dart';
 
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
@@ -58,6 +61,13 @@ class _AppInitializerState extends State<AppInitializer> {
         setState(() {
           _isInitializing = false;
         });
+        
+        // Запускаем диагностику RevenueCat после запуска приложения
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (kDebugMode) {
+            RevenueCatChecker.printDiagnostics();
+          }
+        });
       }
     } catch (e) {
       print('❌ Ошибка инициализации провайдеров: $e');
@@ -97,7 +107,7 @@ class _AppInitializerState extends State<AppInitializer> {
               CircularProgressIndicator(color: Theme.of(context).primaryColor),
               const SizedBox(height: 16),
               Text(
-                'Загрузка...',
+                'common.loading'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(
                     context,

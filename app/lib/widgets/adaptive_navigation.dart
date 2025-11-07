@@ -76,13 +76,13 @@ class AdaptiveNavigation extends StatelessWidget {
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.currency_bitcoin,
-                        title: 'Bitcoin ETF',
+                        title: 'Bitcoin',
                         index: 1,
                       ),
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.currency_exchange,
-                        title: 'Ethereum ETF',
+                        title: 'Ethereum',
                         index: 2,
                       ),
                       _buildMacOSNavItem(

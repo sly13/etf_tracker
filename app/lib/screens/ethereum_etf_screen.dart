@@ -30,56 +30,57 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
   Widget build(BuildContext context) {
     return Consumer<ETFProvider>(
       builder: (context, etfProvider, child) {
-        return Scaffold(
-          body: SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                // await etfProvider.fetchEthereumData();
-              },
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  // Content
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: AdaptiveTextUtils.getContentPadding(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Карточка с последними данными
-                          if (etfProvider.ethereumData.isNotEmpty)
-                            EthereumFlowCard(
-                              flowData: etfProvider.ethereumData.first,
-                              onTap: () {
-                                _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              },
-                            ),
-
-                          const SizedBox(height: 20),
-
-                          // График потоков
-                          _buildChartSection(etfProvider.ethereumData),
-                          const SizedBox(height: 20),
-
-                          // Список данных по дням
-                          FlowCalendar(
-                            flowData: etfProvider.ethereumData,
-                            title: 'etf.flow_history'.tr(),
-                          ),
-
-                          // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                          const SizedBox(height: 100),
-                        ],
-                      ),
-                    ),
+        return RefreshIndicator(
+          onRefresh: () async {
+            // await etfProvider.fetchEthereumData();
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              // Content
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: AdaptiveTextUtils.getContentPadding(context).left,
+                    right: AdaptiveTextUtils.getContentPadding(context).right,
+                    top: 12, // Небольшой верхний отступ
+                    bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Карточка с последними данными
+                      if (etfProvider.ethereumData.isNotEmpty)
+                        EthereumFlowCard(
+                          flowData: etfProvider.ethereumData.first,
+                          onTap: () {
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // График потоков
+                      _buildChartSection(etfProvider.ethereumData),
+                      const SizedBox(height: 20),
+
+                      // Список данных по дням
+                      FlowCalendar(
+                        flowData: etfProvider.ethereumData,
+                        title: 'etf.flow_history'.tr(),
+                      ),
+
+                      // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         );
       },

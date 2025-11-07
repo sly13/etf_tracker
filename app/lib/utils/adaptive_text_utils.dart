@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'font_utils.dart';
 
 /// Утилита для создания адаптивных размеров шрифтов с поддержкой Dynamic Type
@@ -195,12 +196,17 @@ class AdaptiveTextUtils {
   }
 
   /// Стандартные отступы для контента
+  /// iOS стандарт: 16pt горизонтальный отступ
+  /// Android стандарт: 16pt горизонтальный отступ
   static EdgeInsets getContentPadding(BuildContext context) {
     final textScaleFactor = getTextScaleFactor(context);
     final clampedScaleFactor = textScaleFactor.clamp(0.8, 1.3);
+    
+    // Используем стандартные отступы iOS/Android: 16pt
+    final horizontalPadding = Platform.isIOS || Platform.isAndroid ? 16.0 : 20.0;
 
     return EdgeInsets.symmetric(
-      horizontal: 8.0 * clampedScaleFactor,
+      horizontal: horizontalPadding * clampedScaleFactor,
       vertical: 16.0 * clampedScaleFactor,
     );
   }
@@ -214,12 +220,16 @@ class AdaptiveTextUtils {
   }
 
   /// Отступы для списков
+  /// iOS стандарт: 16pt горизонтальный отступ для списков
   static EdgeInsets getListPadding(BuildContext context) {
     final textScaleFactor = getTextScaleFactor(context);
     final clampedScaleFactor = textScaleFactor.clamp(0.8, 1.3);
+    
+    // Используем стандартные отступы iOS/Android: 16pt
+    final horizontalPadding = Platform.isIOS || Platform.isAndroid ? 16.0 : 20.0;
 
     return EdgeInsets.symmetric(
-      horizontal: 8.0 * clampedScaleFactor,
+      horizontal: horizontalPadding * clampedScaleFactor,
       vertical: 8.0 * clampedScaleFactor,
     );
   }

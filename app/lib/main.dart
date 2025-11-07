@@ -17,7 +17,6 @@ import 'widgets/app_initializer.dart';
 import 'services/subscription_service.dart';
 import 'services/notification_service.dart';
 import 'services/user_check_service.dart';
-import 'utils/revenuecat_checker.dart';
 
 void main() async {
   // Инициализируем Flutter
@@ -79,9 +78,7 @@ void main() async {
   try {
     await SubscriptionService.initialize();
     print('✅ RevenueCat инициализирован');
-
-    // Запускаем диагностику в debug режиме
-    await RevenueCatChecker.printDiagnostics();
+    // Диагностика будет выполнена после запуска приложения в AppInitializer
   } catch (e) {
     print('❌ Ошибка инициализации RevenueCat: $e');
     print('🔧 Приложение будет работать без функций подписки');

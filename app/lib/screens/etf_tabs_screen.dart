@@ -207,12 +207,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.analytics,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
                 Text(
                   'etf.summary'.tr(),
                   style: AdaptiveTextUtils.createAdaptiveTextStyle(
@@ -401,7 +395,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: adjustedColor,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
       ],

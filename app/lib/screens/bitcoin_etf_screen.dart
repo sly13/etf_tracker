@@ -34,10 +34,8 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Consumer<ETFProvider>(
-          builder: (context, etfProvider, child) {
+    return Consumer<ETFProvider>(
+      builder: (context, etfProvider, child) {
             // Показываем ошибку только если она есть
             if (etfProvider.error != null) {
               return Center(
@@ -108,7 +106,12 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: AdaptiveTextUtils.getContentPadding(context),
+                      padding: EdgeInsets.only(
+                        left: AdaptiveTextUtils.getContentPadding(context).left,
+                        right: AdaptiveTextUtils.getContentPadding(context).right,
+                        top: 12, // Небольшой верхний отступ
+                        bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -192,7 +195,12 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
               child: SingleChildScrollView(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: AdaptiveTextUtils.getContentPadding(context),
+                padding: EdgeInsets.only(
+                  left: AdaptiveTextUtils.getContentPadding(context).left,
+                  right: AdaptiveTextUtils.getContentPadding(context).right,
+                  top: 12, // Небольшой верхний отступ
+                  bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -222,10 +230,8 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
+        );
+      }
 
   // Секция с графиком
   Widget _buildChartSection(List<BTCFlowData> data) {

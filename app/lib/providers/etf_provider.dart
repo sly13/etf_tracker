@@ -39,6 +39,7 @@ class ETFProvider with ChangeNotifier {
   bool get isInitializing => _isInitializing;
   bool get isEthereumLoaded => _isEthereumLoaded;
   bool get isBitcoinLoaded => _isBitcoinLoaded;
+  bool get isSolanaLoaded => _isSolanaLoaded;
   bool get isSummaryLoaded => _isSummaryLoaded;
   bool get isFundHoldingsLoaded => _isFundHoldingsLoaded;
   String? get error => _error;

@@ -30,12 +30,18 @@ export interface DailyETFData {
     wisdomTree: number;
     total: number;
   } | null;
+  solana: {
+    bitwise: number;
+    grayscale: number;
+    total: number;
+  } | null;
 }
 
 interface Translations {
   dataFor: string;
   ethereumETF: string;
   bitcoinETF: string;
+  solanaETF: string;
   total: string;
   overallTotals: string;
   overallTotal: string;
@@ -57,6 +63,7 @@ export class ImageGeneratorService {
         dataFor: 'Данные за',
         ethereumETF: 'Ethereum ETF',
         bitcoinETF: 'Bitcoin ETF',
+        solanaETF: 'Solana ETF',
         total: 'Итого',
         overallTotals: 'Общие итоги',
         overallTotal: 'Общий итог',
@@ -66,6 +73,7 @@ export class ImageGeneratorService {
         dataFor: 'Data for',
         ethereumETF: 'Ethereum ETF',
         bitcoinETF: 'Bitcoin ETF',
+        solanaETF: 'Solana ETF',
         total: 'Total',
         overallTotals: 'Overall Totals',
         overallTotal: 'Overall Total',
@@ -128,6 +136,19 @@ export class ImageGeneratorService {
         yOffset += 50;
       }
 
+      // Рисуем данные Solana
+      if (data.solana) {
+        yOffset = this.drawCryptoSection(
+          ctx,
+          'Solana ETF',
+          '◎',
+          '#14F195',
+          data.solana,
+          yOffset,
+        );
+        yOffset += 50;
+      }
+
       // Рисуем итоги
       this.drawSummarySection(ctx, data, yOffset, lang);
 
@@ -145,7 +166,7 @@ export class ImageGeneratorService {
    * Получить последнюю доступную дату из базы данных
    */
   async getLatestAvailableDate(): Promise<string> {
-    const [latestEthereum, latestBitcoin] = await Promise.all([
+    const [latestEthereum, latestBitcoin, latestSolana] = await Promise.all([
       this.prisma.eTFFlow.findFirst({
         orderBy: { date: 'desc' },
         select: { date: true },
@@ -154,12 +175,18 @@ export class ImageGeneratorService {
         orderBy: { date: 'desc' },
         select: { date: true },
       }),
+      this.prisma.solFlow.findFirst({
+        orderBy: { date: 'desc' },
+        select: { date: true },
+      }),
     ]);
 
-    // Выбираем самую позднюю дату из двух таблиц
-    const dates = [latestEthereum?.date, latestBitcoin?.date].filter(
-      (date): date is Date => date !== null,
-    );
+    // Выбираем самую позднюю дату из всех таблиц
+    const dates = [
+      latestEthereum?.date,
+      latestBitcoin?.date,
+      latestSolana?.date,
+    ].filter((date): date is Date => date !== null);
     if (dates.length === 0) {
       throw new Error('Нет данных в базе данных');
     }
@@ -174,11 +201,14 @@ export class ImageGeneratorService {
   private async getDailyETFData(date: string): Promise<DailyETFData> {
     const targetDate = new Date(date);
 
-    const [ethereumData, bitcoinData] = await Promise.all([
+    const [ethereumData, bitcoinData, solanaData] = await Promise.all([
       this.prisma.eTFFlow.findUnique({
         where: { date: targetDate },
       }),
       this.prisma.bTCFlow.findUnique({
+        where: { date: targetDate },
+      }),
+      this.prisma.solFlow.findUnique({
         where: { date: targetDate },
       }),
     ]);
@@ -213,6 +243,13 @@ export class ImageGeneratorService {
             valkyrie: bitcoinData.valkyrie || 0,
             wisdomTree: bitcoinData.wisdomTree || 0,
             total: bitcoinData.total || 0,
+          }
+        : null,
+      solana: solanaData
+        ? {
+            bitwise: solanaData.bitwise || 0,
+            grayscale: solanaData.grayscale || 0,
+            total: solanaData.total || 0,
           }
         : null,
     };
@@ -459,9 +496,25 @@ export class ImageGeneratorService {
       currentY += 30;
     }
 
+    // Solana итог
+    if (data.solana) {
+      this.drawSummaryRow(
+        ctx,
+        'Solana',
+        data.solana.total,
+        x + padding,
+        currentY,
+        width - 2 * padding,
+        '#14F195',
+      );
+      currentY += 30;
+    }
+
     // Общий итог
     const overallTotal =
-      (data.ethereum?.total || 0) + (data.bitcoin?.total || 0);
+      (data.ethereum?.total || 0) +
+      (data.bitcoin?.total || 0) +
+      (data.solana?.total || 0);
     currentY += 20;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.beginPath();
@@ -551,7 +604,8 @@ export class ImageGeneratorService {
         key !== 'total' &&
         companyMap[key] &&
         value !== null &&
-        value !== undefined
+        value !== undefined &&
+        value !== 0 // Фильтруем компании с нулевыми значениями
       ) {
         companies.push([companyMap[key], value as number]);
       }

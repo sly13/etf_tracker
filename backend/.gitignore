@@ -7,3 +7,5 @@ helper.txt
 dist/
 # Firebase service account key
 *.json
+# Data files
+data/

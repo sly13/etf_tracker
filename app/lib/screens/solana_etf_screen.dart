@@ -29,47 +29,48 @@ class _SolanaETFScreenState extends State<SolanaETFScreen> {
   Widget build(BuildContext context) {
     return Consumer<ETFProvider>(
       builder: (context, etfProvider, child) {
-        return Scaffold(
-          body: SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await etfProvider.loadSolanaData();
-              },
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: AdaptiveTextUtils.getContentPadding(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (etfProvider.solanaData.isNotEmpty)
-                            SolanaFlowCard(
-                              flowData: etfProvider.solanaData.first,
-                              onTap: () {
-                                _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              },
-                            ),
-                          const SizedBox(height: 20),
-                          _buildChartSection(etfProvider.solanaData),
-                          const SizedBox(height: 20),
-                          FlowCalendar(
-                            flowData: etfProvider.solanaData,
-                            title: 'etf.flow_history'.tr(),
-                          ),
-                          const SizedBox(height: 100),
-                        ],
-                      ),
-                    ),
+        return RefreshIndicator(
+          onRefresh: () async {
+            await etfProvider.loadSolanaData();
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: AdaptiveTextUtils.getContentPadding(context).left,
+                    right: AdaptiveTextUtils.getContentPadding(context).right,
+                    top: 12, // Небольшой верхний отступ
+                    bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (etfProvider.solanaData.isNotEmpty)
+                        SolanaFlowCard(
+                          flowData: etfProvider.solanaData.first,
+                          onTap: () {
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                        ),
+                      const SizedBox(height: 20),
+                      _buildChartSection(etfProvider.solanaData),
+                      const SizedBox(height: 20),
+                      FlowCalendar(
+                        flowData: etfProvider.solanaData,
+                        title: 'etf.flow_history'.tr(),
+                      ),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -86,15 +87,5 @@ class _SolanaETFScreenState extends State<SolanaETFScreen> {
         child: DarkFlowChart(flowData: data, title: 'Solana ETF Flows'),
       ),
     );
-  }
-
-  String _formatFlowAmount(double amount) {
-    final absAmount = amount.abs();
-    final prefix = amount >= 0 ? '' : '-';
-    if (absAmount >= 1000) {
-      return '$prefix${(absAmount / 1000).toStringAsFixed(2)}B';
-    } else {
-      return '$prefix${absAmount.toStringAsFixed(2)}M';
-    }
   }
 }

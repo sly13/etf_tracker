@@ -122,7 +122,7 @@ class BitcoinFlowCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Загрузка...',
+                                    'common.loading'.tr(),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark

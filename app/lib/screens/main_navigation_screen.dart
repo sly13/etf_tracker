@@ -5,10 +5,8 @@ import '../utils/haptic_feedback.dart';
 import '../services/analytics_service.dart';
 import 'etf_tabs_screen.dart';
 import 'fund_holdings_screen.dart';
-import 'ethereum_etf_screen.dart';
-import 'bitcoin_etf_screen.dart';
 import 'settings_screen.dart';
-import 'solana_etf_screen.dart';
+import 'crypto_etf_tabs_screen.dart';
 import '../providers/etf_provider.dart';
 import '../widgets/loading_screen.dart';
 
@@ -24,9 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const ETFTabsScreen(),
-    const BitcoinETFScreen(),
-    const EthereumETFScreen(),
-    const SolanaETFScreen(),
+    const CryptoETFTabsScreen(), // Новая страница с табами BTC/ETH/SOL
     const FundHoldingsScreen(),
     const SettingsScreen(),
   ];
@@ -155,16 +151,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             'type': 'icon',
           },
           {
-            'icon': 'assets/bitcoin.png',
-            'label': 'navigation.bitcoin_etf'.tr(),
-            'type': 'image',
+            'icon': Icons.account_balance_wallet,
+            'label': 'Crypto ETF',
+            'type': 'icon',
           },
-          {
-            'icon': 'assets/ethereum.png',
-            'label': 'navigation.ethereum_etf'.tr(),
-            'type': 'image',
-          },
-          {'icon': 'assets/solana.png', 'label': 'Solana ETF', 'type': 'image'},
           {
             'icon': Icons.account_balance,
             'label': 'navigation.holdings'.tr(),
@@ -177,6 +167,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           },
         ];
 
+        // Цвета для активного и неактивного состояния
+        final activeColor = const Color(0xFFFF9500); // Оранжевый цвет как на скриншоте
+        final inactiveColor = isDark ? Colors.grey[500]! : Colors.grey[600]!;
+
         return Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
@@ -186,20 +180,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 width: 0.5,
               ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
+            // Убираем тени для плоского дизайна
           ),
           child: SafeArea(
-            top: false, // Отключаем отступ сверху
-            bottom:
-                true, // Оставляем отступ снизу только для безопасной области
+            top: false,
+            bottom: true,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 8,
+                bottom: 4, // Уменьшен нижний отступ
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: items.asMap().entries.map((entry) {
@@ -212,15 +204,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
-                          // Добавляем вибрацию при переключении страниц
                           _vibrateOnPageChange();
 
-                          // Логируем событие переключения страницы
                           final screenNames = [
                             'analytics.screen_names.etf_tabs'.tr(),
-                            'analytics.screen_names.bitcoin_etf'.tr(),
-                            'analytics.screen_names.ethereum_etf'.tr(),
-                            'Solana ETF',
+                            'Crypto ETF',
                             'analytics.screen_names.fund_holdings'.tr(),
                             'analytics.screen_names.settings'.tr(),
                           ];
@@ -233,40 +221,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             },
                           );
 
-                          // Обновляем индекс в Provider
                           etfProvider.switchNavigationTab(index);
-                          // Переходим к странице без анимации
                           _pageController.jumpToPage(index);
                         },
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 4,
+                          padding: const EdgeInsets.only(
+                            top: 8,
+                            bottom: 4, // Уменьшен нижний отступ у элементов
+                            left: 4,
+                            right: 4,
                           ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: isSelected
-                                ? (isDark
-                                      ? Colors.blue.withOpacity(0.2)
-                                      : Colors.blue.withOpacity(0.1))
-                                : Colors.transparent,
-                          ),
+                          // Убираем фон у активного элемента - только цвет иконки и текста
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (item['type'] == 'icon')
                                 Icon(
                                   item['icon'] as IconData,
-                                  color: isSelected
-                                      ? (isDark
-                                            ? Colors.blue[300]
-                                            : Colors.blue[600])
-                                      : (isDark
-                                            ? Colors.grey[500]
-                                            : Colors.grey[600]),
+                                  color: isSelected ? activeColor : inactiveColor,
                                   size: 24,
                                 )
                               else if (item['type'] == 'image')
@@ -274,29 +248,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   item['icon'] as String,
                                   width: 24,
                                   height: 24,
-                                  color: isSelected
-                                      ? (isDark
-                                            ? Colors.blue[300]
-                                            : Colors.blue[600])
-                                      : (isDark
-                                            ? Colors.grey[500]
-                                            : Colors.grey[600]),
+                                  color: isSelected ? activeColor : inactiveColor,
                                 ),
                               const SizedBox(height: 6),
                               Text(
                                 item['label'] as String,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isSelected
-                                      ? (isDark
-                                            ? Colors.blue[300]
-                                            : Colors.blue[600])
-                                      : (isDark
-                                            ? Colors.grey[500]
-                                            : Colors.grey[600]),
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
+                                  color: isSelected ? activeColor : inactiveColor,
+                                  fontWeight: FontWeight.normal,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 1,

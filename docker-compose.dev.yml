@@ -1,3 +1,7 @@
+# Включаем BuildKit для кэширования и ускорения сборки
+x-build-args: &build-args
+  BUILDKIT_INLINE_CACHE: 1
+
 services:
   # PostgreSQL база данных
   postgres:
@@ -21,6 +25,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Для использования китайского npm зеркала раскомментируйте следующее:
+      # args:
+      #   USE_NPM_MIRROR: "true"
     container_name: etf_backend_dev
     ports:
       - "3066:3000"
@@ -32,6 +39,7 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
+      - ./backend/data:/app/data
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -57,58 +65,64 @@ services:
     restart: unless-stopped
 
   # Trade Bot (NestJS)
-  trade_bot:
-    build:
-      context: ./trade_bot
-      dockerfile: Dockerfile
-    container_name: etf_trade_bot_dev
-    environment:
-      - NODE_ENV=development
-      - PORT=3088
-      - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
-      - CORS_ORIGIN=http://localhost:3089,http://localhost:3000
-      - MIN_FLOW_THRESHOLD=1000000
-      - MAX_POSITION_SIZE=1000
-      - CHECK_INTERVAL=60000
-      - TZ=Europe/Moscow
-      - OKX_API_KEY=cb165bc6-269c-4d73-b4ac-43860091cae0
-      - OKX_SECRET_KEY=16AFF118061CAD204958F40B0E7D87E8
-      - OKX_PASSPHRASE=ETFbot1m!
-      - OKX_SANDBOX=false
-    ports:
-      - "3088:3088"
-    depends_on:
-      - postgres
-    networks:
-      - etf_network_dev
-    restart: unless-stopped
-    volumes:
-      - ./trade_bot/src:/app/src
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
+  # trade_bot:
+  #   build:
+  #     context: ./trade_bot
+  #     dockerfile: Dockerfile
+  #     args:
+  #       # Раскомментируйте следующую строку для использования китайского npm зеркала (быстрее)
+  #       # USE_NPM_MIRROR: "true"
+  #   container_name: etf_trade_bot_dev
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3088
+  #     - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
+  #     - CORS_ORIGIN=http://localhost:3089,http://localhost:3000
+  #     - MIN_FLOW_THRESHOLD=1000000
+  #     - MAX_POSITION_SIZE=1000
+  #     - CHECK_INTERVAL=60000
+  #     - TZ=Europe/Moscow
+  #     - OKX_API_KEY=cb165bc6-269c-4d73-b4ac-43860091cae0
+  #     - OKX_SECRET_KEY=16AFF118061CAD204958F40B0E7D87E8
+  #     - OKX_PASSPHRASE=ETFbot1m!
+  #     - OKX_SANDBOX=false
+  #   ports:
+  #     - "3088:3088"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - etf_network_dev
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./trade_bot/src:/app/src
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - /etc/timezone:/etc/timezone:ro
 
   # Trade Monitoring (React App)
-  trade_monitoring:
-    build:
-      context: ./trade_bot_monitoring
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=http://localhost:3088
-        - REACT_APP_ENVIRONMENT=development
-    container_name: etf_trade_monitoring_dev
-    ports:
-      - "3089:80"
-    depends_on:
-      - trade_bot
-    networks:
-      - etf_network_dev
-    restart: unless-stopped
+  # trade_monitoring:
+  #   build:
+  #     context: ./trade_bot_monitoring
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - REACT_APP_API_URL=http://localhost:3088
+  #       - REACT_APP_ENVIRONMENT=development
+  #   container_name: etf_trade_monitoring_dev
+  #   ports:
+  #     - "3089:80"
+  #   depends_on:
+  #     - trade_bot
+  #   networks:
+  #     - etf_network_dev
+  #   restart: unless-stopped
 
   # Website (Next.js App)
   website:
     build:
       context: ./website
       dockerfile: Dockerfile
+      # Для использования китайского npm зеркала раскомментируйте следующее:
+      # args:
+      #   USE_NPM_MIRROR: "true"
     container_name: etf_website_dev
     ports:
       - "3070:3000"
