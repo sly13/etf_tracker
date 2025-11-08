@@ -336,7 +336,7 @@
 				ru,
 				"zh-Hans",
 				ja,
-				pt,
+				"pt-BR",
 				es,
 				tr,
 				vi,
