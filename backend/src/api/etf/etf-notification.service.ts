@@ -99,6 +99,9 @@ export class ETFNotificationService {
 
   /**
    * Получает пользователей, которым нужно отправить уведомления о новых записях ETF
+   * 
+   * ВАЖНО: Проверка подписки отключена - уведомления приходят всем пользователям
+   * Чтобы включить проверку подписки, раскомментируйте код ниже
    */
   async getUsersForETFNotifications(appName: string): Promise<any[]> {
     try {
@@ -113,6 +116,17 @@ export class ETFNotificationService {
             path: ['etfNotifications', 'enabled'],
             equals: true,
           },
+          // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
+          // subscriptions: {
+          //   some: {
+          //     isActive: true,
+          //     isPremium: true,
+          //     OR: [
+          //       { expirationDate: null },
+          //       { expirationDate: { gt: new Date() } },
+          //     ],
+          //   },
+          // },
         },
         select: {
           id: true,
@@ -126,6 +140,11 @@ export class ETFNotificationService {
         // Дополнительная проверка настроек (на случай, если path фильтр не сработал)
         const settings = user.settings as any;
         return settings?.etfNotifications?.enabled !== false;
+        
+        // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
+        // Для включения проверки подписки раскомментируйте:
+        // const hasActivePremium = await this.checkUserPremiumSubscription(user.id);
+        // return settings?.etfNotifications?.enabled !== false && hasActivePremium;
       });
     } catch (error) {
       this.logger.error(
@@ -199,6 +218,7 @@ export class ETFNotificationService {
         );
 
         // Отправляем уведомления каждому пользователю
+        // ВАЖНО: Проверка подписки отключена - уведомления приходят всем пользователям
         for (const user of users) {
           try {
             const userSettings = await this.getUserNotificationSettings(
@@ -209,6 +229,13 @@ export class ETFNotificationService {
             if (!this.shouldNotifyUser(record, userSettings)) {
               continue;
             }
+
+            // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
+            // Для включения проверки подписки раскомментируйте:
+            // const subscription = await this.subscriptionService.getUserSubscriptionStatus(user.id);
+            // if (!subscription?.isCurrentlyActive || !subscription?.isPremium) {
+            //   continue; // Пропускаем пользователей без активной премиум подписки
+            // }
 
             // Создаем запись о доставке
             let delivery;
