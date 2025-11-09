@@ -110,7 +110,7 @@ export class ETFNotificationService {
           application: { name: appName },
           isActive: true,
           deviceToken: {
-            not: null,
+            not: { equals: null },
           },
           settings: {
             path: ['etfNotifications', 'enabled'],
