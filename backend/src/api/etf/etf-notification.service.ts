@@ -109,9 +109,7 @@ export class ETFNotificationService {
         where: {
           application: { name: appName },
           isActive: true,
-          deviceToken: {
-            not: { equals: null },
-          },
+          // deviceToken проверяется в JavaScript фильтре ниже (так как поле не nullable в схеме)
           settings: {
             path: ['etfNotifications', 'enabled'],
             equals: true,
@@ -137,6 +135,11 @@ export class ETFNotificationService {
       });
 
       return users.filter((user) => {
+        // Фильтруем пользователей с deviceToken (на случай, если в БД есть null значения)
+        if (!user.deviceToken) {
+          return false;
+        }
+        
         // Дополнительная проверка настроек (на случай, если path фильтр не сработал)
         const settings = user.settings as any;
         return settings?.etfNotifications?.enabled !== false;
