@@ -192,8 +192,10 @@ async function importCSV(filePath) {
 				try {
 					// Используем транзакцию для батча
 					await prisma.$transaction(
-						candles.map(candle =>
-							prisma.bTCandle.upsert({
+						candles.map(candle => {
+							// Исключаем поле id из объекта при создании, чтобы избежать конфликтов
+							const { id, ...candleData } = candle;
+							return prisma.bTCandle.upsert({
 								where: {
 									symbol_interval_openTime: {
 										symbol: candle.symbol,
@@ -215,9 +217,9 @@ async function importCSV(filePath) {
 									source: candle.source,
 									updatedAt: new Date(),
 								},
-								create: candle,
-							})
-						),
+								create: candleData,
+							});
+						}),
 						{ timeout: 300000 } // 5 минут таймаут для больших батчей
 					);
 
@@ -248,8 +250,10 @@ async function importCSV(filePath) {
 	if (candles.length > 0) {
 		try {
 			await prisma.$transaction(
-				candles.map(candle =>
-					prisma.bTCandle.upsert({
+				candles.map(candle => {
+					// Исключаем поле id из объекта при создании, чтобы избежать конфликтов
+					const { id, ...candleData } = candle;
+					return prisma.bTCandle.upsert({
 						where: {
 							symbol_interval_openTime: {
 								symbol: candle.symbol,
@@ -271,9 +275,9 @@ async function importCSV(filePath) {
 							source: candle.source,
 							updatedAt: new Date(),
 						},
-						create: candle,
-					})
-				),
+						create: candleData,
+					});
+				}),
 				{ timeout: 300000 }
 			);
 			imported += candles.length;

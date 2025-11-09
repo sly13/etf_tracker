@@ -160,6 +160,9 @@ async function upsertCandles(candles) {
 
 		// Используем upsert для каждой свечи
 		for (const candle of candles) {
+			// Исключаем поле id из объекта при создании, чтобы избежать конфликтов
+			const { id, ...candleData } = candle;
+			
 			await prisma.bTCandle.upsert({
 				where: {
 					symbol_interval_openTime: {
@@ -182,7 +185,7 @@ async function upsertCandles(candles) {
 					source: candle.source,
 					updatedAt: new Date(),
 				},
-				create: candle,
+				create: candleData,
 			});
 			upsertedCount++;
 		}
