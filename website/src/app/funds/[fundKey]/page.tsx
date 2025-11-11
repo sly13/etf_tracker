@@ -4,20 +4,7 @@ import MoneyRain from "../../../components/MoneyRain";
 import FundLogo from "../../../components/FundLogo";
 import { fundService, FundDetail } from "../../../services/fundService";
 
-// Маппинг названий фондов
-const FUND_NAMES: Record<string, string> = {
-  blackrock: "BlackRock",
-  fidelity: "Fidelity",
-  bitwise: "Bitwise",
-  twentyOneShares: "21Shares",
-  vanEck: "VanEck",
-  invesco: "Invesco",
-  franklin: "Franklin Templeton",
-  grayscale: "Grayscale BTC",
-  grayscaleCrypto: "Grayscale Crypto",
-  valkyrie: "Valkyrie",
-  wisdomTree: "WisdomTree",
-};
+export const runtime = 'edge';
 
 // Логотипы фондов
 const FUND_LOGOS: Record<string, string> = {
@@ -72,7 +59,7 @@ export default async function FundPage({ params }: FundPageProps) {
   let fund: FundDetail;
   try {
     fund = await fundService.getFundDetails(fundKey);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
