@@ -1,6 +1,7 @@
 import ETFSummaryCard from "../components/ETFSummaryCard";
 import FundHoldingsCard from "../components/FundHoldingsCard";
 import LatestNewsCard from "../components/LatestNewsCard";
+import CEFIIndexCard from "../components/CEFIIndexCard";
 import Navigation from "../components/Navigation";
 import MoneyRain from "../components/MoneyRain";
 
@@ -17,6 +18,9 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Latest News Section */}
         <LatestNewsCard />
+
+        {/* CEFI Index Section */}
+        <CEFIIndexCard />
 
         {/* ETF Summary Section */}
         <ETFSummaryCard />

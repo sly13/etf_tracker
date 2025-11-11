@@ -79,6 +79,42 @@ export interface ApiError {
   timeoutMessage?: string;
 }
 
+// Типы для CEFI индексов
+export interface CEFIIndexData {
+  date: string;
+  value: number;
+  change: number;
+  changePercent: number;
+}
+
+export interface CEFIIndexResponse {
+  index: string;
+  current: CEFIIndexData;
+  history: CEFIIndexData[];
+  metadata: {
+    baseValue: number;
+    smoothingFactor: number;
+    windowSize: number;
+  };
+}
+
+export interface BPFData {
+  date: string;
+  percentage: number;
+  positiveFunds: number;
+  totalFunds: number;
+}
+
+export interface AllCEFIIndices {
+  btc: CEFIIndexResponse;
+  eth: CEFIIndexResponse;
+  composite: CEFIIndexResponse;
+  bpf: {
+    bitcoin: BPFData[];
+    ethereum: BPFData[];
+  };
+}
+
 // Расширяем типы axios для добавления metadata
 declare module "axios" {
   interface InternalAxiosRequestConfig {

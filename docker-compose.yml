@@ -109,6 +109,11 @@ services:
     build:
       context: ./website
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3066/api
+        - NEXT_PUBLIC_API_HOST=localhost
+        - NEXT_PUBLIC_API_PORT=3066
+        - NEXT_PUBLIC_API_PROTOCOL=http
     container_name: etf_website
     ports:
       - "3070:3000"
@@ -116,7 +121,7 @@ services:
       - etf_network
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3000
 
 volumes:

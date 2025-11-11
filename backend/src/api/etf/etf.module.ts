@@ -17,15 +17,18 @@ import { UserService } from '../telegram-bot/services/user.service';
 import { ETFService as TelegramETFService } from '../telegram-bot/services/etf.service';
 import { BasicCommands } from '../telegram-bot/commands/basic.commands';
 import { ETFCommands } from '../telegram-bot/commands/etf.commands';
+import { CEFIIndexService } from './cefi-index.service';
+import { CEFIIndexController } from './cefi-index.controller';
 
 @Module({
   imports: [HttpModule, JwtModule],
-  controllers: [EtfController, ETFNotificationController],
+  controllers: [EtfController, ETFNotificationController, CEFIIndexController],
   providers: [
     EtfService,
     UniversalETFFlowService,
     ETFSchedulerService,
     ETFNotificationService,
+    CEFIIndexService,
     FirebaseAdminService,
     TelegramBotService,
     NotificationService,
@@ -41,6 +44,7 @@ import { ETFCommands } from '../telegram-bot/commands/etf.commands';
     UniversalETFFlowService,
     ETFSchedulerService,
     ETFNotificationService,
+    CEFIIndexService,
     NotificationService,
     FirebaseAdminService,
     TelegramBotService,

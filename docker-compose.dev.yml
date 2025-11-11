@@ -121,8 +121,12 @@ services:
     build:
       context: ./website
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3066/api
+        - NEXT_PUBLIC_API_HOST=localhost
+        - NEXT_PUBLIC_API_PORT=3066
+        - NEXT_PUBLIC_API_PROTOCOL=http
       # Для использования китайского npm зеркала раскомментируйте следующее:
-      # args:
       #   USE_NPM_MIRROR: "true"
     container_name: etf_website_dev
     ports:

@@ -1,5 +1,5 @@
 // API Configuration
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "api-etf.vadimsemenko.ru";
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "hui";
 const API_PROTOCOL = process.env.NEXT_PUBLIC_API_PROTOCOL || "https";
 
 // Определяем порт по умолчанию в зависимости от протокола
@@ -48,5 +48,10 @@ export const API_CONFIG = {
     SUMMARY: "/summary",
     ETF_SUMMARY: "/etf-flow/summary", // Старый endpoint для обратной совместимости
     FUND_HOLDINGS: "/etf-flow/holdings", // Новый endpoint для владений фондов
+    CEFI_BTC: "/cefi/btc",
+    CEFI_ETH: "/cefi/eth",
+    CEFI_COMPOSITE: "/cefi/composite",
+    CEFI_BPF: "/cefi/bpf",
+    CEFI_ALL: "/cefi/all",
   },
 };

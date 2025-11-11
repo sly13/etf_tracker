@@ -105,6 +105,10 @@ services:
   #   build:
   #     context: ./website
   #     dockerfile: Dockerfile
+  #     args:
+  #       - NEXT_PUBLIC_API_URL=https://api-etf.vadimsemenko.ru/api
+  #       - NEXT_PUBLIC_API_HOST=api-etf.vadimsemenko.ru
+  #       - NEXT_PUBLIC_API_PROTOCOL=https
   #   container_name: etf_website_prod
   #   ports:
   #     - "3070:3000"
