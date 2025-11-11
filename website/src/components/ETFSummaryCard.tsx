@@ -23,10 +23,17 @@ export default function ETFSummaryCard() {
         setData(response.data);
       } catch (err: unknown) {
         const apiError = err as ApiError;
-        const errorMessage =
-          apiError?.response?.data?.message ||
-          apiError?.message ||
-          "Произошла ошибка при загрузке данных";
+        let errorMessage: string;
+        
+        if (apiError?.timeoutError && apiError?.timeoutMessage) {
+          errorMessage = apiError.timeoutMessage;
+        } else {
+          errorMessage =
+            apiError?.response?.data?.message ||
+            apiError?.message ||
+            "Произошла ошибка при загрузке данных";
+        }
+        
         setError(errorMessage);
         console.error("ETF Summary fetch error:", err);
       } finally {

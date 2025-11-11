@@ -90,21 +90,23 @@ class UserCheckService {
       // Получаем FCM токен
       final fcmToken = NotificationService.fcmToken;
       if (fcmToken == null) {
-        print('❌ FCM токен не получен');
-        return false;
+        print('⚠️ FCM токен не получен (возможно, симулятор)');
+        print('⚠️ Продолжаем регистрацию без FCM токена для симулятора...');
+        // На симуляторе продолжаем регистрацию с пустым токеном
+        // Сервер должен обработать это корректно
       }
 
       // Получаем deviceId
       final deviceId = await NotificationService.getDeviceId();
 
-      print('🔑 FCM Token: ${fcmToken.substring(0, 20)}...');
+      print('🔑 FCM Token: ${fcmToken != null ? "${fcmToken.substring(0, 20)}..." : "НЕТ (симулятор)"}');
       print('📱 Device ID: $deviceId');
 
       // Регистрируем устройство через NotificationService
       final url = AppConfig.getApiUrl('/notifications/register-device');
 
       final deviceInfo = {
-        'token': fcmToken,
+        'token': fcmToken ?? 'simulator_token_${deviceId}', // Для симулятора используем заглушку
         'appName': AppConfig.appName,
         'deviceId': deviceId,
         'deviceType': Platform.operatingSystem,
@@ -117,6 +119,11 @@ class UserCheckService {
         'lastName': 'ETF',
         'email': 'user@etftracker.com',
       };
+      
+      print('📦 Отправляем данные регистрации:');
+      print('   Device ID: $deviceId');
+      print('   FCM Token: ${fcmToken != null ? "${fcmToken.substring(0, 20)}..." : "НЕТ (симулятор)"}');
+      print('   App Name: ${AppConfig.appName}');
 
       final response = await http
           .post(

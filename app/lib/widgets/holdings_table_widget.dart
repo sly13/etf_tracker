@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
-import '../services/fund_logo_service.dart';
+// import '../services/fund_logo_service.dart';
 import '../utils/card_style_utils.dart';
 
 class HoldingsTableWidget extends StatefulWidget {
@@ -111,7 +111,12 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
               ),
             ),
           ),
-          SizedBox(width: columnSpacing),
+          // Вертикальный разделитель между столбцом компании и остальными
+          Container(
+            width: 1,
+            margin: EdgeInsets.symmetric(horizontal: columnSpacing / 2),
+            color: CardStyleUtils.getDividerColor(context),
+          ),
           // BTC колонка
           Expanded(
             child: Padding(
@@ -237,33 +242,30 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final valueFontSize = isSmallScreen ? 11.0 : 12.0;
     final changeFontSize = isSmallScreen ? 10.0 : 11.0;
 
-    return Row(
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Колонка с логотипом и названием компании
+          // Колонка с названием компании
           Expanded(
             flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Логотип компании
-                _buildCompanyLogo(company),
-                const SizedBox(height: 8),
-                // Название компании
-                Text(
-                  company,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: CardStyleUtils.getTitleColor(context),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: Text(
+              company,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: CardStyleUtils.getTitleColor(context),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(width: columnSpacing),
+          // Вертикальный разделитель между столбцом компании и остальными
+          Container(
+            width: 1,
+            margin: EdgeInsets.symmetric(horizontal: columnSpacing / 2),
+            color: CardStyleUtils.getDividerColor(context),
+          ),
           // BTC значение
           Expanded(
             child: Padding(
@@ -360,6 +362,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
             ),
           ),
         ],
+      ),
     );
   }
 
@@ -425,70 +428,70 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     }
   }
 
-  Widget _buildCompanyLogo(String companyName) {
-    // Преобразуем название компании в ключ для логотипа
-    String logoKey = _getCompanyLogoKey(companyName);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  // Widget _buildCompanyLogo(String companyName) {
+  //   // Преобразуем название компании в ключ для логотипа
+  //   String logoKey = _getCompanyLogoKey(companyName);
+  //   final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child:
-            FundLogoService.getLogoWidget(
-              logoKey,
-              width: 40,
-              height: 40,
-              fit: BoxFit.contain,
-            ) ??
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.account_balance,
-                size: 20,
-                color: CardStyleUtils.getSubtitleColor(context),
-              ),
-            ),
-      ),
-    );
-  }
+  //   return Container(
+  //     width: 40,
+  //     height: 40,
+  //     decoration: BoxDecoration(
+  //       color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+  //       borderRadius: BorderRadius.circular(8),
+  //     ),
+  //     child: ClipRRect(
+  //       borderRadius: BorderRadius.circular(8),
+  //       child:
+  //           FundLogoService.getLogoWidget(
+  //             logoKey,
+  //             width: 40,
+  //             height: 40,
+  //             fit: BoxFit.contain,
+  //           ) ??
+  //           Container(
+  //             width: 40,
+  //             height: 40,
+  //             decoration: BoxDecoration(
+  //               color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+  //               borderRadius: BorderRadius.circular(8),
+  //             ),
+  //             child: Icon(
+  //               Icons.account_balance,
+  //               size: 20,
+  //               color: CardStyleUtils.getSubtitleColor(context),
+  //             ),
+  //           ),
+  //     ),
+  //   );
+  // }
 
-  String _getCompanyLogoKey(String companyName) {
-    switch (companyName) {
-      case 'BlackRock':
-        return 'blackrock';
-      case 'Fidelity':
-        return 'fidelity';
-      case 'Bitwise':
-        return 'bitwise';
-      case '21Shares':
-        return 'twentyOneShares';
-      case 'VanEck':
-        return 'vanEck';
-      case 'Invesco':
-        return 'invesco';
-      case 'Franklin Templeton':
-        return 'franklin';
-      case 'Grayscale':
-        return 'grayscale';
-      case 'Valkyrie':
-        return 'valkyrie';
-      case 'WisdomTree':
-        return 'wisdomTree';
-      default:
-        return companyName.toLowerCase();
-    }
-  }
+  // String _getCompanyLogoKey(String companyName) {
+  //   switch (companyName) {
+  //     case 'BlackRock':
+  //       return 'blackrock';
+  //     case 'Fidelity':
+  //       return 'fidelity';
+  //     case 'Bitwise':
+  //       return 'bitwise';
+  //     case '21Shares':
+  //       return 'twentyOneShares';
+  //     case 'VanEck':
+  //       return 'vanEck';
+  //     case 'Invesco':
+  //       return 'invesco';
+  //     case 'Franklin Templeton':
+  //       return 'franklin';
+  //     case 'Grayscale':
+  //       return 'grayscale';
+  //     case 'Valkyrie':
+  //       return 'valkyrie';
+  //     case 'WisdomTree':
+  //       return 'wisdomTree';
+  //     default:
+  //       return companyName.toLowerCase();
+  //   }
+  // }
 
   Widget _buildFlowChange(String companyName, String type, bool isDark, double fontSize) {
     final companyChanges = widget.separateFlowChanges[companyName];

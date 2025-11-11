@@ -67,10 +67,17 @@ export default function LatestNewsCard() {
         setNewsData(news);
       } catch (err: unknown) {
         const apiError = err as ApiError;
-        const errorMessage =
-          apiError?.response?.data?.message ||
-          apiError?.message ||
-          "Произошла ошибка при загрузке новостей";
+        let errorMessage: string;
+        
+        if (apiError?.timeoutError && apiError?.timeoutMessage) {
+          errorMessage = apiError.timeoutMessage;
+        } else {
+          errorMessage =
+            apiError?.response?.data?.message ||
+            apiError?.message ||
+            "Произошла ошибка при загрузке новостей";
+        }
+        
         setError(errorMessage);
         console.error("Latest News fetch error:", err);
       } finally {

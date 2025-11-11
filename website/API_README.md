@@ -13,6 +13,9 @@ NEXT_PUBLIC_API_URL=https://api-etf.vadimsemenko.ru/api
 NEXT_PUBLIC_API_HOST=api-etf.vadimsemenko.ru
 NEXT_PUBLIC_API_PORT=3066
 NEXT_PUBLIC_API_PROTOCOL=https
+
+# Таймаут запросов (в миллисекундах, по умолчанию: 30000 = 30 секунд)
+NEXT_PUBLIC_API_TIMEOUT=30000
 ```
 
 ## Переменные окружения
@@ -24,13 +27,24 @@ NEXT_PUBLIC_API_PROTOCOL=https
    - `NEXT_PUBLIC_API_HOST` - хост API (по умолчанию: api-etf.vadimsemenko.ru)
    - `NEXT_PUBLIC_API_PORT` - порт API (по умолчанию: 3066)
    - `NEXT_PUBLIC_API_PROTOCOL` - протокол (по умолчанию: https)
+   - `NEXT_PUBLIC_API_TIMEOUT` - таймаут запросов в миллисекундах (по умолчанию: 30000 = 30 секунд)
 
 ### Примеры конфигурации:
 
-**Продакшн:**
+**Продакшн (рекомендуется):**
 
 ```bash
+# Используйте полный URL без порта (стандартный HTTPS порт 443)
 NEXT_PUBLIC_API_URL=https://api-etf.vadimsemenko.ru/api
+```
+
+**Продакшн (альтернатива):**
+
+```bash
+# Если API работает на стандартном HTTPS порту (443), порт не будет добавлен автоматически
+NEXT_PUBLIC_API_HOST=api-etf.vadimsemenko.ru
+NEXT_PUBLIC_API_PROTOCOL=https
+# NEXT_PUBLIC_API_PORT можно не указывать, будет использован стандартный порт 443
 ```
 
 **Локальная разработка:**
@@ -65,6 +79,7 @@ NEXT_PUBLIC_API_PROTOCOL=http
   - 403: Forbidden
   - 404: Not Found
   - 500: Server Error
+  - Timeout errors - специальная обработка ошибок таймаута с понятными сообщениями
   - Network errors
   - Request setup errors
 

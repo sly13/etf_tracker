@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     "анализ",
     "финансы",
   ],
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({

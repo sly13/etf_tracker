@@ -74,6 +74,9 @@ export interface ApiError {
   config?: {
     url?: string;
   };
+  code?: string;
+  timeoutError?: boolean;
+  timeoutMessage?: string;
 }
 
 // Расширяем типы axios для добавления metadata

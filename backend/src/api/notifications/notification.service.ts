@@ -489,6 +489,7 @@ export class NotificationService {
   async sendTestNotification(
     deviceToken: string,
     message: string,
+    title?: string,
   ): Promise<boolean> {
     try {
       this.logger.log(
@@ -496,7 +497,7 @@ export class NotificationService {
       );
 
       const notification = {
-        title: '🧪 Тестовое уведомление',
+        title: title || '🧪 Тестовое уведомление',
         body: message,
         data: {
           type: 'test',

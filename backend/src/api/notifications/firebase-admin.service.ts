@@ -22,34 +22,61 @@ export class FirebaseAdminService {
     try {
       // Проверяем, не инициализирован ли уже Firebase
       if (admin.apps.length === 0) {
-        // Путь к сервисному ключу из переменной окружения или по умолчанию
-        let serviceAccountPath =
-          process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
-          path.join(process.cwd(), 'etf-flow-firebase.json');
+        let credential: admin.credential.Credential;
 
-        // Проверяем существование файла
-        if (!fs.existsSync(serviceAccountPath)) {
-          this.logger.warn(
-            `⚠️ Файл Firebase не найден по пути: ${serviceAccountPath}`,
-          );
-          // Пробуем альтернативный путь
-          const altPath = path.join(process.cwd(), 'etf-flow-firebase.json');
-          if (fs.existsSync(altPath)) {
-            this.logger.log(`✅ Используем альтернативный путь: ${altPath}`);
-            serviceAccountPath = altPath;
-          } else {
-            throw new Error(
-              `Firebase конфигурация не найдена. Проверьте файл etf-flow-firebase.json`,
+        // Вариант 1: Используем JSON из переменной окружения (для Docker/CI)
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+          try {
+            const serviceAccount = JSON.parse(
+              process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
             );
+            credential = admin.credential.cert(serviceAccount);
+            this.logger.log('✅ Firebase инициализирован из переменной окружения');
+          } catch (error) {
+            this.logger.error(
+              '❌ Ошибка парсинга FIREBASE_SERVICE_ACCOUNT_JSON:',
+              error,
+            );
+            throw error;
           }
-        }
+        } else {
+          // Вариант 2: Используем путь к файлу
+          let serviceAccountPath =
+            process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+            path.join(process.cwd(), 'etf-flow-firebase.json');
 
-        this.logger.log(`🔍 Ищем файл Firebase по пути: ${serviceAccountPath}`);
+          // Проверяем существование файла
+          if (!fs.existsSync(serviceAccountPath)) {
+            this.logger.warn(
+              `⚠️ Файл Firebase не найден по пути: ${serviceAccountPath}`,
+            );
+            // Пробуем альтернативный путь
+            const altPath = path.join(process.cwd(), 'etf-flow-firebase.json');
+            if (fs.existsSync(altPath)) {
+              this.logger.log(`✅ Используем альтернативный путь: ${altPath}`);
+              serviceAccountPath = altPath;
+            } else {
+              // В режиме разработки разрешаем работу без Firebase (для симулятора)
+              if (process.env.NODE_ENV === 'development') {
+                this.logger.warn(
+                  '⚠️ Firebase конфигурация не найдена. Работаем без Firebase (для симулятора это нормально)',
+                );
+                return;
+              }
+              throw new Error(
+                `Firebase конфигурация не найдена. Проверьте файл etf-flow-firebase.json или переменную FIREBASE_SERVICE_ACCOUNT_JSON`,
+              );
+            }
+          }
+
+          this.logger.log(`🔍 Ищем файл Firebase по пути: ${serviceAccountPath}`);
+          credential = admin.credential.cert(serviceAccountPath);
+        }
 
         // Инициализируем Firebase Admin SDK
         this.app = admin.initializeApp({
-          credential: admin.credential.cert(serviceAccountPath),
-          projectId: 'etf-flow',
+          credential,
+          projectId: process.env.FIREBASE_PROJECT_ID || 'etf-flow',
         });
 
         this.logger.log('✅ Firebase Admin SDK инициализирован');
@@ -59,6 +86,12 @@ export class FirebaseAdminService {
       }
     } catch (error) {
       this.logger.error('❌ Ошибка инициализации Firebase Admin SDK:', error);
+      // В режиме разработки не прерываем работу
+      if (process.env.NODE_ENV === 'development') {
+        this.logger.warn(
+          '⚠️ Продолжаем работу без Firebase (для симулятора это нормально)',
+        );
+      }
     }
   }
 
@@ -238,6 +271,21 @@ export class FirebaseAdminService {
       data?: Record<string, string>;
     },
   ): Promise<boolean> {
+    // Для тестовых токенов симулятора возвращаем успех без реальной отправки
+    if (
+      process.env.NODE_ENV === 'development' &&
+      (token.startsWith('test_') || token.startsWith('simulator_'))
+    ) {
+      this.logger.log(
+        `🧪 Тестовый токен симулятора: ${token.substring(0, 30)}... - пропускаем отправку через Firebase`,
+      );
+      this.logger.log(
+        `📱 Для симулятора используйте локальные уведомления через приложение`,
+      );
+      // Возвращаем успех для тестовых токенов
+      return true;
+    }
+
     return this.sendNotificationToToken(
       token,
       notification.title,
@@ -250,14 +298,31 @@ export class FirebaseAdminService {
    * Проверка валидности токена
    */
   async validateToken(token: string): Promise<boolean> {
+    // Для тестовых токенов в режиме разработки (симулятор) пропускаем проверку
+    if (
+      process.env.NODE_ENV === 'development' &&
+      (token.startsWith('test_') || token.startsWith('simulator_'))
+    ) {
+      this.logger.log(`🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`);
+      return true;
+    }
+
     if (!this.app) {
       this.logger.warn('⚠️ Firebase app не инициализирован');
+      // В режиме разработки разрешаем регистрацию без валидации
+      if (process.env.NODE_ENV === 'development') {
+        this.logger.warn('⚠️ Разрешаем регистрацию без валидации (development режим)');
+        return true;
+      }
       return false;
     }
 
-    // Для тестовых токенов в режиме разработки
-    if (process.env.NODE_ENV === 'development' && token.startsWith('test_')) {
-      this.logger.log(`🧪 Тестовый токен принят: ${token}`);
+    // Для тестовых токенов в режиме разработки (симулятор)
+    if (
+      process.env.NODE_ENV === 'development' &&
+      (token.startsWith('test_') || token.startsWith('simulator_'))
+    ) {
+      this.logger.log(`🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`);
       return true;
     }
 

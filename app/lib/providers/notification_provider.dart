@@ -51,12 +51,20 @@ class NotificationProvider extends ChangeNotifier {
       _isInitialized = NotificationService.isInitialized;
       _fcmToken = NotificationService.fcmToken;
 
-      // Подписываемся на топик для всех пользователей
+      // Загружаем настройки с сервера
       if (_isInitialized) {
-        await NotificationService.subscribeToTopic('etf_updates');
-
-        // Загружаем настройки с сервера
         await _loadDeviceSettings();
+        
+        // Подписываемся на топик только если уведомления включены
+        // (проверка подписки происходит в UI при включении)
+        if (_notificationsEnabled && _enableETFUpdates) {
+          await NotificationService.subscribeToTopic('etf_updates');
+          debugPrint('✅ Подписались на топик etf_updates (уведомления включены)');
+        } else {
+          // Отписываемся от топика, если уведомления выключены
+          await NotificationService.unsubscribeFromTopic('etf_updates');
+          debugPrint('🔕 Отписались от топика etf_updates (уведомления выключены)');
+        }
       }
 
       debugPrint('✅ NotificationProvider: Инициализация завершена');
@@ -218,11 +226,28 @@ class NotificationProvider extends ChangeNotifier {
         debugPrint(
           '📊 NotificationProvider: flowAmountThreshold: $_flowAmountThreshold',
         );
+        
+        // Синхронизируем подписку на топик с настройками
+        if (_isInitialized) {
+          if (_notificationsEnabled && _enableETFUpdates) {
+            await NotificationService.subscribeToTopic('etf_updates');
+            debugPrint('✅ Подписались на топик etf_updates после загрузки настроек');
+          } else {
+            await NotificationService.unsubscribeFromTopic('etf_updates');
+            debugPrint('🔕 Отписались от топика etf_updates после загрузки настроек');
+          }
+        }
+        
         notifyListeners();
       } else {
         debugPrint(
           '⚠️ NotificationProvider: Настройки не найдены на сервере, используем значения по умолчанию',
         );
+        // Если настроек нет, отписываемся от топика (безопаснее)
+        if (_isInitialized) {
+          await NotificationService.unsubscribeFromTopic('etf_updates');
+          debugPrint('🔕 Отписались от топика etf_updates (настройки не найдены)');
+        }
       }
     } catch (e) {
       debugPrint(

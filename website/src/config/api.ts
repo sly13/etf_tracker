@@ -1,12 +1,46 @@
 // API Configuration
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "api-etf.vadimsemenko.ru";
-const API_PORT = process.env.NEXT_PUBLIC_API_PORT || "3066";
 const API_PROTOCOL = process.env.NEXT_PUBLIC_API_PROTOCOL || "https";
 
+// Определяем порт по умолчанию в зависимости от протокола
+// Для HTTPS стандартный порт 443, для HTTP - 80
+// Если порт указан явно, используем его
+const getDefaultPort = (): string => {
+  if (process.env.NEXT_PUBLIC_API_PORT) {
+    return process.env.NEXT_PUBLIC_API_PORT;
+  }
+  return API_PROTOCOL === "https" ? "443" : "80";
+};
+
+const API_PORT = getDefaultPort();
+
+// Функция для построения URL с учетом стандартных портов
+const buildApiUrl = (): string => {
+  // Если задан полный URL, используем его
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  const protocol = API_PROTOCOL;
+  const host = API_HOST;
+  const port = API_PORT;
+
+  // Для HTTPS стандартный порт 443 - не добавляем порт в URL
+  // Для HTTP стандартный порт 80 - не добавляем порт в URL
+  // Для других портов - добавляем
+  const isStandardPort =
+    (protocol === "https" && port === "443") ||
+    (protocol === "http" && port === "80");
+
+  if (isStandardPort) {
+    return `${protocol}://${host}/api`;
+  }
+
+  return `${protocol}://${host}:${port}/api`;
+};
+
 export const API_CONFIG = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_API_URL ||
-    `${API_PROTOCOL}://${API_HOST}:${API_PORT}/api`,
+  BASE_URL: buildApiUrl(),
   HOST: API_HOST,
   PORT: API_PORT,
   PROTOCOL: API_PROTOCOL,
