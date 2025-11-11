@@ -19,6 +19,7 @@
     "sync:eth-klines": "node scripts/sync_eth_klines_5m.mjs",
     "sync:all-klines": "npm run sync:btc-klines && npm run sync:eth-klines",
     "import:btc-csv": "node scripts/import_btc_candles_csv.mjs",
+    "fix:btc-sequence": "node scripts/fix_btc_candles_sequence.mjs",
     "test:sync": "node tests/test_sync.mjs",
     "test:eth-sync": "node tests/test_eth_sync.mjs"
   },

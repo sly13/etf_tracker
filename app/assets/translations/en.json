@@ -198,7 +198,20 @@
     "ethereum_flows": "Ethereum ETF Flows",
     "bitcoin_flows": "Bitcoin ETF Flows",
     "flow_history": "Flow History",
+    "flow_treemap": "Flow Visualization",
     "total_daily_net_inflow": "Total Daily\nNet Inflow",
+    "treemap": {
+      "period": {
+        "today": "Today",
+        "week": "Week",
+        "month": "Month",
+        "three_months": "3 Months",
+        "six_months": "6 Months",
+        "year": "1 Year",
+        "all_time": "All Time"
+      },
+      "others": "Others"
+    },
     "period_changes": "Period of Changes",
     "for_day": "For Day",
     "for_week": "For Week",

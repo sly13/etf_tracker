@@ -177,7 +177,20 @@
     "ethereum_flows": "Потоки Ethereum ETF",
     "bitcoin_flows": "Потоки Bitcoin ETF",
     "flow_history": "История потоков",
+    "flow_treemap": "Визуализация притоков",
     "total_daily_net_inflow": "Общий ежедневный\nчистый приток",
+    "treemap": {
+      "period": {
+        "today": "Сегодня",
+        "week": "Неделя",
+        "month": "Месяц",
+        "three_months": "3 месяца",
+        "six_months": "6 месяцев",
+        "year": "1 год",
+        "all_time": "За все время"
+      },
+      "others": "Другие"
+    },
     "period_changes": "Период изменений",
     "for_day": "За день",
     "for_week": "За неделю",

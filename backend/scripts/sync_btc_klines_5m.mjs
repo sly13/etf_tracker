@@ -160,18 +160,12 @@ async function upsertCandles(candles) {
 
 		// Используем upsert для каждой свечи
 		for (const candle of candles) {
-			// Исключаем поле id из объекта при создании, чтобы избежать конфликтов
-			const { id, ...candleData } = candle;
-			
-			await prisma.bTCandle.upsert({
-				where: {
-					symbol_interval_openTime: {
-						symbol: candle.symbol,
-						interval: candle.interval,
-						openTime: candle.openTime,
-					},
-				},
-				update: {
+			try {
+				// Явно создаем объект без id для создания новой записи
+				const createData = {
+					symbol: candle.symbol,
+					interval: candle.interval,
+					openTime: candle.openTime,
 					closeTime: candle.closeTime,
 					open: candle.open,
 					high: candle.high,
@@ -183,11 +177,45 @@ async function upsertCandles(candles) {
 					takerBuyBase: candle.takerBuyBase,
 					takerBuyQuote: candle.takerBuyQuote,
 					source: candle.source,
-					updatedAt: new Date(),
-				},
-				create: candleData,
-			});
-			upsertedCount++;
+				};
+				
+				await prisma.bTCandle.upsert({
+					where: {
+						symbol_interval_openTime: {
+							symbol: candle.symbol,
+							interval: candle.interval,
+							openTime: candle.openTime,
+						},
+					},
+					update: {
+						closeTime: candle.closeTime,
+						open: candle.open,
+						high: candle.high,
+						low: candle.low,
+						close: candle.close,
+						volume: candle.volume,
+						quoteVolume: candle.quoteVolume,
+						trades: candle.trades,
+						takerBuyBase: candle.takerBuyBase,
+						takerBuyQuote: candle.takerBuyQuote,
+						source: candle.source,
+						updatedAt: new Date(),
+					},
+					create: createData,
+				});
+				upsertedCount++;
+			} catch (error) {
+				// Логируем детали ошибки для диагностики
+				console.error(`❌ Ошибка upsert свечи:`, {
+					symbol: candle.symbol,
+					interval: candle.interval,
+					openTime: candle.openTime?.toISOString(),
+					error: error.message,
+					hasId: 'id' in candle,
+					idValue: candle.id,
+				});
+				throw error;
+			}
 		}
 
 		return upsertedCount;

@@ -1,0 +1,10 @@
+flutter clean
+flutter pub get
+
+cd ios
+rm -rf Pods Podfile.lock
+pod repo update
+pod install
+
+cd ..
+flutter run
