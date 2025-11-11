@@ -1,10 +1,10 @@
+export const runtime = 'edge';
+
 import { notFound } from "next/navigation";
 import Navigation from "../../../components/Navigation";
 import MoneyRain from "../../../components/MoneyRain";
 import FundLogo from "../../../components/FundLogo";
 import { fundService, FundDetail } from "../../../services/fundService";
-
-export const runtime = 'edge';
 
 // Логотипы фондов
 const FUND_LOGOS: Record<string, string> = {
