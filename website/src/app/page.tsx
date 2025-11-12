@@ -1,3 +1,20 @@
+"use client";
+
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Box,
+  Button,
+  Paper,
+  useTheme,
+} from "@mui/material";
+import {
+  BarChart,
+  TrendingUp,
+  Security,
+} from "@mui/icons-material";
 import ETFSummaryCard from "../components/ETFSummaryCard";
 import FundHoldingsCard from "../components/FundHoldingsCard";
 import LatestNewsCard from "../components/LatestNewsCard";
@@ -5,25 +22,46 @@ import CEFIIndexCard from "../components/CEFIIndexCard";
 import Navigation from "../components/Navigation";
 
 export default function Home() {
+  const theme = useTheme();
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }} suppressHydrationWarning>
       {/* Navigation */}
       <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <Container maxWidth="xl" sx={{ py: 6 }}>
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+        <Box sx={{ textAlign: "center", mb: 8 }}>
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              mb: 3,
+              fontWeight: 700,
+              fontSize: { xs: "2.5rem", md: "3.75rem" },
+            }}
+          >
             Отслеживание ETF фондов
-            <span className="block text-blue-600 dark:text-blue-400 mt-2">
+            <Box
+              component="span"
+              sx={{
+                display: "block",
+                color: "primary.main",
+                mt: 1,
+              }}
+            >
               в реальном времени
-            </span>
-          </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Профессиональная платформа для анализа потоков капитала в криптовалютные ETF
-          </p>
-        </div>
+            </Box>
+          </Typography>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ maxWidth: "600px", mx: "auto" }}
+          >
+            Профессиональная платформа для анализа потоков капитала в
+            криптовалютные ETF
+          </Typography>
+        </Box>
 
         {/* Latest News Section */}
         <LatestNewsCard />
@@ -38,118 +76,224 @@ export default function Home() {
         <FundHoldingsCard />
 
         {/* Features Section */}
-        <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-100 mb-12">
+        <Box sx={{ mt: 10 }}>
+          <Typography
+            variant="h4"
+            component="h2"
+            sx={{ mb: 6, textAlign: "center", fontWeight: 700 }}
+          >
             Почему выбирают Crypto ETFs?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                Анализ в реальном времени
-              </h3>
-              <p className="text-slate-700 dark:text-slate-400">
-                Получайте актуальные данные о ETF фондах и их динамике с
-                задержкой менее минуты.
-              </p>
-            </div>
+          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "repeat(3, 1fr)",
+              },
+              gap: 3,
+            }}
+          >
+            <Box>
+              <Card
+                sx={{
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 6,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 4 }}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      bgcolor: "primary.light",
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <BarChart sx={{ color: "primary.main" }} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    sx={{ mb: 1, fontWeight: 600 }}
+                  >
+                    Анализ в реальном времени
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Получайте актуальные данные о ETF фондах и их динамике с
+                    задержкой менее минуты.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
 
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                Управление портфелем
-              </h3>
-              <p className="text-slate-700 dark:text-slate-400">
-                Создавайте и отслеживайте свои инвестиционные портфели с
-                детальной аналитикой.
-              </p>
-            </div>
+            <Box>
+              <Card
+                sx={{
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 6,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 4 }}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      bgcolor: "success.light",
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <TrendingUp sx={{ color: "success.main" }} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    sx={{ mb: 1, fontWeight: 600 }}
+                  >
+                    Управление портфелем
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Создавайте и отслеживайте свои инвестиционные портфели с
+                    детальной аналитикой.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
 
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-purple-600 dark:text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                Надежность и безопасность
-              </h3>
-              <p className="text-slate-700 dark:text-slate-400">
-                Ваши данные защищены современными методами шифрования и
-                безопасного хранения.
-              </p>
-            </div>
-          </div>
-        </div>
+            <Box>
+              <Card
+                sx={{
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 6,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 4 }}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      bgcolor: "secondary.light",
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Security sx={{ color: "secondary.main" }} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    sx={{ mb: 1, fontWeight: 600 }}
+                  >
+                    Надежность и безопасность
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Ваши данные защищены современными методами шифрования и
+                    безопасного хранения.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
+        </Box>
 
         {/* CTA Section */}
-        <div className="mt-20 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4 text-white">
+        <Paper
+          sx={{
+            mt: 10,
+            p: 6,
+            textAlign: "center",
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)"
+                : "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+            color: "white",
+          }}
+        >
+          <Typography variant="h4" component="h2" sx={{ mb: 2, fontWeight: 700 }}>
             Готовы начать инвестировать?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
+          </Typography>
+          <Typography variant="h6" sx={{ mb: 4, opacity: 0.9 }}>
             Присоединяйтесь к тысячам инвесторов, которые уже используют ETF
             Tracker для управления своими портфелями.
-          </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block">
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            sx={{
+              bgcolor: "white",
+              color: "primary.main",
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              "&:hover": {
+                bgcolor: "grey.100",
+              },
+            }}
+          >
             Связаться с нами
-          </button>
-        </div>
-      </main>
+          </Button>
+        </Paper>
+      </Container>
 
       {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20">
-        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Crypto ETFs</h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
+      <Paper
+        component="footer"
+        sx={{
+          mt: 8,
+          py: 6,
+          bgcolor: "background.paper",
+          borderTop: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Crypto ETFs
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Профессиональная платформа для отслеживания ETF фондов и
               управления инвестициями.
-            </p>
-            <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-600 dark:text-slate-400">
-              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+            </Typography>
+            <Box
+              sx={{
+                borderTop: 1,
+                borderColor: "divider",
+                mt: 4,
+                pt: 4,
+                textAlign: "center",
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                &copy; 2024 Crypto ETFs. Все права защищены.
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+      </Paper>
+    </Box>
   );
 }

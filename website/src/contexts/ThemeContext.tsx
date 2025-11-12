@@ -18,18 +18,25 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Инициализируем тему из localStorage, по умолчанию светлая
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark" || savedTheme === "light") {
-        return savedTheme;
-      }
+  // Всегда начинаем со светлой темы для предотвращения ошибок гидратации
+  // На сервере и клиенте при первой загрузке тема будет одинаковой ("light")
+  // Это гарантирует, что MUI сгенерирует одинаковые CSS классы на сервере и клиенте
+  const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
+
+  // После монтирования устанавливаем реальную тему из localStorage
+  // Это предотвращает несоответствие при гидратации, так как обновление происходит после гидратации
+  useEffect(() => {
+    setMounted(true);
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      setTheme(savedTheme);
     }
-    return "light";
-  });
+  }, []);
 
   useEffect(() => {
+    if (!mounted) return;
+
     // При монтировании и изменении темы синхронизируем DOM
     const root = document.documentElement;
 
@@ -44,7 +51,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Принудительно обновляем стили для надежности
     // Это гарантирует, что Tailwind CSS применит изменения
     root.style.colorScheme = theme === "dark" ? "dark" : "light";
-  }, [theme]);
+  }, [theme, mounted]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => {

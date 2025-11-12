@@ -10,9 +10,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "@mui/system": "^7.3.5",
     "axios": "^1.12.2",
     "lodash": "^4.17.21",
-    "next": "15.5.4",
+    "next": "^16.0.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-gauge-chart": "^0.5.1",

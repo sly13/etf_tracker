@@ -1,6 +1,9 @@
 import axios from "axios";
+import { API_CONFIG } from "../config/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// Используем API_CONFIG.BASE_URL, который уже содержит /api префикс
+// Или fallback на localhost:3066/api для разработки
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || API_CONFIG.BASE_URL || "http://localhost:3066/api";
 
 export interface FundDetail {
   id: number;
@@ -13,9 +16,9 @@ export interface FundDetail {
   feePercentage?: number;
   launchDate?: string;
   status?: string;
-  btcHoldings: bigint;
-  ethHoldings: bigint;
-  totalAssets: bigint;
+  btcHoldings: string | bigint;
+  ethHoldings: string | bigint;
+  totalAssets: string | bigint;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
 import { notFound } from "next/navigation";
 import Navigation from "../../../components/Navigation";
 import MoneyRain from "../../../components/MoneyRain";
@@ -59,12 +57,19 @@ export default async function FundPage({ params }: FundPageProps) {
   let fund: FundDetail;
   try {
     fund = await fundService.getFundDetails(fundKey);
-  } catch {
+    
+    // Проверяем, что данные получены
+    if (!fund || !fund.name) {
+      console.error(`Fund data is invalid for key: ${fundKey}`, fund);
+      notFound();
+    }
+  } catch (error) {
+    console.error(`Error fetching fund details for ${fundKey}:`, error);
     notFound();
   }
 
-  const formatNumber = (num: bigint): string => {
-    const numValue = Number(num);
+  const formatNumber = (num: string | bigint): string => {
+    const numValue = typeof num === 'string' ? Number(num) : Number(num);
     if (numValue >= 1000000000) {
       return `$${(numValue / 1000000000).toFixed(1)}B`;
     } else if (numValue >= 1000000) {

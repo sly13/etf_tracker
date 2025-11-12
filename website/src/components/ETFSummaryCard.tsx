@@ -1,11 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Box,
+  Skeleton,
+  Alert,
+  Chip,
+  useTheme,
+} from "@mui/material";
+import { AccountBalance } from "@mui/icons-material";
 import apiClient from "../services/api";
 import { SummaryData, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
 
 export default function ETFSummaryCard() {
+  const theme = useTheme();
   const [data, setData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,38 +93,26 @@ export default function ETFSummaryCard() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
-            <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
-            <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
-            <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
-          </div>
-        </div>
-      </div>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Skeleton variant="text" width="60%" height={40} sx={{ mb: 3 }} />
+          <Grid container spacing={3}>
+            {[1, 2, 3, 4].map(i => (
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={i}>
+                <Skeleton variant="rectangular" height={200} />
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
-        <div className="flex items-center">
-          <svg
-            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="text-red-700 dark:text-red-400">{error}</span>
-        </div>
-      </div>
+      <Alert severity="error" sx={{ mb: 3 }}>
+        {error}
+      </Alert>
     );
   }
 
@@ -120,216 +121,324 @@ export default function ETFSummaryCard() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 text-center">
-        Суммарные данные ETF фондов
-      </h2>
+    <Card sx={{ mb: 3 }}>
+      <CardContent>
+        <Typography
+          variant="h4"
+          component="h2"
+          sx={{ mb: 4, textAlign: "center", fontWeight: 700 }}
+        >
+          Суммарные данные ETF фондов
+        </Typography>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Общий итог */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center mr-3">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Общий итог
-            </h3>
-          </div>
+        <Grid container spacing={3}>
+          {/* Общий итог */}
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card
+              sx={{
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, rgba(20, 83, 45, 0.2) 100%)"
+                    : "linear-gradient(135deg, rgba(240, 253, 244, 1) 0%, rgba(220, 252, 231, 1) 100%)",
+                border: `1px solid ${
+                  theme.palette.mode === "dark" ? "#166534" : "#86efac"
+                }`,
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Chip
+                    icon={<AccountBalance />}
+                    label="Общий итог"
+                    color="success"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                >
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Общие активы:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "success.main" }}
+                    >
+                      ${formatAssets(data.overall.totalAssets)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Общий поток:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "success.main" }}
+                    >
+                      ${formatFlow(data.overall.currentFlow, true)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Последнее обновление:
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDate(data.overall.lastUpdated)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Общие активы:
-              </span>
-              <span className="font-semibold text-green-600 dark:text-green-400">
-                ${formatAssets(data.overall.totalAssets)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Общий поток:
-              </span>
-              <span className="font-semibold text-green-600 dark:text-green-400">
-                ${formatFlow(data.overall.currentFlow, true)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400 opacity-0">
-                Количество дней:
-              </span>
-              <span className="font-semibold text-green-600 dark:text-green-400 opacity-0">
-                0
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Последнее обновление:
-              </span>
-              <span className="text-sm text-slate-600 dark:text-slate-500">
-                {formatDate(data.overall.lastUpdated)}
-              </span>
-            </div>
-          </div>
-        </div>
+          {/* Bitcoin */}
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card
+              sx={{
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%)"
+                    : "linear-gradient(135deg, rgba(239, 246, 255, 1) 0%, rgba(219, 234, 254, 1) 100%)",
+                border: `1px solid ${
+                  theme.palette.mode === "dark" ? "#1e40af" : "#93c5fd"
+                }`,
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Chip
+                    label="Bitcoin ETF"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                >
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Общие активы:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatAssets(data.bitcoin.totalAssets)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Текущий поток:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatFlow(data.bitcoin.currentFlow)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Количество дней:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      {data.bitcoin.count}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Последнее обновление:
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDate(data.bitcoin.latestDate)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Bitcoin */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-sm">₿</span>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Bitcoin ETF
-            </h3>
-          </div>
+          {/* Ethereum */}
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card
+              sx={{
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%)"
+                    : "linear-gradient(135deg, rgba(239, 246, 255, 1) 0%, rgba(219, 234, 254, 1) 100%)",
+                border: `1px solid ${
+                  theme.palette.mode === "dark" ? "#1e40af" : "#93c5fd"
+                }`,
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Chip
+                    label="Ethereum ETF"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                >
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Общие активы:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatAssets(data.ethereum.totalAssets)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Текущий поток:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatFlow(data.ethereum.currentFlow)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Количество дней:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      {data.ethereum.count}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Последнее обновление:
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDate(data.ethereum.latestDate)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Общие активы:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatAssets(data.bitcoin.totalAssets)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Текущий поток:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatFlow(data.bitcoin.currentFlow)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Количество дней:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {data.bitcoin.count}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Последнее обновление:
-              </span>
-              <span className="text-sm text-slate-600 dark:text-slate-500">
-                {formatDate(data.bitcoin.latestDate)}
-              </span>
-            </div>
-          </div>
-        </div>
+          {/* Solana */}
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card
+              sx={{
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%)"
+                    : "linear-gradient(135deg, rgba(239, 246, 255, 1) 0%, rgba(219, 234, 254, 1) 100%)",
+                border: `1px solid ${
+                  theme.palette.mode === "dark" ? "#1e40af" : "#93c5fd"
+                }`,
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Chip
+                    label="Solana ETF"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                >
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Общие активы:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatAssets(data.solana.totalAssets)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Текущий поток:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      ${formatFlow(data.solana.currentFlow)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Количество дней:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, color: "primary.main" }}
+                    >
+                      {data.solana.count}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Последнее обновление:
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDate(data.solana.latestDate)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
-        {/* Ethereum */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-sm">Ξ</span>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Ethereum ETF
-            </h3>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Общие активы:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatAssets(data.ethereum.totalAssets)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Текущий поток:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatFlow(data.ethereum.currentFlow)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Количество дней:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {data.ethereum.count}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Последнее обновление:
-              </span>
-              <span className="text-sm text-slate-600 dark:text-slate-500">
-                {formatDate(data.ethereum.latestDate)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Solana */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-sm">◎</span>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Solana ETF
-            </h3>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Общие активы:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatAssets(data.solana.totalAssets)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Текущий поток:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                ${formatFlow(data.solana.currentFlow)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Количество дней:
-              </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {data.solana.count}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-700 dark:text-slate-400">
-                Последнее обновление:
-              </span>
-              <span className="text-sm text-slate-600 dark:text-slate-500">
-                {formatDate(data.solana.latestDate)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Данные обновляются в реальном времени
-        </p>
-      </div>
-    </div>
+        <Box sx={{ mt: 3, textAlign: "center" }}>
+          <Typography variant="caption" color="text.secondary">
+            Данные обновляются в реальном времени
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }

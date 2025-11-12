@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AppBar, Toolbar, Box, Button, Container, useTheme } from "@mui/material";
 import ThemeToggle from "./ThemeToggle";
 
 export default function Navigation() {
   const pathname = usePathname();
+  const theme = useTheme();
 
   const navItems = [
     { href: "/", label: "Главная" },
@@ -15,41 +17,92 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
-      <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <Link 
-              href="/" 
-              className="text-2xl font-bold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    <AppBar
+      position="sticky"
+      suppressHydrationWarning
+      sx={{
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? "rgba(15, 23, 42, 0.8)"
+            : "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(12px)",
+        boxShadow: "none",
+        borderBottom: `1px solid ${
+          theme.palette.mode === "dark" ? "#334155" : "#e2e8f0"
+        }`,
+      }}
+    >
+      <Container maxWidth="xl">
+        <Toolbar
+          sx={{
+            justifyContent: "space-between",
+            px: { xs: 2, sm: 3, lg: 4 },
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Button
+              component={Link}
+              href="/"
+              suppressHydrationWarning
+              sx={{
+                fontSize: "1.5rem",
+                fontWeight: 700,
+                color: "text.primary",
+                textTransform: "none",
+                "&:hover": {
+                  color: "primary.main",
+                },
+              }}
             >
               Crypto ETFs
-            </Link>
-          </div>
+            </Button>
+          </Box>
 
-          <div className="flex items-center space-x-6">
-            <div className="hidden md:flex space-x-6">
-              {navItems.map(item => (
-                <Link
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                gap: 3,
+              }}
+            >
+              {navItems.map((item) => (
+                <Button
                   key={item.href}
+                  component={Link}
                   href={item.href}
-                  className={`text-sm font-medium transition-colors duration-200 relative ${
-                    pathname === item.href
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                  }`}
+                  suppressHydrationWarning
+                  sx={{
+                    color:
+                      pathname === item.href
+                        ? "primary.main"
+                        : "text.secondary",
+                    fontWeight: 500,
+                    textTransform: "none",
+                    position: "relative",
+                    "&:hover": {
+                      color: "text.primary",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      bottom: -4,
+                      left: 0,
+                      right: 0,
+                      height: 2,
+                      backgroundColor:
+                        pathname === item.href ? "primary.main" : "transparent",
+                      borderRadius: 1,
+                    },
+                  }}
                 >
                   {item.label}
-                  {pathname === item.href && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
-                  )}
-                </Link>
+                </Button>
               ))}
-            </div>
+            </Box>
             <ThemeToggle />
-          </div>
-        </div>
-      </div>
-    </nav>
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 }

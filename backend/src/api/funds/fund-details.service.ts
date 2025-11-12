@@ -24,7 +24,17 @@ export class FundDetailsService {
       throw new NotFoundException(`Fund with key ${fundKey} not found`);
     }
 
-    return fund;
+    // Получаем данные о владениях
+    const holdings = await this.getFundHoldings(fundKey);
+
+    // Объединяем данные фонда с владениями
+    // Преобразуем BigInt в строки для JSON сериализации
+    return {
+      ...fund,
+      btcHoldings: holdings.btcHoldings.toString(),
+      ethHoldings: holdings.ethHoldings.toString(),
+      totalAssets: holdings.totalAssets.toString(),
+    };
   }
 
   private async getFundHoldings(fundKey: string) {

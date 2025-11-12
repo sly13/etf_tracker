@@ -1,7 +1,25 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Box,
+  Chip,
+  Paper,
+  Skeleton,
+  Alert,
+} from "@mui/material";
 import Navigation from "../../components/Navigation";
 import MoneyRain from "../../components/MoneyRain";
 import FundLogo from "../../components/FundLogo";
+import apiClient from "../../services/api";
+import { FundHoldingsData, ApiError } from "../../types/api";
+import { API_CONFIG } from "../../config/api";
 
 // Маппинг названий фондов
 const FUND_NAMES: Record<string, string> = {
@@ -33,17 +51,77 @@ const FUND_LOGOS: Record<string, string> = {
   wisdomTree: "/images/fund_logos/wtree.jpg",
 };
 
+// Функция для определения поддерживаемых криптовалют на основе данных из БД
+const getFundCryptos = (
+  fundKey: string,
+  holdings: FundHoldingsData["fundHoldings"]
+): string[] => {
+  const fundHolding = holdings[fundKey];
+  if (!fundHolding) return [];
+
+  const cryptos: string[] = [];
+  if (fundHolding.btc > 0) cryptos.push("BTC");
+  if (fundHolding.eth > 0) cryptos.push("ETH");
+  if (fundHolding.sol > 0) cryptos.push("SOL");
+
+  return cryptos;
+};
+
 export default function FundsPage() {
+  const [holdingsData, setHoldingsData] = useState<FundHoldingsData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHoldings = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await apiClient.get<FundHoldingsData>(
+          API_CONFIG.ENDPOINTS.FUND_HOLDINGS
+        );
+
+        setHoldingsData(response.data);
+      } catch (err: unknown) {
+        const apiError = err as ApiError;
+        let errorMessage: string;
+
+        if (apiError?.timeoutError && apiError?.timeoutMessage) {
+          errorMessage = apiError.timeoutMessage;
+        } else {
+          errorMessage =
+            apiError?.response?.data?.message ||
+            apiError?.message ||
+            "Произошла ошибка при загрузке данных";
+        }
+
+        setError(errorMessage);
+        console.error("Fund holdings fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHoldings();
+  }, []);
+
   const funds = Object.keys(FUND_NAMES).map(key => ({
     key,
     name: FUND_NAMES[key],
     logo: FUND_LOGOS[key],
+    cryptos: holdingsData ? getFundCryptos(key, holdingsData.fundHoldings) : [],
   }));
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{ background: "var(--background)" }}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        position: "relative",
+        bgcolor: "background.default",
+      }}
     >
       {/* Money Rain Animation */}
       <MoneyRain />
@@ -52,114 +130,263 @@ export default function FundsPage() {
       <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <Container maxWidth="xl" sx={{ py: 6, position: "relative", zIndex: 10 }}>
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
+        <Box sx={{ textAlign: "center", mb: 6 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{ mb: 2, fontWeight: 700 }}
+          >
             Все ETF Фонды
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
+          </Typography>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ maxWidth: "800px", mx: "auto" }}
+          >
             Изучите детальную информацию о каждом ETF фонде, включая их
             владения, производительность и исторические данные.
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
         {/* Funds Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {funds.map(fund => (
-            <Link
-              key={fund.key}
-              href={`/funds/${fund.key}`}
-              className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
-            >
-              <div className="flex items-center mb-4">
-                <FundLogo
-                  src={fund.logo}
-                  alt={fund.name}
-                  className="w-12 h-12 rounded-full mr-4 object-cover"
-                />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {fund.name}
-                </h3>
-              </div>
+        {loading ? (
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={i}>
+                <Card>
+                  <CardContent>
+                    <Skeleton variant="text" width="60%" height={40} />
+                    <Skeleton
+                      variant="rectangular"
+                      height={200}
+                      sx={{ mt: 2 }}
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 4 }}>
+            {error}
+          </Alert>
+        ) : (
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {funds.map(fund => (
+              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={fund.key}>
+                <Link
+                  href={`/funds/${fund.key}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Card
+                    sx={{
+                      height: "100%",
+                      transition: "all 0.3s ease",
+                      position: "relative",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: 6,
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 16,
+                          right: 16,
+                          width: 80,
+                          height: 60,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <FundLogo
+                          src={fund.logo}
+                          alt={fund.name}
+                          className="w-full h-full rounded object-contain"
+                        />
+                      </Box>
+                      <Box sx={{ mb: 2, pr: 10 }}>
+                        <Typography
+                          variant="h6"
+                          component="h3"
+                          sx={{
+                            fontWeight: 600,
+                            "&:hover": {
+                              color: "primary.main",
+                            },
+                          }}
+                        >
+                          {fund.name}
+                        </Typography>
+                      </Box>
 
-              <p className="text-gray-600 dark:text-slate-400 mb-4">
-                ETF фонд с фокусом на криптовалютные активы
-              </p>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        ETF фонд с фокусом на криптовалютные активы
+                      </Typography>
 
-              <div className="flex justify-between text-sm text-gray-500 dark:text-slate-400">
-                <span>Тикер: {fund.key.toUpperCase()}</span>
-                <span className="text-green-600 dark:text-green-400 font-medium">
-                  Активный
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary">
+                          Тикер: {fund.key.toUpperCase()}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {fund.cryptos.map(crypto => (
+                            <Chip
+                              key={crypto}
+                              label={crypto}
+                              size="small"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: "0.7rem",
+                                height: 24,
+                                backgroundColor: "primary.main",
+                                color: "#ffffff",
+                                "& .MuiChip-label": {
+                                  px: 1,
+                                },
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
         {/* Statistics */}
-        <div className="mt-16 bg-white dark:bg-slate-800 rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6 text-center">
+        <Paper sx={{ p: 4, mt: 4 }}>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{ mb: 4, textAlign: "center", fontWeight: 700 }}
+          >
             Общая статистика
-          </h2>
+          </Typography>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                {funds.length}
-              </div>
-              <div className="text-gray-600 dark:text-slate-400">
-                Всего фондов
-              </div>
-            </div>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 700, color: "primary.main", mb: 1 }}
+                >
+                  {funds.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Всего фондов
+                </Typography>
+              </Box>
+            </Grid>
 
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                $601.7B
-              </div>
-              <div className="text-gray-600 dark:text-slate-400">
-                Общие BTC активы
-              </div>
-            </div>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 700, color: "warning.main", mb: 1 }}
+                >
+                  $601.7B
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Общие BTC активы
+                </Typography>
+              </Box>
+            </Grid>
 
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                $252.9B
-              </div>
-              <div className="text-gray-600 dark:text-slate-400">
-                Общие ETH активы
-              </div>
-            </div>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 700, color: "primary.main", mb: 1 }}
+                >
+                  $252.9B
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Общие ETH активы
+                </Typography>
+              </Box>
+            </Grid>
 
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                $854.6B
-              </div>
-              <div className="text-gray-600 dark:text-slate-400">
-                Суммарные активы
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 700, color: "success.main", mb: 1 }}
+                >
+                  $854.6B
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Суммарные активы
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Container>
 
       {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20 relative z-10">
-        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">
+      <Paper
+        component="footer"
+        sx={{
+          mt: 8,
+          py: 6,
+          bgcolor: "background.paper",
+          borderTop: 1,
+          borderColor: "divider",
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               Crypto ETFs
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Профессиональная платформа для отслеживания ETF фондов и
               управления инвестициями.
-            </p>
-            <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-500 dark:text-slate-400">
-              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+            </Typography>
+            <Box
+              sx={{
+                borderTop: 1,
+                borderColor: "divider",
+                mt: 4,
+                pt: 4,
+                textAlign: "center",
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                &copy; 2024 Crypto ETFs. Все права защищены.
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+      </Paper>
+    </Box>
   );
 }

@@ -12,6 +12,11 @@ export default function FundLogo({ src, alt, className = "" }: FundLogoProps) {
       src={src}
       alt={alt}
       className={className}
+      style={{
+        maxWidth: "100%",
+        maxHeight: "100%",
+        objectFit: "contain",
+      }}
       onError={e => {
         e.currentTarget.style.display = "none";
       }}
