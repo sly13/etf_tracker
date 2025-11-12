@@ -115,6 +115,27 @@ export interface AllCEFIIndices {
   };
 }
 
+export interface ChartDataPoint {
+  date: string;
+  indexValue: number;
+  btcPrice: number;
+  btcVolume: number;
+  flows?: {
+    total: number;
+    funds: Record<string, number>;
+  };
+}
+
+export interface IndexChartResponse {
+  index: string;
+  data: ChartDataPoint[];
+  current: {
+    indexValue: number;
+    btcPrice: number;
+    btcVolume: number;
+  };
+}
+
 // Расширяем типы axios для добавления metadata
 declare module "axios" {
   interface InternalAxiosRequestConfig {

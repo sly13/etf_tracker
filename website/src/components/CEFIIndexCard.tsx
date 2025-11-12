@@ -8,6 +8,7 @@ import {
   ApiError,
 } from "../types/api";
 import { API_CONFIG } from "../config/api";
+import IndexChart from "./IndexChart";
 
 export default function CEFIIndexCard() {
   const [data, setData] = useState<AllCEFIIndices | null>(null);
@@ -299,7 +300,23 @@ export default function CEFIIndexCard() {
           Индексы обновляются ежедневно на основе данных о потоках ETF
         </p>
       </div>
+
+      {/* График индекса CEFI-BTC */}
+      <div className="mt-8">
+        <IndexChart indexType="btc" title="CEFI-BTC Index Chart" />
+      </div>
+
+      {/* График индекса CEFI-ETH */}
+      <div className="mt-8">
+        <IndexChart indexType="eth" title="CEFI-ETH Index Chart" />
+      </div>
+
+      {/* График композитного индекса */}
+      <div className="mt-8">
+        <IndexChart indexType="composite" title="CEFI-Composite Index Chart" />
+      </div>
     </div>
   );
 }
+
 

@@ -1,5 +1,5 @@
 // API Configuration
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "hui";
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "api-etf.vadimsemenko.ru";
 const API_PROTOCOL = process.env.NEXT_PUBLIC_API_PROTOCOL || "https";
 
 // Определяем порт по умолчанию в зависимости от протокола
@@ -53,5 +53,6 @@ export const API_CONFIG = {
     CEFI_COMPOSITE: "/cefi/composite",
     CEFI_BPF: "/cefi/bpf",
     CEFI_ALL: "/cefi/all",
+    CEFI_CHART: "/cefi/chart", // Endpoint для получения данных графика
   },
 };

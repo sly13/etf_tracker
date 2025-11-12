@@ -39,3 +39,25 @@ export interface AssetFlowData {
   funds: FundFlowData[];
 }
 
+export interface ChartDataPoint {
+  date: string;
+  indexValue: number;
+  btcPrice: number;
+  btcVolume: number;
+  flows?: {
+    total: number;
+    funds: Record<string, number>;
+  };
+}
+
+export interface IndexChartResponse {
+  index: string;
+  data: ChartDataPoint[];
+  current: {
+    indexValue: number;
+    btcPrice: number;
+    btcVolume: number;
+  };
+}
+
+

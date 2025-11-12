@@ -8,6 +8,8 @@ import type {
   BPFData,
   AssetFlowData,
   FundFlowData,
+  ChartDataPoint,
+  IndexChartResponse,
 } from './cefi-types';
 
 @Injectable()
@@ -15,10 +17,13 @@ export class CEFIIndexService {
   private readonly logger = new Logger(CEFIIndexService.name);
 
   // Константы для расчета индекса
-  private readonly BASE_VALUE = 1000;
+  // Базовое значение 50 означает нейтральное состояние (середина шкалы 0-100)
+  // Когда потоки ETF находятся на среднем уровне за последние 90 дней, индекс = 50
+  // При положительных потоках (выше среднего) индекс растет к 100 (Extreme Greed)
+  // При отрицательных потоках (ниже среднего) индекс падает к 0 (Extreme Fear)
+  private readonly BASE_VALUE = 50; // Нейтральная точка индекса (середина шкалы)
   private readonly SMOOTHING_FACTOR = 0.3; // lambda в диапазоне [0.2, 0.4]
-  private readonly Z_SCORE_WINDOW = 90; // дней
-  private readonly ALPHA = 50; // коэффициент для экспоненты
+  private readonly Z_SCORE_WINDOW = 90; // дней для расчета среднего и стандартного отклонения
 
   // Приблизительное количество монет в обращении (для расчета рыночной капитализации)
   private readonly BTC_SUPPLY = 19_700_000; // ~19.7M BTC
@@ -299,20 +304,36 @@ export class CEFIIndexService {
       const stdDev = Math.sqrt(variance);
 
       // Рассчитываем Z-score
+      // Z-score показывает, на сколько стандартных отклонений текущий поток отличается от среднего
+      // Z-score > 0 = потоки выше среднего (положительные)
+      // Z-score < 0 = потоки ниже среднего (отрицательные)
       const zScore = stdDev > 0 ? (flow.smoothedFlow - mean) / stdDev : 0;
 
-      // Применяем экспоненту для получения индекса
-      const indexValue = this.BASE_VALUE * Math.exp(this.ALPHA * zScore * 0.01);
+      // Нормализуем Z-score в диапазон 0-100 используя сигмоидную функцию tanh
+      // tanh(zScore * 0.5) дает значение от -1 до 1, где:
+      // -1 = очень отрицательные потоки (Extreme Fear)
+      // 0 = средние потоки (Neutral)
+      // +1 = очень положительные потоки (Extreme Greed)
+      const normalizedZScore = Math.tanh(zScore * 0.5);
+      
+      // Преобразуем нормализованный Z-score в индекс 0-100:
+      // BASE_VALUE (50) + отклонение от нейтральной точки
+      // normalizedZScore * 50 дает диапазон от -50 до +50
+      // Итого: 50 + (-50 до +50) = 0 до 100
+      const indexValue = this.BASE_VALUE + (normalizedZScore * this.BASE_VALUE);
+      
+      // Ограничиваем значение в диапазоне 0-100 (на случай выхода за границы)
+      const clampedValue = Math.max(0, Math.min(100, indexValue));
 
       // Рассчитываем изменение
       const previousIndex = i > 0 ? indexData[i - 1].value : this.BASE_VALUE;
-      const change = indexValue - previousIndex;
+      const change = clampedValue - previousIndex;
       const changePercent =
         previousIndex > 0 ? (change / previousIndex) * 100 : 0;
 
       indexData.push({
         date: flow.date,
-        value: Math.round(indexValue * 100) / 100,
+        value: Math.round(clampedValue * 100) / 100,
         change: Math.round(change * 100) / 100,
         changePercent: Math.round(changePercent * 100) / 100,
       });
@@ -566,6 +587,186 @@ export class CEFIIndexService {
       value: this.BASE_VALUE,
       change: 0,
       changePercent: 0,
+    };
+  }
+
+  /**
+   * Получить данные для графика индекса с ценой и объемом Bitcoin
+   */
+  async getIndexChart(
+    indexType: 'btc' | 'eth' | 'composite',
+    timeRange: '30d' | '1y' | 'all' = 'all',
+  ): Promise<IndexChartResponse> {
+    // Получаем данные индекса
+    let indexResponse: CEFIIndexResponse;
+    switch (indexType) {
+      case 'btc':
+        indexResponse = await this.getCEFIBTC();
+        break;
+      case 'eth':
+        indexResponse = await this.getCEFIETH();
+        break;
+      case 'composite':
+        indexResponse = await this.getCEFIComposite();
+        break;
+    }
+
+    // Фильтруем данные по временному диапазону
+    let filteredHistory = indexResponse.history;
+    if (timeRange !== 'all') {
+      const now = new Date();
+      const cutoffDate = new Date();
+      
+      if (timeRange === '30d') {
+        cutoffDate.setDate(now.getDate() - 30);
+      } else if (timeRange === '1y') {
+        cutoffDate.setFullYear(now.getFullYear() - 1);
+      }
+      
+      filteredHistory = indexResponse.history.filter(
+        (item) => new Date(item.date) >= cutoffDate,
+      );
+    }
+
+    if (filteredHistory.length === 0) {
+      return {
+        index: indexResponse.index,
+        data: [],
+        current: {
+          indexValue: indexResponse.current.value,
+          btcPrice: 0,
+          btcVolume: 0,
+        },
+      };
+    }
+
+    // Получаем даты для запроса данных Bitcoin
+    const dates = filteredHistory.map((item) => item.date);
+    const minDate = new Date(Math.min(...dates.map((d) => new Date(d).getTime())));
+    const maxDate = new Date(Math.max(...dates.map((d) => new Date(d).getTime())));
+    minDate.setHours(0, 0, 0, 0);
+    maxDate.setHours(23, 59, 59, 999);
+
+    // Получаем дневные свечи Bitcoin за период
+    const btcCandles = await this.prisma.bTCandle.findMany({
+      where: {
+        symbol: 'BTCUSDT',
+        interval: '1d',
+        openTime: {
+          gte: minDate,
+          lte: maxDate,
+        },
+      },
+      orderBy: {
+        openTime: 'asc',
+      },
+    });
+
+    // Создаем мапу дат к свечам
+    const candleMap = new Map<string, { price: number; volume: number }>();
+    for (const candle of btcCandles) {
+      const candleDate = candle.openTime.toISOString().split('T')[0];
+      candleMap.set(candleDate, {
+        price: candle.close,
+        volume: candle.quoteVolume || 0,
+      });
+    }
+
+    // Получаем данные о притоках ETF
+    let flowsData: ETFFlowData[] | BTCFlowData[] = [];
+    if (indexType === 'btc') {
+      flowsData = await this.etfFlowService.getETFFlowData('bitcoin');
+    } else if (indexType === 'eth') {
+      flowsData = await this.etfFlowService.getETFFlowData('ethereum');
+    } else {
+      // Для composite используем данные Bitcoin
+      flowsData = await this.etfFlowService.getETFFlowData('bitcoin');
+    }
+
+    // Создаем мапу дат к притокам
+    const flowsMap = new Map<string, ETFFlowData | BTCFlowData>();
+    for (const flow of flowsData) {
+      flowsMap.set(flow.date, flow);
+    }
+
+    // Объединяем данные индекса с данными Bitcoin и притоками
+    const chartData: ChartDataPoint[] = [];
+    let lastPrice = 0;
+    let lastVolume = 0;
+
+    for (const indexItem of filteredHistory) {
+      const candle = candleMap.get(indexItem.date);
+      const price = candle?.price || lastPrice;
+      const volume = candle?.volume || lastVolume;
+
+      if (candle) {
+        lastPrice = price;
+        lastVolume = volume;
+      }
+
+      // Получаем данные о притоках для этой даты
+      const flowData = flowsMap.get(indexItem.date);
+      let flows: { total: number; funds: Record<string, number> } | undefined;
+      
+      if (flowData) {
+        const funds: Record<string, number> = {};
+        if (indexType === 'btc' || indexType === 'composite') {
+          const btcFlow = flowData as BTCFlowData;
+          if (btcFlow.blackrock) funds.blackrock = btcFlow.blackrock;
+          if (btcFlow.fidelity) funds.fidelity = btcFlow.fidelity;
+          if (btcFlow.bitwise) funds.bitwise = btcFlow.bitwise;
+          if (btcFlow.twentyOneShares) funds.twentyOneShares = btcFlow.twentyOneShares;
+          if (btcFlow.vanEck) funds.vanEck = btcFlow.vanEck;
+          if (btcFlow.invesco) funds.invesco = btcFlow.invesco;
+          if (btcFlow.franklin) funds.franklin = btcFlow.franklin;
+          if (btcFlow.grayscale) funds.grayscale = btcFlow.grayscale;
+          if (btcFlow.grayscaleBtc) funds.grayscaleBtc = btcFlow.grayscaleBtc;
+          if (btcFlow.valkyrie) funds.valkyrie = btcFlow.valkyrie;
+          if (btcFlow.wisdomTree) funds.wisdomTree = btcFlow.wisdomTree;
+        } else if (indexType === 'eth') {
+          const ethFlow = flowData as ETFFlowData;
+          if (ethFlow.blackrock) funds.blackrock = ethFlow.blackrock;
+          if (ethFlow.fidelity) funds.fidelity = ethFlow.fidelity;
+          if (ethFlow.bitwise) funds.bitwise = ethFlow.bitwise;
+          if (ethFlow.twentyOneShares) funds.twentyOneShares = ethFlow.twentyOneShares;
+          if (ethFlow.vanEck) funds.vanEck = ethFlow.vanEck;
+          if (ethFlow.invesco) funds.invesco = ethFlow.invesco;
+          if (ethFlow.franklin) funds.franklin = ethFlow.franklin;
+          if (ethFlow.grayscale) funds.grayscale = ethFlow.grayscale;
+          if (ethFlow.grayscaleCrypto) funds.grayscaleEth = ethFlow.grayscaleCrypto;
+        }
+        
+        if (Object.keys(funds).length > 0) {
+          flows = {
+            total: flowData.total || 0,
+            funds,
+          };
+        }
+      }
+
+      chartData.push({
+        date: indexItem.date,
+        indexValue: indexItem.value,
+        btcPrice: price,
+        btcVolume: volume,
+        flows,
+      });
+    }
+
+    // Получаем текущие значения
+    const currentIndex = indexResponse.current;
+    const latestCandle = btcCandles[btcCandles.length - 1];
+    const currentPrice = latestCandle?.close || lastPrice;
+    const currentVolume = latestCandle?.quoteVolume || lastVolume;
+
+    return {
+      index: indexResponse.index,
+      data: chartData,
+      current: {
+        indexValue: currentIndex.value,
+        btcPrice: currentPrice,
+        btcVolume: currentVolume,
+      },
     };
   }
 }

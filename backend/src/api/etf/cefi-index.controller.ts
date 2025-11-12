@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
 import { CEFIIndexService } from './cefi-index.service';
-import type { CEFIIndexResponse, BPFData } from './cefi-types';
+import type { CEFIIndexResponse, BPFData, IndexChartResponse } from './cefi-types';
 
 @Controller('cefi')
 export class CEFIIndexController {
@@ -167,6 +167,31 @@ export class CEFIIndexController {
       };
     } catch (error) {
       this.logger.error('Ошибка при получении всех индексов:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Получить данные для графика индекса
+   * GET /cefi/chart/:indexType?timeRange=30d|1y|all
+   */
+  @Get('chart/:indexType')
+  async getIndexChart(
+    @Param('indexType') indexType: 'btc' | 'eth' | 'composite',
+    @Query('timeRange') timeRange?: '30d' | '1y' | 'all',
+  ): Promise<IndexChartResponse> {
+    try {
+      const validTimeRange = timeRange || 'all';
+      if (!['30d', '1y', 'all'].includes(validTimeRange)) {
+        throw new Error('Invalid timeRange. Must be 30d, 1y, or all');
+      }
+
+      return await this.cefiIndexService.getIndexChart(
+        indexType,
+        validTimeRange as '30d' | '1y' | 'all',
+      );
+    } catch (error) {
+      this.logger.error('Ошибка при получении данных графика:', error);
       throw error;
     }
   }
