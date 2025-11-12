@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import Navigation from "../../../components/Navigation";
 
 const articles = [

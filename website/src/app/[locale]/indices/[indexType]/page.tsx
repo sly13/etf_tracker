@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { useParams } from "next/navigation";
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from '../../../../i18n/routing';
