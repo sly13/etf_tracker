@@ -1,19 +1,23 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from "next/navigation";
 import { AppBar, Toolbar, Box, Button, Container, useTheme } from "@mui/material";
 import ThemeToggle from "./ThemeToggle";
+import LanguageToggle from "./LanguageToggle";
+import { Link } from '../i18n/routing';
 
 export default function Navigation() {
   const pathname = usePathname();
   const theme = useTheme();
+  const t = useTranslations('nav');
+  const locale = useLocale();
 
   const navItems = [
-    { href: "/", label: "Главная" },
-    { href: "/funds", label: "Фонды" },
-    { href: "/app", label: "Приложение" },
-    { href: "/blog", label: "Блог" },
+    { href: "/", label: t('home') },
+    { href: "/funds", label: t('funds') },
+    { href: "/app", label: t('app') },
+    { href: "/blog", label: t('blog') },
   ];
 
   return (
@@ -73,7 +77,7 @@ export default function Navigation() {
                   suppressHydrationWarning
                   sx={{
                     color:
-                      pathname === item.href
+                      pathname === item.href || pathname === `/${locale}${item.href}`
                         ? "primary.main"
                         : "text.secondary",
                     fontWeight: 500,
@@ -90,7 +94,7 @@ export default function Navigation() {
                       right: 0,
                       height: 2,
                       backgroundColor:
-                        pathname === item.href ? "primary.main" : "transparent",
+                        pathname === item.href || pathname === `/${locale}${item.href}` ? "primary.main" : "transparent",
                       borderRadius: 1,
                     },
                   }}
@@ -99,6 +103,7 @@ export default function Navigation() {
                 </Button>
               ))}
             </Box>
+            <LanguageToggle />
             <ThemeToggle />
           </Box>
         </Toolbar>

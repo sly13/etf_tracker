@@ -1,16 +1,6 @@
-import { redirect } from 'next/navigation';
-import { routing } from '../../i18n/routing';
-
-export default async function FundsPage() {
-  redirect(`/${routing.defaultLocale}/funds`);
-}
-
-// Старый код ниже - будет удален после перемещения в [locale]
-/*
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import {
   Container,
   Typography,
@@ -23,12 +13,13 @@ import {
   Skeleton,
   Alert,
 } from "@mui/material";
-import Navigation from "../../components/Navigation";
-import MoneyRain from "../../components/MoneyRain";
-import FundLogo from "../../components/FundLogo";
-import apiClient from "../../services/api";
-import { FundHoldingsData, ApiError } from "../../types/api";
-import { API_CONFIG } from "../../config/api";
+import Navigation from "../../../components/Navigation";
+import MoneyRain from "../../../components/MoneyRain";
+import FundLogo from "../../../components/FundLogo";
+import apiClient from "../../../services/api";
+import { FundHoldingsData, ApiError } from "../../../types/api";
+import { API_CONFIG } from "../../../config/api";
+import { Link } from "../../../i18n/routing";
 
 // Маппинг названий фондов
 const FUND_NAMES: Record<string, string> = {
@@ -399,4 +390,4 @@ export default function FundsPage() {
     </Box>
   );
 }
-*/
+

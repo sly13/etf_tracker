@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useTranslations } from 'next-intl';
+import { Link } from '../i18n/routing';
 import apiClient from "../services/api";
 import {
   CEFIIndexResponse,
@@ -12,6 +13,8 @@ import { API_CONFIG } from "../config/api";
 import IndexGauge from "./IndexGauge";
 
 export default function CEFIIndexCard() {
+  const t = useTranslations('cefi');
+  const tErrors = useTranslations('errors');
   const [data, setData] = useState<AllCEFIIndices | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +45,7 @@ export default function CEFIIndexCard() {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке индексов CEFI";
+            t('errorLoading');
         }
 
         setError(errorMessage);
@@ -171,11 +174,10 @@ export default function CEFIIndexCard() {
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 text-center">
-          CryptoETF Flows Index (CEFI)
+          {t('title')}
         </h2>
         <p className="text-sm text-slate-700 dark:text-slate-400 text-center">
-          Индекс отражает направления и интенсивность потоков капитала в
-          спотовые криптовалютные ETF
+          {t('description')}
         </p>
       </div>
 
@@ -183,7 +185,7 @@ export default function CEFIIndexCard() {
         {/* CEFI-Composite */}
         {renderIndexCard(
           data.composite,
-          "CEFI-Composite Index",
+          t('composite'),
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <svg
               className="w-5 h-5 text-white"
@@ -207,7 +209,7 @@ export default function CEFIIndexCard() {
         {/* CEFI-BTC */}
         {renderIndexCard(
           data.btc,
-          "CEFI-BTC Index",
+          t('btc'),
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">₿</span>
           </div>,
@@ -221,7 +223,7 @@ export default function CEFIIndexCard() {
         {/* CEFI-ETH */}
         {renderIndexCard(
           data.eth,
-          "CEFI-ETH Index",
+          t('eth'),
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">Ξ</span>
           </div>,
@@ -235,7 +237,7 @@ export default function CEFIIndexCard() {
         {/* CEFI-SOL */}
         {data.sol && renderIndexCard(
           data.sol,
-          "CEFI-SOL Index",
+          t('sol'),
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">◎</span>
           </div>,
@@ -253,10 +255,10 @@ export default function CEFIIndexCard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                BPF (Breadth of Positive Flows)
+                {t('bpf.title')}
               </h3>
               <p className="text-sm text-slate-700 dark:text-slate-400 mb-4">
-                Процент фондов с положительным притоком капитала
+                {t('bpf.description')}
               </p>
             </div>
             <div className="text-right">
@@ -264,7 +266,7 @@ export default function CEFIIndexCard() {
                 {formatNumber(latestBPF.percentage)}%
               </div>
               <div className="text-sm text-slate-700 dark:text-slate-400 mt-1">
-                {latestBPF.positiveFunds} из {latestBPF.totalFunds} фондов
+                {latestBPF.positiveFunds} {t('bpf.from')} {latestBPF.totalFunds} {t('bpf.funds')}
               </div>
             </div>
           </div>
@@ -273,10 +275,10 @@ export default function CEFIIndexCard() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Нажмите на карточку индекса, чтобы просмотреть подробный график
+          {t('clickForDetails')}
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-          Индексы обновляются ежедневно на основе данных о потоках ETF
+          {t('updatesDaily')}
         </p>
       </div>
     </div>

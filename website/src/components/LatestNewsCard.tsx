@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import apiClient from "../services/api";
 import { ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
@@ -16,6 +17,9 @@ interface NewsItem {
 }
 
 export default function LatestNewsCard() {
+  const t = useTranslations('news');
+  const tErrors = useTranslations('errors');
+  const tCommon = useTranslations('common');
   const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +46,7 @@ export default function LatestNewsCard() {
         const news: NewsItem[] = [
           {
             asset: "Bitcoin ETF",
-            title: "Обновление потоков Bitcoin ETF",
+            title: t('bitcoinUpdate'),
             flow: summaryData.bitcoin.currentFlow,
             change: summaryData.bitcoin.currentFlow > 0 ? 1 : -1,
             date:
@@ -53,7 +57,7 @@ export default function LatestNewsCard() {
           },
           {
             asset: "Ethereum ETF",
-            title: "Обновление потоков Ethereum ETF",
+            title: t('ethereumUpdate'),
             flow: summaryData.ethereum.currentFlow,
             change: summaryData.ethereum.currentFlow > 0 ? 1 : -1,
             date:
@@ -64,7 +68,7 @@ export default function LatestNewsCard() {
           },
           {
             asset: "Solana ETF",
-            title: "Обновление потоков Solana ETF",
+            title: t('solanaUpdate'),
             flow: summaryData.solana?.currentFlow || 0,
             change: (summaryData.solana?.currentFlow || 0) > 0 ? 1 : -1,
             date:
@@ -86,7 +90,7 @@ export default function LatestNewsCard() {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке новостей";
+            t('errorLoading');
         }
         
         setError(errorMessage);
@@ -110,7 +114,7 @@ export default function LatestNewsCard() {
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU", {
+    return date.toLocaleDateString(undefined, {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -181,7 +185,7 @@ export default function LatestNewsCard() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Последние новости
+            {t('title')}
           </h2>
         </div>
         <div className="text-sm text-slate-600 dark:text-slate-400">
@@ -308,7 +312,7 @@ export default function LatestNewsCard() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Данные обновляются в реальном времени
+          {tCommon('dataUpdatesRealtime')}
         </p>
       </div>
     </div>

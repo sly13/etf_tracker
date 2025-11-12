@@ -1,27 +1,31 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
-import ThemeProviderWrapper from "../components/ThemeProviderWrapper";
+import "../globals.css";
+import ThemeProviderWrapper from "../../components/ThemeProviderWrapper";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '../../i18n/routing';
 
 const ibmPlexMono = localFont({
   src: [
     {
-      path: "./fonts/IBMPlexMono-Regular.ttf",
+      path: "../fonts/IBMPlexMono-Regular.ttf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./fonts/IBMPlexMono-Medium.ttf",
+      path: "../fonts/IBMPlexMono-Medium.ttf",
       weight: "500",
       style: "normal",
     },
     {
-      path: "./fonts/IBMPlexMono-SemiBold.ttf",
+      path: "../fonts/IBMPlexMono-SemiBold.ttf",
       weight: "600",
       style: "normal",
     },
     {
-      path: "./fonts/IBMPlexMono-Bold.ttf",
+      path: "../fonts/IBMPlexMono-Bold.ttf",
       weight: "700",
       style: "normal",
     },
@@ -49,13 +53,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }>) {
+  const { locale } = await params;
+  
+  // Ensure that the incoming `locale` is valid
+  if (!routing.locales.includes(locale as any)) {
+    notFound();
+  }
+
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
+
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -81,10 +98,13 @@ export default function RootLayout({
         className={`${ibmPlexMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProviderWrapper>
-          {children}
-        </ThemeProviderWrapper>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProviderWrapper>
+            {children}
+          </ThemeProviderWrapper>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
 }
+

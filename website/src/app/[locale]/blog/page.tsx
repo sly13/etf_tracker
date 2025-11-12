@@ -1,79 +1,74 @@
-import { redirect } from 'next/navigation';
-import { routing } from '../../i18n/routing';
+"use client";
 
-export default async function BlogPage() {
-  // Редирект на локализованную версию
-  redirect(`/${routing.defaultLocale}/blog`);
-}
+import Navigation from "../../../components/Navigation";
 
-// Старый код ниже - будет удален после перемещения в [locale]
-/*
 const articles = [
-    {
-      id: 1,
-      title:
-        "Анализ потоков Bitcoin ETF: что показывают данные за последний месяц",
-      excerpt:
-        "Подробный анализ движения средств в Bitcoin ETF фондах и их влияние на рынок криптовалют.",
-      date: "15 января 2024",
-      category: "Анализ",
-      readTime: "5 мин",
-      image: "/images/bitcoin.png",
-    },
-    {
-      id: 2,
-      title: "Ethereum ETF: перспективы и прогнозы на 2024 год",
-      excerpt:
-        "Обзор ситуации с Ethereum ETF и прогнозы развития рынка в ближайшие месяцы.",
-      date: "12 января 2024",
-      category: "Прогнозы",
-      readTime: "7 мин",
-      image: "/images/ethereum.png",
-    },
-    {
-      id: 3,
-      title: "Как правильно диверсифицировать портфель с помощью ETF",
-      excerpt:
-        "Практические советы по созданию сбалансированного инвестиционного портфеля.",
-      date: "10 января 2024",
-      category: "Обучение",
-      readTime: "8 мин",
-      image: "/images/long.png",
-    },
-    {
-      id: 4,
-      title: "Топ-5 ошибок начинающих инвесторов в ETF",
-      excerpt:
-        "Разбираем основные ошибки, которые совершают новички при инвестировании в ETF фонды.",
-      date: "8 января 2024",
-      category: "Обучение",
-      readTime: "6 мин",
-      image: "/images/short.png",
-    },
-    {
-      id: 5,
-      title: "Влияние макроэкономических факторов на ETF рынок",
-      excerpt:
-        "Как инфляция, процентные ставки и другие факторы влияют на стоимость ETF фондов.",
-      date: "5 января 2024",
-      category: "Анализ",
-      readTime: "9 мин",
-      image: "/images/bitcoin.png",
-    },
-    {
-      id: 6,
-      title: "Сравнение комиссий различных ETF провайдеров",
-      excerpt:
-        "Детальное сравнение комиссий и условий различных провайдеров ETF фондов.",
-      date: "3 января 2024",
-      category: "Сравнение",
-      readTime: "4 мин",
-      image: "/images/ethereum.png",
-    },
-  ];
+  {
+    id: 1,
+    title:
+      "Анализ потоков Bitcoin ETF: что показывают данные за последний месяц",
+    excerpt:
+      "Подробный анализ движения средств в Bitcoin ETF фондах и их влияние на рынок криптовалют.",
+    date: "15 января 2024",
+    category: "Анализ",
+    readTime: "5 мин",
+    image: "/images/bitcoin.png",
+  },
+  {
+    id: 2,
+    title: "Ethereum ETF: перспективы и прогнозы на 2024 год",
+    excerpt:
+      "Обзор ситуации с Ethereum ETF и прогнозы развития рынка в ближайшие месяцы.",
+    date: "12 января 2024",
+    category: "Прогнозы",
+    readTime: "7 мин",
+    image: "/images/ethereum.png",
+  },
+  {
+    id: 3,
+    title: "Как правильно диверсифицировать портфель с помощью ETF",
+    excerpt:
+      "Практические советы по созданию сбалансированного инвестиционного портфеля.",
+    date: "10 января 2024",
+    category: "Обучение",
+    readTime: "8 мин",
+    image: "/images/long.png",
+  },
+  {
+    id: 4,
+    title: "Топ-5 ошибок начинающих инвесторов в ETF",
+    excerpt:
+      "Разбираем основные ошибки, которые совершают новички при инвестировании в ETF фонды.",
+    date: "8 января 2024",
+    category: "Обучение",
+    readTime: "6 мин",
+    image: "/images/short.png",
+  },
+  {
+    id: 5,
+    title: "Влияние макроэкономических факторов на ETF рынок",
+    excerpt:
+      "Как инфляция, процентные ставки и другие факторы влияют на стоимость ETF фондов.",
+    date: "5 января 2024",
+    category: "Анализ",
+    readTime: "9 мин",
+    image: "/images/bitcoin.png",
+  },
+  {
+    id: 6,
+    title: "Сравнение комиссий различных ETF провайдеров",
+    excerpt:
+      "Детальное сравнение комиссий и условий различных провайдеров ETF фондов.",
+    date: "3 января 2024",
+    category: "Сравнение",
+    readTime: "4 мин",
+    image: "/images/ethereum.png",
+  },
+];
 
-  const categories = ["Все", "Анализ", "Прогнозы", "Обучение", "Сравнение"];
+const categories = ["Все", "Анализ", "Прогнозы", "Обучение", "Сравнение"];
 
+export default function BlogPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Navigation */}
@@ -196,4 +191,4 @@ const articles = [
     </div>
   );
 }
-*/
+

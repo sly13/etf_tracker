@@ -13,12 +13,16 @@ import {
   useTheme,
 } from "@mui/material";
 import { AccountBalance } from "@mui/icons-material";
+import { useTranslations } from "next-intl";
 import apiClient from "../services/api";
 import { SummaryData, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
 
 export default function ETFSummaryCard() {
   const theme = useTheme();
+  const t = useTranslations("summary");
+  const tErrors = useTranslations("errors");
+  const tCommon = useTranslations("common");
   const [data, setData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +48,7 @@ export default function ETFSummaryCard() {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке данных";
+            tErrors("loadingData");
         }
 
         setError(errorMessage);
@@ -86,9 +90,9 @@ export default function ETFSummaryCard() {
   };
 
   const formatDate = (dateString: string | null): string => {
-    if (!dateString) return "Нет данных";
+    if (!dateString) return t("noData");
     const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU");
+    return date.toLocaleDateString();
   };
 
   if (loading) {
@@ -128,7 +132,7 @@ export default function ETFSummaryCard() {
           component="h2"
           sx={{ mb: 4, textAlign: "center", fontWeight: 700 }}
         >
-          Суммарные данные ETF фондов
+          {t("title")}
         </Typography>
 
         <Grid container spacing={3}>
@@ -149,7 +153,7 @@ export default function ETFSummaryCard() {
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <Chip
                     icon={<AccountBalance />}
-                    label="Общий итог"
+                    label={t("overall.label")}
                     color="success"
                     sx={{ fontWeight: 600 }}
                   />
@@ -161,7 +165,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Общие активы:
+                      {t("overall.totalAssets")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -174,7 +178,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Общий поток:
+                      {t("overall.totalFlow")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -187,7 +191,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Последнее обновление:
+                      {t("overall.lastUpdate")}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(data.overall.lastUpdated)}
@@ -214,7 +218,7 @@ export default function ETFSummaryCard() {
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <Chip
-                    label="Bitcoin ETF"
+                    label={t("bitcoin.label")}
                     color="primary"
                     sx={{ fontWeight: 600 }}
                   />
@@ -226,7 +230,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Общие активы:
+                      {t("bitcoin.totalAssets")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -239,7 +243,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Текущий поток:
+                      {t("bitcoin.currentFlow")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -252,7 +256,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Количество дней:
+                      {t("bitcoin.daysCount")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -265,7 +269,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Последнее обновление:
+                      {t("bitcoin.lastUpdate")}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(data.bitcoin.latestDate)}
@@ -292,7 +296,7 @@ export default function ETFSummaryCard() {
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <Chip
-                    label="Ethereum ETF"
+                    label={t("ethereum.label")}
                     color="primary"
                     sx={{ fontWeight: 600 }}
                   />
@@ -304,7 +308,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Общие активы:
+                      {t("ethereum.totalAssets")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -317,7 +321,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Текущий поток:
+                      {t("ethereum.currentFlow")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -330,7 +334,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Количество дней:
+                      {t("ethereum.daysCount")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -343,7 +347,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Последнее обновление:
+                      {t("ethereum.lastUpdate")}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(data.ethereum.latestDate)}
@@ -370,7 +374,7 @@ export default function ETFSummaryCard() {
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <Chip
-                    label="Solana ETF"
+                    label={t("solana.label")}
                     color="primary"
                     sx={{ fontWeight: 600 }}
                   />
@@ -382,7 +386,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Общие активы:
+                      {t("solana.totalAssets")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -395,7 +399,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Текущий поток:
+                      {t("solana.currentFlow")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -408,7 +412,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Количество дней:
+                      {t("solana.daysCount")}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -421,7 +425,7 @@ export default function ETFSummaryCard() {
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      Последнее обновление:
+                      {t("solana.lastUpdate")}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(data.solana.latestDate)}
@@ -435,7 +439,7 @@ export default function ETFSummaryCard() {
 
         <Box sx={{ mt: 3, textAlign: "center" }}>
           <Typography variant="caption" color="text.secondary">
-            Данные обновляются в реальном времени
+            {tCommon("dataUpdatesRealtime")}
           </Typography>
         </Box>
       </CardContent>

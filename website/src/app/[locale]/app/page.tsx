@@ -1,13 +1,6 @@
-import { redirect } from 'next/navigation';
-import { routing } from '../../i18n/routing';
+"use client";
 
-export default async function AppPage() {
-  redirect(`/${routing.defaultLocale}/app`);
-}
-
-// Старый код ниже - будет удален после перемещения в [locale]
-/*
-import Navigation from "../../components/Navigation";
+import Navigation from "../../../components/Navigation";
 
 export default function AppPage() {
   return (
@@ -153,4 +146,4 @@ export default function AppPage() {
     </div>
   );
 }
-*/
+

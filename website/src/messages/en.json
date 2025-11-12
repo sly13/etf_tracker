@@ -1,0 +1,242 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "back": "Back",
+    "readMore": "Read more",
+    "subscribe": "Subscribe",
+    "contactUs": "Contact Us",
+    "allRightsReserved": "All rights reserved",
+    "dataUpdatesRealtime": "Data updates in real time"
+  },
+  "nav": {
+    "home": "Home",
+    "funds": "Funds",
+    "app": "App",
+    "blog": "Blog"
+  },
+  "home": {
+    "title": "ETF Funds Tracking",
+    "subtitle": "in real time",
+    "description": "Professional platform for analyzing capital flows in cryptocurrency ETFs",
+    "whyChoose": "Why choose Crypto ETFs?",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "Real-time Analysis",
+        "description": "Get up-to-date data on ETF funds and their dynamics with less than a minute delay."
+      },
+      "portfolioManagement": {
+        "title": "Portfolio Management",
+        "description": "Create and track your investment portfolios with detailed analytics."
+      },
+      "security": {
+        "title": "Reliability and Security",
+        "description": "Your data is protected by modern encryption and secure storage methods."
+      }
+    },
+    "cta": {
+      "title": "Ready to start investing?",
+      "description": "Join thousands of investors who already use ETF Tracker to manage their portfolios."
+    },
+    "footer": {
+      "description": "Professional platform for tracking ETF funds and investment management."
+    }
+  },
+  "funds": {
+    "title": "All ETF Funds",
+    "description": "Explore detailed information about each ETF fund, including their holdings, performance and historical data.",
+    "ticker": "Ticker",
+    "etfFund": "ETF fund focused on cryptocurrency assets",
+    "statistics": {
+      "title": "Overall Statistics",
+      "totalFunds": "Total Funds",
+      "totalBTCAssets": "Total BTC Assets",
+      "totalETHAssets": "Total ETH Assets",
+      "totalAssets": "Total Assets"
+    },
+    "holdings": {
+      "title": "Fund Holdings",
+      "company": "Company",
+      "btcHoldings": "BTC Holdings",
+      "ethHoldings": "ETH Holdings",
+      "solHoldings": "SOL Holdings",
+      "sortBy": "Sort by:"
+    },
+    "detail": {
+      "fund": "Fund",
+      "btcHoldings": "BTC Holdings",
+      "ethHoldings": "ETH Holdings",
+      "totalAssets": "Total Assets",
+      "totalAssetsInBitcoin": "Total assets in Bitcoin",
+      "totalAssetsInEthereum": "Total assets in Ethereum",
+      "totalHoldings": "Total holdings",
+      "detailedInfo": "Detailed Information",
+      "mainIndicators": "Main Indicators",
+      "ticker": "Ticker:",
+      "fundType": "Fund Type:",
+      "category": "Category:",
+      "cryptocurrency": "Cryptocurrency",
+      "fee": "Fee:",
+      "historicalData": "Historical Data",
+      "launchDate": "Launch Date:",
+      "daysCount": "Days Count:",
+      "lastUpdate": "Last Update:",
+      "status": "Status:",
+      "active": "Active",
+      "performanceChart": "Performance Chart",
+      "chartPlaceholder": "Chart will be added in future updates"
+    }
+  },
+  "summary": {
+    "title": "ETF Funds Summary Data",
+    "overall": {
+      "label": "Overall Total",
+      "totalAssets": "Total Assets:",
+      "totalFlow": "Total Flow:",
+      "lastUpdate": "Last Update:"
+    },
+    "bitcoin": {
+      "label": "Bitcoin ETF",
+      "totalAssets": "Total Assets:",
+      "currentFlow": "Current Flow:",
+      "daysCount": "Days Count:",
+      "lastUpdate": "Last Update:"
+    },
+    "ethereum": {
+      "label": "Ethereum ETF",
+      "totalAssets": "Total Assets:",
+      "currentFlow": "Current Flow:",
+      "daysCount": "Days Count:",
+      "lastUpdate": "Last Update:"
+    },
+    "solana": {
+      "label": "Solana ETF",
+      "totalAssets": "Total Assets:",
+      "currentFlow": "Current Flow:",
+      "daysCount": "Days Count:",
+      "lastUpdate": "Last Update:"
+    },
+    "noData": "No data"
+  },
+  "news": {
+    "title": "Latest News",
+    "bitcoinUpdate": "Bitcoin ETF Flow Update",
+    "ethereumUpdate": "Ethereum ETF Flow Update",
+    "solanaUpdate": "Solana ETF Flow Update",
+    "errorLoading": "An error occurred while loading news"
+  },
+  "cefi": {
+    "title": "CryptoETF Flows Index (CEFI)",
+    "description": "The index reflects the direction and intensity of capital flows into spot cryptocurrency ETFs",
+    "composite": "CEFI-Composite Index",
+    "btc": "CEFI-BTC Index",
+    "eth": "CEFI-ETH Index",
+    "sol": "CEFI-SOL Index",
+    "bpf": {
+      "title": "BPF (Breadth of Positive Flows)",
+      "description": "Percentage of funds with positive capital inflow",
+      "funds": "funds",
+      "from": "of"
+    },
+    "clickForDetails": "Click on an index card to view a detailed chart",
+    "updatesDaily": "Indices are updated daily based on ETF flow data",
+    "errorLoading": "An error occurred while loading CEFI indices"
+  },
+  "indices": {
+    "invalidType": "Invalid index type",
+    "backToHome": "Back to home",
+    "currentValue": "Current Index Value",
+    "historicalValues": "Historical Values",
+    "yesterday": "Yesterday",
+    "lastWeek": "Last Week",
+    "lastMonth": "Last Month",
+    "yearlyHigh": "Yearly High and Low",
+    "yearlyHighLabel": "Yearly High",
+    "yearlyLowLabel": "Yearly Low",
+    "errorLoading": "An error occurred while loading data",
+    "errorLoadingHistorical": "An error occurred while loading historical data"
+  },
+  "sentiment": {
+    "extremeGreed": "Extreme Greed",
+    "greed": "Greed",
+    "neutral": "Neutral",
+    "fear": "Fear",
+    "extremeFear": "Extreme Fear"
+  },
+  "app": {
+    "title": "Crypto ETFs Mobile App",
+    "description": "Download our app for iOS and Android to track ETF funds anytime, anywhere. Get notifications about important changes and analyze the market on the go.",
+    "features": {
+      "realtimeTracking": {
+        "title": "Real-time Tracking",
+        "description": "Get up-to-date data on ETF fund flows and market changes"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Set up personalized notifications about important events and changes"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Detailed portfolio analysis and charts for decision making"
+      }
+    },
+    "download": {
+      "title": "Download App",
+      "description": "Available for iOS and Android devices",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Crypto ETFs Blog",
+    "description": "Expert articles, analytics and investment advice for ETF funds. Stay up to date with the latest market trends.",
+    "categories": {
+      "all": "All",
+      "analysis": "Analysis",
+      "forecasts": "Forecasts",
+      "education": "Education",
+      "comparison": "Comparison"
+    },
+    "readTime": "min",
+    "loadMore": "Load more articles",
+    "newsletter": {
+      "title": "Subscribe to newsletter",
+      "description": "Get new articles and analytics directly to your email",
+      "emailPlaceholder": "Your email"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions about {indexName} Index",
+    "questions": {
+      "whatIs": "What is {indexName} index and how is it calculated?",
+      "howInterpret": "How to interpret {indexName} index value?",
+      "howOften": "How often is {indexName} index updated?",
+      "difference": "How does {indexName} index differ from Bitcoin Fear & Greed Index?",
+      "howUse": "How to use {indexName} index for investment decisions?",
+      "whichFunds": "Which ETF funds are considered when calculating {indexName} index?",
+      "composite": "What does CEFI-Composite index mean?",
+      "forecast": "Can {indexName} index be used to forecast {assetName} price?"
+    },
+    "answers": {
+      "whatIs": "{indexName} index (CryptoETF Flows Index) is an indicator that reflects the direction and intensity of capital flows into spot cryptocurrency ETF funds investing in {assetName}. The index is calculated based on data on inflows and outflows from major ETF funds such as BlackRock, Fidelity, Bitwise and others. The index value ranges from 0 to 100, where higher values indicate strong capital inflow (greed), and lower values indicate outflow (fear).",
+      "howInterpret": "{indexName} index value is interpreted as follows: 0-20 - Extreme Fear, 20-40 - Fear, 40-60 - Neutral, 60-80 - Greed, 80-100 - Extreme Greed. High values usually indicate investor optimism and active capital inflow into ETF funds, while low values may signal pessimism and capital outflow.",
+      "howOften": "{indexName} index is updated daily based on current ETF flow data. Data is collected from public sources and processed in real time, allowing investors to get the latest information on market sentiment and capital movement directions in cryptocurrency ETFs.",
+      "difference": "Unlike the traditional Bitcoin Fear & Greed Index, which is based on volatility, trading volumes and social signals, {indexName} index focuses exclusively on real capital flows into institutional ETF funds. This makes it a more accurate indicator of large investor sentiment and institutional capital, which significantly affects {assetName} price.",
+      "howUse": "{indexName} index can serve as an additional tool for market analysis. Extreme values (Extreme Fear or Extreme Greed) may indicate potential market reversal points. However, it is important to remember that the index is not a guarantee of future price movements and should be used in combination with other technical and fundamental analysis methods. Always do your own research before making investment decisions.",
+      "whichFunds": "When calculating {indexName} index, data from the largest spot cryptocurrency ETF funds is considered, including BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) and others. The index aggregates capital flows from all these funds, providing a comprehensive picture of institutional sentiment in the {assetName} market.",
+      "composite": "CEFI-Composite index is an aggregated indicator that combines data on capital flows into ETF funds for Bitcoin, Ethereum and Solana. This index provides a general overview of investor sentiment in the cryptocurrency market as a whole, showing the overall direction of institutional capital movement between different cryptocurrency assets.",
+      "forecast": "{indexName} index reflects current investor sentiment and capital flows, but is not a direct price forecasting tool. Strong capital inflow into ETF funds may indicate growing interest in {assetName}, which could potentially support the price, but many other factors also affect price dynamics. The index is better used as an indicator of current market sentiment rather than as the sole forecasting tool."
+    }
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "loadingData": "An error occurred while loading data",
+    "loadingHoldings": "An error occurred while loading fund holdings data"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - ETF Funds Tracking and Investments",
+    "description": "Professional platform for tracking ETF funds, investment analysis and portfolio management. Get up-to-date market information and make informed investment decisions.",
+    "keywords": "ETF, funds, investments, tracking, portfolio, analysis, finance"
+  }
+}
+

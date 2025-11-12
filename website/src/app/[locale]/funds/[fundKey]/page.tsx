@@ -1,22 +1,11 @@
-import { redirect } from "next/navigation";
-import { routing } from '../../../i18n/routing';
+"use client";
 
-export default async function FundPage({
-  params,
-}: {
-  params: Promise<{ fundKey: string }>;
-}) {
-  const { fundKey } = await params;
-  redirect(`/${routing.defaultLocale}/funds/${fundKey}`);
-}
-
-// Старый код ниже - будет удален после перемещения в [locale]
-/*
-import { notFound } from "next/navigation";
-import Navigation from "../../../components/Navigation";
-import MoneyRain from "../../../components/MoneyRain";
-import FundLogo from "../../../components/FundLogo";
-import { fundService, FundDetail } from "../../../services/fundService";
+import { useEffect, useState } from "react";
+import Navigation from "../../../../components/Navigation";
+import MoneyRain from "../../../../components/MoneyRain";
+import FundLogo from "../../../../components/FundLogo";
+import { fundService, FundDetail } from "../../../../services/fundService";
+import { useRouter } from "../../../../i18n/routing";
 
 // Логотипы фондов
 const FUND_LOGOS: Record<string, string> = {
@@ -62,24 +51,73 @@ const FUND_DESCRIPTIONS: Record<string, string> = {
 interface FundPageProps {
   params: Promise<{
     fundKey: string;
+    locale: string;
   }>;
 }
 
-export default async function FundPage({ params }: FundPageProps) {
-  const { fundKey } = await params;
+export default function FundPage({ params }: FundPageProps) {
+  const [fund, setFund] = useState<FundDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [fundKey, setFundKey] = useState<string>("");
+  const router = useRouter();
 
-  let fund: FundDetail;
-  try {
-    fund = await fundService.getFundDetails(fundKey);
-    
-    // Проверяем, что данные получены
-    if (!fund || !fund.name) {
-      console.error(`Fund data is invalid for key: ${fundKey}`, fund);
-      notFound();
-    }
-  } catch (error) {
-    console.error(`Error fetching fund details for ${fundKey}:`, error);
-    notFound();
+  useEffect(() => {
+    const loadData = async () => {
+      const resolvedParams = await params;
+      const key = resolvedParams.fundKey;
+      setFundKey(key);
+
+      try {
+        const fundData = await fundService.getFundDetails(key);
+        
+        // Проверяем, что данные получены
+        if (!fundData || !fundData.name) {
+          console.error(`Fund data is invalid for key: ${key}`, fundData);
+          setError("Фонд не найден");
+          return;
+        }
+        
+        setFund(fundData);
+      } catch (error) {
+        console.error(`Error fetching fund details for ${key}:`, error);
+        setError("Ошибка при загрузке данных фонда");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [params]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+        <Navigation />
+        <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">Загрузка...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !fund) {
+    return (
+      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+        <Navigation />
+        <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 text-center">
+            <p className="text-red-600 dark:text-red-400 mb-4">{error || "Фонд не найден"}</p>
+            <button
+              onClick={() => router.replace("/funds")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Вернуться к списку фондов
+            </button>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const formatNumber = (num: string | bigint): string => {
@@ -228,7 +266,7 @@ export default async function FundPage({ params }: FundPageProps) {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Статус:</span>
+                  <span className="text-gray-600 dark:text-slate-400">Статус:</span>
                   <span
                     className={`font-semibold ${
                       fund.status === "active"
@@ -277,4 +315,4 @@ export default async function FundPage({ params }: FundPageProps) {
     </div>
   );
 }
-*/
+
