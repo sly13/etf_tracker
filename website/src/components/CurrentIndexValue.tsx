@@ -84,10 +84,10 @@ export default function CurrentIndexValue({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4 w-1/3 mx-auto"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4 w-1/3 mx-auto"></div>
+          <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded"></div>
         </div>
       </div>
     );
@@ -95,10 +95,10 @@ export default function CurrentIndexValue({
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -108,7 +108,7 @@ export default function CurrentIndexValue({
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
@@ -122,8 +122,8 @@ export default function CurrentIndexValue({
   const currentColor = getSentimentColor(currentValue);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 text-center">
         Текущее значение индекса
       </h3>
       <div className="max-w-md mx-auto">
@@ -141,7 +141,7 @@ export default function CurrentIndexValue({
           >
             {formatIndexValue(currentValue)}
           </div>
-          <div className="text-lg text-gray-600 mb-1">
+          <div className="text-lg text-slate-700 dark:text-slate-400 mb-1">
             {getSentimentLabel(currentValue)}
           </div>
         </div>

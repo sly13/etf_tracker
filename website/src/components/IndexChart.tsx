@@ -126,19 +126,9 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
     return fundNames[fundKey] || fundKey;
   };
 
-  const getIndexColor = (indexType: string): string => {
-    switch (indexType) {
-      case "btc":
-        return "#f97316"; // orange
-      case "eth":
-        return "#3b82f6"; // blue
-      case "sol":
-        return "#14f195"; // green (Solana brand color)
-      case "composite":
-        return "#a855f7"; // purple
-      default:
-        return "#6b7280"; // gray
-    }
+  const getIndexColor = (_indexType: string): string => {
+    // Единый цвет для всех индексов
+    return "#3b82f6"; // blue
   };
 
   const getSentimentColor = (value: number): string => {
@@ -147,14 +137,6 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
     if (value >= 40) return "#eab308"; // yellow - neutral
     if (value >= 20) return "#f97316"; // orange - fear
     return "#dc2626"; // red - extreme fear
-  };
-
-  const getSentimentLabel = (value: number): string => {
-    if (value >= 80) return "Extreme Greed";
-    if (value >= 60) return "Greed";
-    if (value >= 40) return "Neutral";
-    if (value >= 20) return "Fear";
-    return "Extreme Fear";
   };
 
   interface TooltipPayload {
@@ -183,13 +165,16 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       if (!data) return null;
-      
+
       // Преобразуем timestamp обратно в дату, если это число
-      const dateValue = typeof data.date === 'number' ? new Date(data.date) : new Date(data.date);
-      
+      const dateValue =
+        typeof data.date === "number"
+          ? new Date(data.date)
+          : new Date(data.date);
+
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 max-w-md">
-          <p className="text-sm font-semibold text-gray-900 mb-2">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-3 max-w-md">
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
             {dateValue.toLocaleDateString("ru-RU", {
               day: "2-digit",
               month: "2-digit",
@@ -200,39 +185,68 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
             {payload.map((entry: TooltipPayload, index: number) => {
               if (entry.dataKey === "indexValue" && entry.value !== undefined) {
                 return (
-                  <p key={index} className="text-sm" style={{ color: entry.color }}>
+                  <p
+                    key={index}
+                    className="text-sm"
+                    style={{ color: entry.color }}
+                  >
                     {`Индекс: ${formatIndexValue(entry.value)}`}
                   </p>
                 );
               }
-            if (entry.dataKey === "btcPrice" && entry.value !== undefined) {
-              const assetName = indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin";
-              return (
-                <p key={index} className="text-sm" style={{ color: entry.color }}>
-                  {`Цена ${assetName}: $${formatPrice(entry.value)}`}
-                </p>
-              );
-            }
-            if (entry.dataKey === "btcVolume" && entry.value !== undefined) {
-              const assetName = indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin";
-              return (
-                <p key={index} className="text-sm" style={{ color: entry.color }}>
-                  {`Объем ${assetName}: $${formatVolume(entry.value)}`}
-                </p>
-              );
-            }
-            return null;
-          })}
+              if (entry.dataKey === "btcPrice" && entry.value !== undefined) {
+                const assetName =
+                  indexType === "btc"
+                    ? "Bitcoin"
+                    : indexType === "eth"
+                    ? "Ethereum"
+                    : indexType === "sol"
+                    ? "Solana"
+                    : "Bitcoin";
+                return (
+                  <p
+                    key={index}
+                    className="text-sm"
+                    style={{ color: entry.color }}
+                  >
+                    {`Цена ${assetName}: $${formatPrice(entry.value)}`}
+                  </p>
+                );
+              }
+              if (entry.dataKey === "btcVolume" && entry.value !== undefined) {
+                const assetName =
+                  indexType === "btc"
+                    ? "Bitcoin"
+                    : indexType === "eth"
+                    ? "Ethereum"
+                    : indexType === "sol"
+                    ? "Solana"
+                    : "Bitcoin";
+                return (
+                  <p
+                    key={index}
+                    className="text-sm"
+                    style={{ color: entry.color }}
+                  >
+                    {`Объем ${assetName}: $${formatVolume(entry.value)}`}
+                  </p>
+                );
+              }
+              return null;
+            })}
           </div>
-          
+
           {/* Притоки ETF */}
           {data.flows && data.flows.total !== undefined && (
-            <div className="border-t border-gray-200 pt-2 mt-2">
-              <p className="text-xs font-semibold text-gray-700 mb-1">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Притоки ETF:
               </p>
-              <p className="text-xs text-gray-600 mb-2">
-                Всего: <span className="font-semibold">{formatFlow(data.flows.total)}</span>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                Всего:{" "}
+                <span className="font-semibold">
+                  {formatFlow(data.flows.total)}
+                </span>
               </p>
               {data.flows.funds && Object.keys(data.flows.funds).length > 0 && (
                 <div className="max-h-40 overflow-y-auto">
@@ -243,10 +257,16 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
                         key={fundKey}
                         className="flex justify-between items-center text-xs py-0.5"
                       >
-                        <span className="text-gray-600">{getFundDisplayName(fundKey)}:</span>
+                        <span className="text-slate-600 dark:text-slate-400">
+                          {getFundDisplayName(fundKey)}:
+                        </span>
                         <span
                           className={`font-medium ${
-                            value > 0 ? "text-green-600" : value < 0 ? "text-red-600" : "text-gray-500"
+                            value > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : value < 0
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-slate-500 dark:text-slate-400"
                           }`}
                         >
                           {value > 0 ? "+" : ""}
@@ -266,10 +286,10 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4 w-1/3"></div>
+          <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded"></div>
         </div>
       </div>
     );
@@ -277,10 +297,10 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -290,7 +310,7 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
@@ -298,13 +318,15 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
 
   if (!data || data.data.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <p className="text-gray-500 text-center">Нет данных для отображения</p>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <p className="text-slate-500 dark:text-slate-400 text-center">
+          Нет данных для отображения
+        </p>
       </div>
     );
   }
 
-  const chartData = data.data.map((point) => ({
+  const chartData = data.data.map(point => ({
     ...point,
     date: new Date(point.date).getTime(),
   }));
@@ -312,10 +334,10 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
   const indexColor = getIndexColor(indexType);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {title || `${data.index} Chart`}
           </h2>
           <div className="flex gap-2">
@@ -323,8 +345,8 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               onClick={() => setTimeRange("30d")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 timeRange === "30d"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 dark:bg-blue-500 text-white"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
               }`}
             >
               30d
@@ -333,8 +355,8 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               onClick={() => setTimeRange("1y")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 timeRange === "1y"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 dark:bg-blue-500 text-white"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
               }`}
             >
               1y
@@ -343,15 +365,15 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               onClick={() => setTimeRange("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 timeRange === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 dark:bg-blue-500 text-white"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
               }`}
             >
               All
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded-full"
@@ -360,15 +382,29 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
             <span>{data.index}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+            <div className="w-4 h-4 rounded-full bg-slate-500 dark:bg-slate-400"></div>
             <span>
-              {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"} Price
+              {indexType === "btc"
+                ? "Bitcoin"
+                : indexType === "eth"
+                ? "Ethereum"
+                : indexType === "sol"
+                ? "Solana"
+                : "Bitcoin"}{" "}
+              Price
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gray-700"></div>
+            <div className="w-4 h-4 rounded-full bg-slate-700 dark:bg-slate-500"></div>
             <span>
-              {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"} Volume
+              {indexType === "btc"
+                ? "Bitcoin"
+                : indexType === "eth"
+                ? "Ethereum"
+                : indexType === "sol"
+                ? "Solana"
+                : "Bitcoin"}{" "}
+              Volume
             </span>
           </div>
         </div>
@@ -398,20 +434,25 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               <stop offset="100%" stopColor="#dc2626" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="currentColor"
+            className="text-slate-200 dark:text-slate-700"
+          />
           <XAxis
             dataKey="date"
             type="number"
             scale="time"
             domain={["dataMin", "dataMax"]}
-            tickFormatter={(value) => {
+            tickFormatter={value => {
               const date = new Date(value);
               return date.toLocaleDateString("ru-RU", {
                 month: "short",
                 year: "numeric",
               });
             }}
-            stroke="#6b7280"
+            stroke="currentColor"
+            className="text-slate-600 dark:text-slate-400"
             style={{ fontSize: "12px" }}
           />
           <YAxis
@@ -421,9 +462,11 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               value: "USD",
               angle: -90,
               position: "insideLeft",
-              style: { textAnchor: "middle", fill: "#6b7280" },
+              style: { textAnchor: "middle", fill: "currentColor" },
+              className: "text-slate-600 dark:text-slate-400",
             }}
-            stroke="#6b7280"
+            stroke="currentColor"
+            className="text-slate-600 dark:text-slate-400"
             style={{ fontSize: "12px" }}
             tickFormatter={formatPrice}
           />
@@ -435,9 +478,11 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               value: "F&G",
               angle: 90,
               position: "insideRight",
-              style: { textAnchor: "middle", fill: "#6b7280" },
+              style: { textAnchor: "middle", fill: "currentColor" },
+              className: "text-slate-600 dark:text-slate-400",
             }}
-            stroke="#6b7280"
+            stroke="currentColor"
+            className="text-slate-600 dark:text-slate-400"
             style={{ fontSize: "12px" }}
             tickFormatter={formatIndexValue}
           />
@@ -482,10 +527,12 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
       </ResponsiveContainer>
 
       {data.current && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Текущее значение индекса</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Текущее значение индекса
+              </p>
               <p
                 className="text-2xl font-bold"
                 style={{ color: getSentimentColor(data.current.indexValue) }}
@@ -494,18 +541,32 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">
-                Цена {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"}
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Цена{" "}
+                {indexType === "btc"
+                  ? "Bitcoin"
+                  : indexType === "eth"
+                  ? "Ethereum"
+                  : indexType === "sol"
+                  ? "Solana"
+                  : "Bitcoin"}
               </p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 ${formatPrice(data.current.btcPrice)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">
-                Объем {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"}
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Объем{" "}
+                {indexType === "btc"
+                  ? "Bitcoin"
+                  : indexType === "eth"
+                  ? "Ethereum"
+                  : indexType === "sol"
+                  ? "Solana"
+                  : "Bitcoin"}
               </p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 ${formatVolume(data.current.btcVolume)}
               </p>
             </div>
@@ -515,4 +576,3 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
     </div>
   );
 }
-

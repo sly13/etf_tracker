@@ -98,7 +98,7 @@ export default function FundHoldingsCard() {
   const getChangeColor = (value: number): string => {
     if (value > 0) return "text-green-600";
     if (value < 0) return "text-red-600";
-    return "text-gray-500";
+    return "text-slate-500 dark:text-slate-400";
   };
 
   const handleSort = (column: "company" | "btc" | "eth" | "sol") => {
@@ -162,12 +162,12 @@ export default function FundHoldingsCard() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4"></div>
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
           <div className="space-y-3">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              <div key={i} className="h-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -177,10 +177,10 @@ export default function FundHoldingsCard() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -190,7 +190,7 @@ export default function FundHoldingsCard() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
@@ -217,11 +217,11 @@ export default function FundHoldingsCard() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Владения фондов</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Владения фондов</h2>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">Сортировка:</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">Сортировка:</span>
           <div className="w-48">
             <Select
               value={{
@@ -276,30 +276,30 @@ export default function FundHoldingsCard() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-slate-200 dark:border-slate-700">
               <th
-                className="text-left py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("company")}
               >
                 Компания{" "}
                 {sortBy === "company" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
-                className="text-right py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("btc")}
               >
                 BTC владения{" "}
                 {sortBy === "btc" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
-                className="text-right py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("eth")}
               >
                 ETH владения{" "}
                 {sortBy === "eth" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
-                className="text-right py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("sol")}
               >
                 SOL владения{" "}
@@ -311,7 +311,7 @@ export default function FundHoldingsCard() {
             {sortedFunds.map(fund => (
               <tr
                 key={fund.key}
-                className="border-b border-gray-100 hover:bg-gray-50"
+                className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
               >
                 <td className="py-4 px-4">
                   <div className="flex items-center">
@@ -325,7 +325,7 @@ export default function FundHoldingsCard() {
                     />
                     <Link
                       href={getFundUrl(fund.key)}
-                      className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                      className="font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                       {fund.name}
                     </Link>
@@ -333,7 +333,7 @@ export default function FundHoldingsCard() {
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="space-y-1">
-                    <div className="font-semibold text-orange-600">
+                    <div className="font-semibold text-blue-600 dark:text-blue-400">
                       {formatCurrency(fund.btc)}
                     </div>
                     <div className={`text-sm ${getChangeColor(0)}`}>
@@ -343,7 +343,7 @@ export default function FundHoldingsCard() {
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="space-y-1">
-                    <div className="font-semibold text-blue-600">
+                    <div className="font-semibold text-blue-600 dark:text-blue-400">
                       {formatCurrency(fund.eth)}
                     </div>
                     <div className={`text-sm ${getChangeColor(0)}`}>
@@ -353,7 +353,7 @@ export default function FundHoldingsCard() {
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="space-y-1">
-                    <div className="font-semibold text-purple-600">
+                    <div className="font-semibold text-blue-600 dark:text-blue-400">
                       {formatCurrency(fund.sol)}
                     </div>
                     <div className={`text-sm ${getChangeColor(0)}`}>
@@ -368,7 +368,7 @@ export default function FundHoldingsCard() {
       </div>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Данные обновляются в реальном времени
         </p>
       </div>

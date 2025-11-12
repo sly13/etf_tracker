@@ -80,18 +80,18 @@ export default function CEFIIndexCard() {
     return (
       <Link
         href={`/indices/${indexType}`}
-        className={`bg-white rounded-lg p-6 border ${borderColor} shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer block`}
+        className={`bg-white dark:bg-slate-800 rounded-xl p-6 border ${borderColor} dark:border-slate-700 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer block`}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             {icon}
-            <h3 className="text-lg font-semibold text-gray-900 ml-3">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 ml-3">
               {title}
             </h3>
           </div>
           <div className="flex items-center">
             <svg
-              className="w-5 h-5 text-gray-400"
+              className="w-5 h-5 text-slate-400 dark:text-slate-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -127,13 +127,13 @@ export default function CEFIIndexCard() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4 w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
           </div>
         </div>
       </div>
@@ -142,10 +142,10 @@ export default function CEFIIndexCard() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -155,7 +155,7 @@ export default function CEFIIndexCard() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
@@ -168,12 +168,12 @@ export default function CEFIIndexCard() {
   const latestBPF = data.bpf.bitcoin[data.bpf.bitcoin.length - 1];
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2 text-center">
           CryptoETF Flows Index (CEFI)
         </h2>
-        <p className="text-sm text-gray-600 text-center">
+        <p className="text-sm text-slate-700 dark:text-slate-400 text-center">
           Индекс отражает направления и интенсивность потоков капитала в
           спотовые криптовалютные ETF
         </p>
@@ -184,7 +184,7 @@ export default function CEFIIndexCard() {
         {renderIndexCard(
           data.composite,
           "CEFI-Composite Index",
-          <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <svg
               className="w-5 h-5 text-white"
               fill="currentColor"
@@ -197,10 +197,10 @@ export default function CEFIIndexCard() {
               />
             </svg>
           </div>,
-          "from-purple-50",
-          "to-purple-100",
-          "border-purple-200",
-          "text-purple-600",
+          "from-blue-50",
+          "to-blue-100",
+          "border-blue-200",
+          "text-blue-600 dark:text-blue-400",
           "composite"
         )}
 
@@ -208,13 +208,13 @@ export default function CEFIIndexCard() {
         {renderIndexCard(
           data.btc,
           "CEFI-BTC Index",
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">₿</span>
           </div>,
-          "from-orange-50",
-          "to-orange-100",
-          "border-orange-200",
-          "text-orange-600",
+          "from-blue-50",
+          "to-blue-100",
+          "border-blue-200",
+          "text-blue-600 dark:text-blue-400",
           "btc"
         )}
 
@@ -228,7 +228,7 @@ export default function CEFIIndexCard() {
           "from-blue-50",
           "to-blue-100",
           "border-blue-200",
-          "text-blue-600",
+          "text-blue-600 dark:text-blue-400",
           "eth"
         )}
 
@@ -236,34 +236,34 @@ export default function CEFIIndexCard() {
         {data.sol && renderIndexCard(
           data.sol,
           "CEFI-SOL Index",
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">◎</span>
           </div>,
-          "from-green-50",
-          "to-green-100",
-          "border-green-200",
-          "text-green-600",
+          "from-blue-50",
+          "to-blue-100",
+          "border-blue-200",
+          "text-blue-600 dark:text-blue-400",
           "sol"
         )}
       </div>
 
       {/* BPF Section */}
       {latestBPF && (
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 BPF (Breadth of Positive Flows)
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-slate-700 dark:text-slate-400 mb-4">
                 Процент фондов с положительным притоком капитала
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                 {formatNumber(latestBPF.percentage)}%
               </div>
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-slate-700 dark:text-slate-400 mt-1">
                 {latestBPF.positiveFunds} из {latestBPF.totalFunds} фондов
               </div>
             </div>
@@ -272,10 +272,10 @@ export default function CEFIIndexCard() {
       )}
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Нажмите на карточку индекса, чтобы просмотреть подробный график
         </p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
           Индексы обновляются ежедневно на основе данных о потоках ETF
         </p>
       </div>

@@ -21,14 +21,14 @@ export default function IndexPage() {
 
   if (!["btc", "eth", "sol", "composite"].includes(indexType)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
         <Navigation />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <p className="text-red-600">Неверный тип индекса</p>
+        <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p className="text-red-600 dark:text-red-400">Неверный тип индекса</p>
             <button
               onClick={() => router.push("/")}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
               Вернуться на главную
             </button>
@@ -41,13 +41,13 @@ export default function IndexPage() {
   const title = indexTitles[indexType] || "Index Chart";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 mb-4 transition-colors"
           >
             <svg
               className="w-5 h-5 mr-2"

@@ -48,7 +48,7 @@ export default function LatestNewsCard() {
             date:
               summaryData.bitcoin.latestDate ||
               new Date().toISOString().split("T")[0],
-            color: "orange",
+            color: "blue",
             icon: "₿",
           },
           {
@@ -70,7 +70,7 @@ export default function LatestNewsCard() {
             date:
               summaryData.solana?.latestDate ||
               new Date().toISOString().split("T")[0],
-            color: "green",
+            color: "blue",
             icon: "◎",
           },
         ];
@@ -118,31 +118,23 @@ export default function LatestNewsCard() {
   };
 
   const getColorClasses = (color: string) => {
-    const colorMap = {
-      orange: "bg-orange-50 border-orange-200 text-orange-800",
-      blue: "bg-blue-50 border-blue-200 text-blue-800",
-      green: "bg-green-50 border-green-200 text-green-800",
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.orange;
+    // Единый цвет для всех ETF - белый фон в светлой теме, темный в темной
+    return "bg-white border-blue-200 text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100";
   };
 
   const getIconColorClasses = (color: string) => {
-    const colorMap = {
-      orange: "bg-orange-500 text-white",
-      blue: "bg-blue-500 text-white",
-      green: "bg-green-500 text-white",
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.orange;
+    // Единый цвет для всех ETF
+    return "bg-blue-500 text-white";
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4"></div>
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
           <div className="flex flex-col lg:flex-row gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-200 rounded flex-1"></div>
+              <div key={i} className="h-20 bg-slate-200 dark:bg-slate-700 rounded flex-1"></div>
             ))}
           </div>
         </div>
@@ -152,10 +144,10 @@ export default function LatestNewsCard() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-8">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -165,14 +157,14 @@ export default function LatestNewsCard() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
@@ -188,11 +180,11 @@ export default function LatestNewsCard() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Последние новости
           </h2>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-slate-600 dark:text-slate-400">
           {newsData.length > 0 && formatDate(newsData[0].date)}
         </div>
       </div>
@@ -236,9 +228,9 @@ export default function LatestNewsCard() {
                     : undefined,
               }}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between relative z-10">
                 <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                     {news.asset === "Bitcoin ETF" ? (
                       <img
                         src="/images/bitcoin.png"
@@ -261,14 +253,14 @@ export default function LatestNewsCard() {
                       <span className="text-lg font-bold">{news.icon}</span>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{news.asset}</h3>
+                  <div className="flex-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg px-3 py-2 -ml-3">
+                    <h3 className="font-semibold text-lg mb-1 text-slate-900 dark:text-slate-100">{news.asset}</h3>
                     <div className="flex items-center">
-                      <span className="text-2xl font-bold">
+                      <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                         ${formatFlow(news.flow)}
                       </span>
                       <svg
-                        className="w-6 h-6 text-green-600 ml-2"
+                        className="w-6 h-6 text-green-600 dark:text-green-400 ml-2"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -281,10 +273,10 @@ export default function LatestNewsCard() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-2">
                   {news.change > 0 ? (
                     <svg
-                      className="w-5 h-5 text-green-600"
+                      className="w-5 h-5 text-green-600 dark:text-green-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -296,7 +288,7 @@ export default function LatestNewsCard() {
                     </svg>
                   ) : (
                     <svg
-                      className="w-5 h-5 text-red-600"
+                      className="w-5 h-5 text-red-600 dark:text-red-400"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -315,7 +307,7 @@ export default function LatestNewsCard() {
       </div>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Данные обновляются в реальном времени
         </p>
       </div>

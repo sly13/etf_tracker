@@ -76,7 +76,7 @@ export default async function FundPage({ params }: FundPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 relative">
+    <div className="min-h-screen relative" style={{ background: 'var(--background)' }}>
       {/* Money Rain Animation */}
       <MoneyRain />
 
@@ -84,9 +84,9 @@ export default async function FundPage({ params }: FundPageProps) {
       <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Fund Header */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 mb-8">
           <div className="flex items-center mb-6">
             <FundLogo
               src={fund.logoUrl || FUND_LOGOS[fundKey]}
@@ -94,15 +94,15 @@ export default async function FundPage({ params }: FundPageProps) {
               className="w-16 h-16 rounded-full mr-6 object-cover"
             />
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">{fund.name}</h1>
-              <p className="text-lg text-gray-600 mt-2">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">{fund.name}</h1>
+              <p className="text-lg text-gray-600 dark:text-slate-400 mt-2">
                 {fund.fundType || "ETF"} Фонд
               </p>
             </div>
           </div>
 
           <div className="prose max-w-none">
-            <p className="text-gray-700 text-lg leading-relaxed">
+            <p className="text-gray-700 dark:text-slate-300 text-lg leading-relaxed">
               {fund.description || FUND_DESCRIPTIONS[fundKey]}
             </p>
           </div>
@@ -110,68 +110,68 @@ export default async function FundPage({ params }: FundPageProps) {
 
         {/* Fund Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
               BTC Владения
             </h3>
-            <div className="text-3xl font-bold text-orange-600 mb-2">
+            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
               {formatNumber(fund.btcHoldings)}
             </div>
-            <div className="text-sm text-gray-500">Общие активы в Bitcoin</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">Общие активы в Bitcoin</div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
               ETH Владения
             </h3>
-            <div className="text-3xl font-bold text-blue-600 mb-2">
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               {formatNumber(fund.ethHoldings)}
             </div>
-            <div className="text-sm text-gray-500">Общие активы в Ethereum</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">Общие активы в Ethereum</div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
               Общие Активы
             </h3>
-            <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               {formatNumber(fund.totalAssets)}
             </div>
-            <div className="text-sm text-gray-500">Суммарные владения</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">Суммарные владения</div>
           </div>
         </div>
 
         {/* Fund Details */}
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
             Детальная информация
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
                 Основные показатели
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Тикер:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Тикер:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {fund.ticker || fundKey.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Тип фонда:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Тип фонда:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {fund.fundType || "ETF"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Категория:</span>
-                  <span className="font-semibold">Криптовалютный</span>
+                  <span className="text-gray-600 dark:text-slate-400">Категория:</span>
+                  <span className="font-semibold dark:text-slate-200">Криптовалютный</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Комиссия:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Комиссия:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {fund.feePercentage ? `${fund.feePercentage}%` : "0.25%"}
                   </span>
                 </div>
@@ -179,21 +179,21 @@ export default async function FundPage({ params }: FundPageProps) {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
                 Исторические данные
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Дата запуска:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Дата запуска:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {fund.launchDate
                       ? new Date(fund.launchDate).toLocaleDateString("ru-RU")
                       : "2024-01-11"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Количество дней:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Количество дней:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {fund.launchDate
                       ? Math.floor(
                           (Date.now() - new Date(fund.launchDate).getTime()) /
@@ -203,8 +203,8 @@ export default async function FundPage({ params }: FundPageProps) {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Последнее обновление:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-slate-400">Последнее обновление:</span>
+                  <span className="font-semibold dark:text-slate-200">
                     {new Date(fund.updatedAt).toLocaleDateString("ru-RU")}
                   </span>
                 </div>
@@ -228,12 +228,12 @@ export default async function FundPage({ params }: FundPageProps) {
         </div>
 
         {/* Performance Chart Placeholder */}
-        <div className="bg-white rounded-lg shadow-md p-8 mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
             График производительности
           </h2>
-          <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">
+          <div className="h-64 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+            <p className="text-gray-500 dark:text-slate-400">
               График будет добавлен в будущих обновлениях
             </p>
           </div>
@@ -241,16 +241,16 @@ export default async function FundPage({ params }: FundPageProps) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20 relative z-10">
+        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4">ETF Tracker</h3>
-            <p className="text-gray-400 mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Crypto ETFs</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
               Профессиональная платформа для отслеживания ETF фондов и
               управления инвестициями.
             </p>
-            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-              <p>&copy; 2024 ETF Tracker. Все права защищены.</p>
+            <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-500 dark:text-slate-400">
+              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
             </div>
           </div>
         </div>

@@ -3,19 +3,28 @@ import FundHoldingsCard from "../components/FundHoldingsCard";
 import LatestNewsCard from "../components/LatestNewsCard";
 import CEFIIndexCard from "../components/CEFIIndexCard";
 import Navigation from "../components/Navigation";
-import MoneyRain from "../components/MoneyRain";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 relative">
-      {/* Money Rain Animation */}
-      <MoneyRain />
-
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Navigation */}
       <Navigation />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+            Отслеживание ETF фондов
+            <span className="block text-blue-600 dark:text-blue-400 mt-2">
+              в реальном времени
+            </span>
+          </h1>
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Профессиональная платформа для анализа потоков капитала в криптовалютные ETF
+          </p>
+        </div>
+
         {/* Latest News Section */}
         <LatestNewsCard />
 
@@ -30,14 +39,14 @@ export default function Home() {
 
         {/* Features Section */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Почему выбирают ETF Tracker?
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-100 mb-12">
+            Почему выбирают Crypto ETFs?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -50,19 +59,19 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 Анализ в реальном времени
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-700 dark:text-slate-400">
                 Получайте актуальные данные о ETF фондах и их динамике с
                 задержкой менее минуты.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-6 h-6 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -75,19 +84,19 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 Управление портфелем
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-700 dark:text-slate-400">
                 Создавайте и отслеживайте свои инвестиционные портфели с
                 детальной аналитикой.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
                 <svg
-                  className="w-6 h-6 text-purple-600"
+                  className="w-6 h-6 text-purple-600 dark:text-purple-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -100,10 +109,10 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 Надежность и безопасность
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-700 dark:text-slate-400">
                 Ваши данные защищены современными методами шифрования и
                 безопасного хранения.
               </p>
@@ -112,11 +121,11 @@ export default function Home() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-20 bg-blue-600 rounded-lg p-8 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">
+        <div className="mt-20 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-2xl p-12 text-center text-white">
+          <h2 className="text-3xl font-bold mb-4 text-white">
             Готовы начать инвестировать?
           </h2>
-          <p className="text-xl mb-6 opacity-90">
+          <p className="text-xl mb-8 opacity-90">
             Присоединяйтесь к тысячам инвесторов, которые уже используют ETF
             Tracker для управления своими портфелями.
           </p>
@@ -127,16 +136,16 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20">
+        <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4">ETF Tracker</h3>
-            <p className="text-gray-400 mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Crypto ETFs</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
               Профессиональная платформа для отслеживания ETF фондов и
               управления инвестициями.
             </p>
-            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-              <p>&copy; 2024 ETF Tracker. Все права защищены.</p>
+            <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-600 dark:text-slate-400">
+              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
             </div>
           </div>
         </div>

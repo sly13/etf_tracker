@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import apiClient from "../services/api";
 import { CEFIIndexResponse, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
+import { useTheme } from "../contexts/ThemeContext";
 
 interface HistoricalValuesProps {
   indexType: "btc" | "eth" | "sol" | "composite";
 }
 
 export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
+  const { theme } = useTheme();
   const [data, setData] = useState<CEFIIndexResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,13 +121,13 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
+          <div className="h-6 bg-gray-200 dark:bg-slate-700 rounded mb-4 w-1/3"></div>
           <div className="space-y-3">
-            <div className="h-12 bg-gray-200 rounded"></div>
-            <div className="h-12 bg-gray-200 rounded"></div>
-            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-12 bg-gray-200 dark:bg-slate-700 rounded"></div>
+            <div className="h-12 bg-gray-200 dark:bg-slate-700 rounded"></div>
+            <div className="h-12 bg-gray-200 dark:bg-slate-700 rounded"></div>
           </div>
         </div>
       </div>
@@ -134,10 +136,10 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-red-500 mr-2"
+            className="w-5 h-5 text-red-500 dark:text-red-400 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -147,7 +149,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 dark:text-red-400">{error}</span>
         </div>
       </div>
     );
@@ -222,17 +224,17 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
   return (
     <>
       {/* Historical Values */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Historical Values</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Historical Values</h3>
         <div className="space-y-4">
           {/* Yesterday */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 text-sm">Yesterday</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">Yesterday</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
-                backgroundColor: "#f5f5dc",
-                color: "#333",
+                backgroundColor: theme === "dark" ? "#854d0e" : "#f5f5dc",
+                color: theme === "dark" ? "#fef3c7" : "#333",
               }}
             >
               {getSentimentLabel(yesterdayValue.value)} - {Math.round(yesterdayValue.value)}
@@ -241,12 +243,12 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
           {/* Last Week */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 text-sm">Last Week</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">Last Week</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
-                backgroundColor: "#f5f5dc",
-                color: "#333",
+                backgroundColor: theme === "dark" ? "#854d0e" : "#f5f5dc",
+                color: theme === "dark" ? "#fef3c7" : "#333",
               }}
             >
               {getSentimentLabel(lastWeekValue.value)} - {Math.round(lastWeekValue.value)}
@@ -255,12 +257,12 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
           {/* Last Month */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 text-sm">Last Month</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">Last Month</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
-                backgroundColor: "#f5f5dc",
-                color: "#333",
+                backgroundColor: theme === "dark" ? "#854d0e" : "#f5f5dc",
+                color: theme === "dark" ? "#fef3c7" : "#333",
               }}
             >
               {getSentimentLabel(lastMonthValue.value)} - {Math.round(lastMonthValue.value)}
@@ -270,12 +272,12 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
       </div>
 
       {/* Yearly High and Low */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Yearly High and Low</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Yearly High and Low</h3>
         <div className="space-y-4">
           {/* Yearly High */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 text-sm">
+            <span className="text-gray-600 dark:text-slate-400 text-sm">
               Yearly High ({formatDateShort(yearlyHigh.date)})
             </span>
             <span
@@ -291,7 +293,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
           {/* Yearly Low */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 text-sm">
+            <span className="text-gray-600 dark:text-slate-400 text-sm">
               Yearly Low ({formatDateShort(yearlyLow.date)})
             </span>
             <span

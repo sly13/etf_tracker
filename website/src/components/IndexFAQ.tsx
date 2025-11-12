@@ -87,26 +87,26 @@ export default function IndexFAQ({ indexType }: IndexFAQProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mt-6">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
         Часто задаваемые вопросы о {indexName} индексе
       </h2>
       <div className="space-y-4">
         {faqItems.map((item, index) => (
           <div
             key={index}
-            className="border border-gray-200 rounded-lg overflow-hidden"
+            className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden"
           >
             <button
               onClick={() => toggleQuestion(index)}
-              className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+              className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               aria-expanded={openIndex === index}
             >
-              <span className="font-semibold text-gray-900 pr-4">
+              <span className="font-semibold text-gray-900 dark:text-slate-100 pr-4">
                 {item.question}
               </span>
               <svg
-                className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform ${
+                className={`w-5 h-5 text-gray-500 dark:text-slate-400 flex-shrink-0 transition-transform ${
                   openIndex === index ? "transform rotate-180" : ""
                 }`}
                 fill="none"
@@ -122,8 +122,8 @@ export default function IndexFAQ({ indexType }: IndexFAQProps) {
               </svg>
             </button>
             {openIndex === index && (
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+              <div className="px-6 py-4 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-200 dark:border-slate-600">
+                <p className="text-gray-700 dark:text-slate-300 leading-relaxed">{item.answer}</p>
               </div>
             )}
           </div>
