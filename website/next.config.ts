@@ -4,12 +4,23 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/config.ts');
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Убираем standalone для Cloudflare Pages
+  // output: "standalone",
   experimental: {
-    optimizePackageImports: ["@next/font"],
+    optimizePackageImports: [
+      "@next/font",
+      "@mui/material",
+      "@mui/icons-material",
+      "@mui/system",
+      "@emotion/react",
+      "@emotion/styled",
+      "recharts",
+      "react-select",
+    ],
   },
   images: {
     formats: ["image/webp", "image/avif"],
+    unoptimized: true, // Cloudflare Pages не поддерживает оптимизацию изображений Next.js
   },
   compress: true,
   poweredByHeader: false,
