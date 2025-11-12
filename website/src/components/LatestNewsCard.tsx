@@ -62,6 +62,17 @@ export default function LatestNewsCard() {
             color: "blue",
             icon: "Ξ",
           },
+          {
+            asset: "Solana ETF",
+            title: "Обновление потоков Solana ETF",
+            flow: summaryData.solana?.currentFlow || 0,
+            change: (summaryData.solana?.currentFlow || 0) > 0 ? 1 : -1,
+            date:
+              summaryData.solana?.latestDate ||
+              new Date().toISOString().split("T")[0],
+            color: "green",
+            icon: "◎",
+          },
         ];
 
         setNewsData(news);
@@ -130,7 +141,7 @@ export default function LatestNewsCard() {
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
           <div className="flex flex-col lg:flex-row gap-4">
-            {[...Array(2)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="h-20 bg-gray-200 rounded flex-1"></div>
             ))}
           </div>
@@ -188,12 +199,15 @@ export default function LatestNewsCard() {
 
       <div className="flex flex-col lg:flex-row gap-4">
         {newsData.map((news, index) => {
-          // Определяем фоновое изображение для Bitcoin ETF и Ethereum ETF
+          // Определяем фоновое изображение для Bitcoin ETF, Ethereum ETF и Solana ETF
           const getBackgroundImage = () => {
             if (news.asset === "Bitcoin ETF") {
               return news.flow > 0 ? "/images/long.png" : "/images/short.png";
             }
             if (news.asset === "Ethereum ETF") {
+              return news.flow > 0 ? "/images/long.png" : "/images/short.png";
+            }
+            if (news.asset === "Solana ETF") {
               return news.flow > 0 ? "/images/long.png" : "/images/short.png";
             }
             return null;
@@ -217,7 +231,7 @@ export default function LatestNewsCard() {
                   ? "right center"
                   : undefined,
                 minHeight:
-                  news.asset === "Bitcoin ETF" || news.asset === "Ethereum ETF"
+                  news.asset === "Bitcoin ETF" || news.asset === "Ethereum ETF" || news.asset === "Solana ETF"
                     ? "300px"
                     : undefined,
               }}
@@ -235,6 +249,12 @@ export default function LatestNewsCard() {
                       <img
                         src="/images/ethereum.png"
                         alt="Ethereum"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : news.asset === "Solana ETF" ? (
+                      <img
+                        src="/images/solana.png"
+                        alt="Solana"
                         className="w-full h-full object-contain"
                       />
                     ) : (

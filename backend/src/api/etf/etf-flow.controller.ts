@@ -330,24 +330,26 @@ export class ETFFlowController {
       await this.etfFlowService.getETFFlowData('ethereum');
     const bitcoinData: BTCFlowData[] =
       await this.etfFlowService.getETFFlowData('bitcoin');
+    const solanaData: SolFlowData[] =
+      await this.etfFlowService.getETFFlowData('solana');
 
     // Создаем объект для хранения суммарного владения каждого фонда
-    const fundHoldings: Record<string, { eth: number; btc: number }> = {
-      blackrock: { eth: 0, btc: 0 },
-      fidelity: { eth: 0, btc: 0 },
-      bitwise: { eth: 0, btc: 0 },
-      twentyOneShares: { eth: 0, btc: 0 },
-      vanEck: { eth: 0, btc: 0 },
-      invesco: { eth: 0, btc: 0 },
-      franklin: { eth: 0, btc: 0 },
-      grayscale: { eth: 0, btc: 0 },
-      grayscaleCrypto: { eth: 0, btc: 0 },
+    const fundHoldings: Record<string, { eth: number; btc: number; sol: number }> = {
+      blackrock: { eth: 0, btc: 0, sol: 0 },
+      fidelity: { eth: 0, btc: 0, sol: 0 },
+      bitwise: { eth: 0, btc: 0, sol: 0 },
+      twentyOneShares: { eth: 0, btc: 0, sol: 0 },
+      vanEck: { eth: 0, btc: 0, sol: 0 },
+      invesco: { eth: 0, btc: 0, sol: 0 },
+      franklin: { eth: 0, btc: 0, sol: 0 },
+      grayscale: { eth: 0, btc: 0, sol: 0 },
+      grayscaleCrypto: { eth: 0, btc: 0, sol: 0 },
     };
 
     // Добавляем Bitcoin-специфичные фонды
-    const bitcoinFundHoldings: Record<string, { eth: number; btc: number }> = {
-      valkyrie: { eth: 0, btc: 0 },
-      wisdomTree: { eth: 0, btc: 0 },
+    const bitcoinFundHoldings: Record<string, { eth: number; btc: number; sol: number }> = {
+      valkyrie: { eth: 0, btc: 0, sol: 0 },
+      wisdomTree: { eth: 0, btc: 0, sol: 0 },
     };
 
     // Суммируем все потоки Ethereum для каждого фонда
@@ -381,6 +383,12 @@ export class ETFFlowController {
       bitcoinFundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
     });
 
+    // Суммируем все потоки Solana для каждого фонда
+    solanaData.forEach((item) => {
+      fundHoldings.bitwise.sol += item.bitwise || 0;
+      fundHoldings.grayscale.sol += item.grayscale || 0;
+    });
+
     // Объединяем общие фонды с Bitcoin-специфичными
     const allFundHoldings = { ...fundHoldings, ...bitcoinFundHoldings };
 
@@ -390,6 +398,8 @@ export class ETFFlowController {
         Math.round(allFundHoldings[fund].eth * 10) / 10;
       allFundHoldings[fund].btc =
         Math.round(allFundHoldings[fund].btc * 10) / 10;
+      allFundHoldings[fund].sol =
+        Math.round(allFundHoldings[fund].sol * 10) / 10;
     });
 
     // Рассчитываем общие суммы без базовой суммы
@@ -401,13 +411,18 @@ export class ETFFlowController {
       (sum, fund) => sum + fund.btc,
       0,
     );
+    const totalSol = Object.values(allFundHoldings).reduce(
+      (sum, fund) => sum + fund.sol,
+      0,
+    );
 
     return {
       fundHoldings: allFundHoldings,
       summary: {
         totalEth: Math.round(totalEth * 10) / 10,
         totalBtc: Math.round(totalBtc * 10) / 10,
-        totalHoldings: Math.round((totalEth + totalBtc) * 10) / 10,
+        totalSol: Math.round(totalSol * 10) / 10,
+        totalHoldings: Math.round((totalEth + totalBtc + totalSol) * 10) / 10,
         fundCount: Object.keys(allFundHoldings).length,
       },
     };

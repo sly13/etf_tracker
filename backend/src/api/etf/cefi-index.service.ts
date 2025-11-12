@@ -76,6 +76,26 @@ export class CEFIIndexService {
   }
 
   /**
+   * Получить индекс CEFI-SOL
+   */
+  async getCEFISOL(): Promise<CEFIIndexResponse> {
+    const flows = await this.etfFlowService.getETFFlowData('solana');
+    const assetFlows = await this.calculateAssetFlows('SOL', flows);
+    const indexData = this.calculateIndex(assetFlows);
+
+    return {
+      index: 'CEFI-SOL',
+      current: indexData[indexData.length - 1] || this.getDefaultIndexData(),
+      history: indexData,
+      metadata: {
+        baseValue: this.BASE_VALUE,
+        smoothingFactor: this.SMOOTHING_FACTOR,
+        windowSize: this.Z_SCORE_WINDOW,
+      },
+    };
+  }
+
+  /**
    * Получить составной индекс CEFI-Composite
    */
   async getCEFIComposite(): Promise<CEFIIndexResponse> {
@@ -591,10 +611,10 @@ export class CEFIIndexService {
   }
 
   /**
-   * Получить данные для графика индекса с ценой и объемом Bitcoin
+   * Получить данные для графика индекса с ценой и объемом актива
    */
   async getIndexChart(
-    indexType: 'btc' | 'eth' | 'composite',
+    indexType: 'btc' | 'eth' | 'sol' | 'composite',
     timeRange: '30d' | '1y' | 'all' = 'all',
   ): Promise<IndexChartResponse> {
     // Получаем данные индекса
@@ -605,6 +625,9 @@ export class CEFIIndexService {
         break;
       case 'eth':
         indexResponse = await this.getCEFIETH();
+        break;
+      case 'sol':
+        indexResponse = await this.getCEFISOL();
         break;
       case 'composite':
         indexResponse = await this.getCEFIComposite();
@@ -640,17 +663,24 @@ export class CEFIIndexService {
       };
     }
 
-    // Получаем даты для запроса данных Bitcoin
+    // Получаем даты для запроса данных актива
     const dates = filteredHistory.map((item) => item.date);
     const minDate = new Date(Math.min(...dates.map((d) => new Date(d).getTime())));
     const maxDate = new Date(Math.max(...dates.map((d) => new Date(d).getTime())));
     minDate.setHours(0, 0, 0, 0);
     maxDate.setHours(23, 59, 59, 999);
 
-    // Получаем дневные свечи Bitcoin за период
-    const btcCandles = await this.prisma.bTCandle.findMany({
+    // Определяем символ для запроса свечей в зависимости от типа индекса
+    const symbol = indexType === 'btc' || indexType === 'composite' 
+      ? 'BTCUSDT' 
+      : indexType === 'eth' 
+        ? 'ETHUSDT' 
+        : 'SOLUSDT';
+
+    // Получаем дневные свечи актива за период
+    const candles = await this.prisma.bTCandle.findMany({
       where: {
-        symbol: 'BTCUSDT',
+        symbol,
         interval: '1d',
         openTime: {
           gte: minDate,
@@ -664,7 +694,7 @@ export class CEFIIndexService {
 
     // Создаем мапу дат к свечам
     const candleMap = new Map<string, { price: number; volume: number }>();
-    for (const candle of btcCandles) {
+    for (const candle of candles) {
       const candleDate = candle.openTime.toISOString().split('T')[0];
       candleMap.set(candleDate, {
         price: candle.close,
@@ -673,23 +703,25 @@ export class CEFIIndexService {
     }
 
     // Получаем данные о притоках ETF
-    let flowsData: ETFFlowData[] | BTCFlowData[] = [];
+    let flowsData: ETFFlowData[] | BTCFlowData[] | SolFlowData[] = [];
     if (indexType === 'btc') {
       flowsData = await this.etfFlowService.getETFFlowData('bitcoin');
     } else if (indexType === 'eth') {
       flowsData = await this.etfFlowService.getETFFlowData('ethereum');
+    } else if (indexType === 'sol') {
+      flowsData = await this.etfFlowService.getETFFlowData('solana');
     } else {
       // Для composite используем данные Bitcoin
       flowsData = await this.etfFlowService.getETFFlowData('bitcoin');
     }
 
     // Создаем мапу дат к притокам
-    const flowsMap = new Map<string, ETFFlowData | BTCFlowData>();
+    const flowsMap = new Map<string, ETFFlowData | BTCFlowData | SolFlowData>();
     for (const flow of flowsData) {
       flowsMap.set(flow.date, flow);
     }
 
-    // Объединяем данные индекса с данными Bitcoin и притоками
+    // Объединяем данные индекса с данными актива и притоками
     const chartData: ChartDataPoint[] = [];
     let lastPrice = 0;
     let lastVolume = 0;
@@ -734,6 +766,10 @@ export class CEFIIndexService {
           if (ethFlow.franklin) funds.franklin = ethFlow.franklin;
           if (ethFlow.grayscale) funds.grayscale = ethFlow.grayscale;
           if (ethFlow.grayscaleCrypto) funds.grayscaleEth = ethFlow.grayscaleCrypto;
+        } else if (indexType === 'sol') {
+          const solFlow = flowData as SolFlowData;
+          if (solFlow.bitwise) funds.bitwise = solFlow.bitwise;
+          if (solFlow.grayscale) funds.grayscale = solFlow.grayscale;
         }
         
         if (Object.keys(funds).length > 0) {
@@ -755,7 +791,7 @@ export class CEFIIndexService {
 
     // Получаем текущие значения
     const currentIndex = indexResponse.current;
-    const latestCandle = btcCandles[btcCandles.length - 1];
+    const latestCandle = candles[candles.length - 1];
     const currentPrice = latestCandle?.close || lastPrice;
     const currentVolume = latestCandle?.quoteVolume || lastVolume;
 

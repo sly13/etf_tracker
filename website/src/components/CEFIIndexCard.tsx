@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import apiClient from "../services/api";
 import {
   CEFIIndexResponse,
@@ -8,7 +9,7 @@ import {
   ApiError,
 } from "../types/api";
 import { API_CONFIG } from "../config/api";
-import IndexChart from "./IndexChart";
+import IndexGauge from "./IndexGauge";
 
 export default function CEFIIndexCard() {
   const [data, setData] = useState<AllCEFIIndices | null>(null);
@@ -58,56 +59,9 @@ export default function CEFIIndexCard() {
     return num.toFixed(2);
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
-
-  const getChangeColor = (change: number): string => {
-    if (change > 0) return "text-green-600";
-    if (change < 0) return "text-red-600";
-    return "text-gray-600";
-  };
-
-  const getChangeIcon = (change: number) => {
-    if (change > 0) {
-      return (
-        <svg
-          className="w-5 h-5 text-green-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-          />
-        </svg>
-      );
-    }
-    if (change < 0) {
-      return (
-        <svg
-          className="w-5 h-5 text-red-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-          />
-        </svg>
-      );
-    }
-    return null;
+  const getGaugeColors = (): string[] => {
+    // Цвета для индекса Fear & Greed: красный -> оранжевый -> желтый -> светло-зеленый -> темно-зеленый
+    return ["#dc2626", "#f97316", "#eab308", "#22c55e", "#16a34a"];
   };
 
   const renderIndexCard = (
@@ -117,13 +71,16 @@ export default function CEFIIndexCard() {
     gradientFrom: string,
     gradientTo: string,
     borderColor: string,
-    textColor: string
+    textColor: string,
+    indexType: string
   ) => {
     const { current } = index;
+    const gaugeColors = getGaugeColors();
 
     return (
-      <div
-        className={`bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-lg p-6 border ${borderColor} shadow-md`}
+      <Link
+        href={`/indices/${indexType}`}
+        className={`bg-white rounded-lg p-6 border ${borderColor} shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer block`}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
@@ -132,37 +89,39 @@ export default function CEFIIndexCard() {
               {title}
             </h3>
           </div>
-          <div className="text-right">
-            <div className={`text-2xl font-bold ${textColor}`}>
-              {formatNumber(current.value)}
-            </div>
-            <div className="text-xs text-gray-600 mt-1">
-              {formatDate(current.date)}
-            </div>
+          <div className="flex items-center">
+            <svg
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-700 text-sm">Изменение:</span>
-            <div className={`flex items-center ${getChangeColor(current.change)}`}>
-              {getChangeIcon(current.change)}
-              <span className="ml-1 font-semibold">
-                {current.change >= 0 ? "+" : ""}
-                {formatNumber(current.change)} (
-                {current.changePercent >= 0 ? "+" : ""}
-                {formatNumber(current.changePercent)}%)
-              </span>
+        {/* Gauge Chart */}
+        <div className="mb-4">
+          <IndexGauge
+            value={current.value}
+            colors={gaugeColors}
+            arcWidth={0.15}
+            className="w-full"
+            id={`gauge-${indexType}`}
+          />
+          <div className="text-center -mt-2">
+            <div className={`text-3xl font-bold ${textColor}`}>
+              {formatNumber(current.value)}
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-700 text-sm">Базовое значение:</span>
-            <span className="font-semibold text-gray-900">
-              {index.metadata.baseValue}
-            </span>
-          </div>
         </div>
-      </div>
+      </Link>
     );
   };
 
@@ -220,37 +179,11 @@ export default function CEFIIndexCard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* CEFI-BTC */}
-        {renderIndexCard(
-          data.btc,
-          "CEFI-BTC",
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">₿</span>
-          </div>,
-          "from-orange-50",
-          "to-orange-100",
-          "border-orange-200",
-          "text-orange-600"
-        )}
-
-        {/* CEFI-ETH */}
-        {renderIndexCard(
-          data.eth,
-          "CEFI-ETH",
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">Ξ</span>
-          </div>,
-          "from-blue-50",
-          "to-blue-100",
-          "border-blue-200",
-          "text-blue-600"
-        )}
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {/* CEFI-Composite */}
         {renderIndexCard(
           data.composite,
-          "CEFI-Composite",
+          "CEFI-Composite Index",
           <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
             <svg
               className="w-5 h-5 text-white"
@@ -267,7 +200,50 @@ export default function CEFIIndexCard() {
           "from-purple-50",
           "to-purple-100",
           "border-purple-200",
-          "text-purple-600"
+          "text-purple-600",
+          "composite"
+        )}
+
+        {/* CEFI-BTC */}
+        {renderIndexCard(
+          data.btc,
+          "CEFI-BTC Index",
+          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">₿</span>
+          </div>,
+          "from-orange-50",
+          "to-orange-100",
+          "border-orange-200",
+          "text-orange-600",
+          "btc"
+        )}
+
+        {/* CEFI-ETH */}
+        {renderIndexCard(
+          data.eth,
+          "CEFI-ETH Index",
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">Ξ</span>
+          </div>,
+          "from-blue-50",
+          "to-blue-100",
+          "border-blue-200",
+          "text-blue-600",
+          "eth"
+        )}
+
+        {/* CEFI-SOL */}
+        {data.sol && renderIndexCard(
+          data.sol,
+          "CEFI-SOL Index",
+          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">◎</span>
+          </div>,
+          "from-green-50",
+          "to-green-100",
+          "border-green-200",
+          "text-green-600",
+          "sol"
         )}
       </div>
 
@@ -297,23 +273,11 @@ export default function CEFIIndexCard() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-500">
+          Нажмите на карточку индекса, чтобы просмотреть подробный график
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
           Индексы обновляются ежедневно на основе данных о потоках ETF
         </p>
-      </div>
-
-      {/* График индекса CEFI-BTC */}
-      <div className="mt-8">
-        <IndexChart indexType="btc" title="CEFI-BTC Index Chart" />
-      </div>
-
-      {/* График индекса CEFI-ETH */}
-      <div className="mt-8">
-        <IndexChart indexType="eth" title="CEFI-ETH Index Chart" />
-      </div>
-
-      {/* График композитного индекса */}
-      <div className="mt-8">
-        <IndexChart indexType="composite" title="CEFI-Composite Index Chart" />
       </div>
     </div>
   );

@@ -26,21 +26,21 @@ export class SummaryController {
       );
     };
 
-    // Рассчитываем общие активы для Bitcoin - суммируем все фонды за все дни
+    // Рассчитываем общие активы как кумулятивную сумму всех потоков (накопление)
+    // Используем поле total, которое уже содержит суммарный поток за день
+    // Данные отсортированы от новых к старым, поэтому суммируем все значения
     const bitcoinTotalAssets = bitcoinData.reduce(
-      (sum, item) => sum + calculateDailyTotal(item),
+      (sum, item) => sum + (item.total || 0),
       0,
     );
 
-    // Рассчитываем общие активы для Ethereum - суммируем все фонды за все дни
     const ethereumTotalAssets = ethereumData.reduce(
-      (sum, item) => sum + calculateDailyTotal(item),
+      (sum, item) => sum + (item.total || 0),
       0,
     );
 
-    // Рассчитываем общие активы для Solana
     const solanaTotalAssets = solanaData.reduce(
-      (sum, item) => sum + calculateDailyTotal(item),
+      (sum, item) => sum + (item.total || 0),
       0,
     );
 

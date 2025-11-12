@@ -41,7 +41,7 @@ export default function FundHoldingsCard() {
   const [data, setData] = useState<FundHoldingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"company" | "btc" | "eth">("btc");
+  const [sortBy, setSortBy] = useState<"company" | "btc" | "eth" | "sol">("btc");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function FundHoldingsCard() {
     return "text-gray-500";
   };
 
-  const handleSort = (column: "company" | "btc" | "eth") => {
+  const handleSort = (column: "company" | "btc" | "eth" | "sol") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -119,6 +119,7 @@ export default function FundHoldingsCard() {
       logo: FUND_LOGOS[key] || "🏢",
       btc: holdings.btc,
       eth: holdings.eth,
+      sol: holdings.sol,
     }));
 
     return funds.sort((a, b) => {
@@ -137,6 +138,10 @@ export default function FundHoldingsCard() {
         case "eth":
           aValue = a.eth;
           bValue = b.eth;
+          break;
+        case "sol":
+          aValue = a.sol;
+          bValue = b.sol;
           break;
         default:
           aValue = a.btc;
@@ -201,6 +206,7 @@ export default function FundHoldingsCard() {
     const labels: Record<string, Record<string, string>> = {
       btc: { desc: "BTC ↓", asc: "BTC ↑" },
       eth: { desc: "ETH ↓", asc: "ETH ↑" },
+      sol: { desc: "SOL ↓", asc: "SOL ↑" },
       company: { desc: "Компания ↓", asc: "Компания ↑" },
     };
     return labels[sortBy]?.[sortOrder] || "BTC ↓";
@@ -225,7 +231,7 @@ export default function FundHoldingsCard() {
               onChange={option => {
                 if (option) {
                   const [column, order] = option.value.split("-");
-                  setSortBy(column as "company" | "btc" | "eth");
+                  setSortBy(column as "company" | "btc" | "eth" | "sol");
                   setSortOrder(order as "asc" | "desc");
                 }
               }}
@@ -234,6 +240,8 @@ export default function FundHoldingsCard() {
                 { value: "btc-asc", label: "BTC ↑" },
                 { value: "eth-desc", label: "ETH ↓" },
                 { value: "eth-asc", label: "ETH ↑" },
+                { value: "sol-desc", label: "SOL ↓" },
+                { value: "sol-asc", label: "SOL ↑" },
                 { value: "company-asc", label: "Компания ↑" },
                 { value: "company-desc", label: "Компания ↓" },
               ]}
@@ -290,6 +298,13 @@ export default function FundHoldingsCard() {
                 ETH владения{" "}
                 {sortBy === "eth" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
+              <th
+                className="text-right py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                onClick={() => handleSort("sol")}
+              >
+                SOL владения{" "}
+                {sortBy === "sol" && (sortOrder === "asc" ? "↑" : "↓")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -330,6 +345,16 @@ export default function FundHoldingsCard() {
                   <div className="space-y-1">
                     <div className="font-semibold text-blue-600">
                       {formatCurrency(fund.eth)}
+                    </div>
+                    <div className={`text-sm ${getChangeColor(0)}`}>
+                      {formatChange(0)}
+                    </div>
+                  </div>
+                </td>
+                <td className="py-4 px-4 text-right">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-purple-600">
+                      {formatCurrency(fund.sol)}
                     </div>
                     <div className={`text-sm ${getChangeColor(0)}`}>
                       {formatChange(0)}

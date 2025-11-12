@@ -57,6 +57,30 @@ export class CEFIIndexController {
   }
 
   /**
+   * Получить индекс CEFI-SOL
+   * GET /cefi/sol
+   */
+  @Get('sol')
+  async getCEFISOL(
+    @Query('limit') limit?: string,
+  ): Promise<CEFIIndexResponse | CEFIIndexResponse['history']> {
+    try {
+      const response = await this.cefiIndexService.getCEFISOL();
+      const limitNum = limit ? parseInt(limit, 10) : undefined;
+
+      if (limitNum && limitNum > 0) {
+        // Возвращаем только последние N записей истории
+        return response.history.slice(-limitNum);
+      }
+
+      return response;
+    } catch (error) {
+      this.logger.error('Ошибка при получении CEFI-SOL:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Получить составной индекс CEFI-Composite
    * GET /cefi/composite
    */
@@ -125,6 +149,7 @@ export class CEFIIndexController {
   ): Promise<{
     btc: CEFIIndexResponse;
     eth: CEFIIndexResponse;
+    sol: CEFIIndexResponse;
     composite: CEFIIndexResponse;
     bpf: {
       bitcoin: BPFData[];
@@ -133,9 +158,10 @@ export class CEFIIndexController {
   }> {
     try {
       const limitNum = limit ? parseInt(limit, 10) : undefined;
-      const [btc, eth, composite, bpfBtc, bpfEth] = await Promise.all([
+      const [btc, eth, sol, composite, bpfBtc, bpfEth] = await Promise.all([
         this.cefiIndexService.getCEFIBTC(),
         this.cefiIndexService.getCEFIETH(),
+        this.cefiIndexService.getCEFISOL(),
         this.cefiIndexService.getCEFIComposite(),
         this.cefiIndexService.getBPF('bitcoin'),
         this.cefiIndexService.getBPF('ethereum'),
@@ -154,6 +180,12 @@ export class CEFIIndexController {
               history: eth.history.slice(-limitNum),
             }
           : eth,
+        sol: limitNum
+          ? {
+              ...sol,
+              history: sol.history.slice(-limitNum),
+            }
+          : sol,
         composite: limitNum
           ? {
               ...composite,
@@ -177,7 +209,7 @@ export class CEFIIndexController {
    */
   @Get('chart/:indexType')
   async getIndexChart(
-    @Param('indexType') indexType: 'btc' | 'eth' | 'composite',
+    @Param('indexType') indexType: 'btc' | 'eth' | 'sol' | 'composite',
     @Query('timeRange') timeRange?: '30d' | '1y' | 'all',
   ): Promise<IndexChartResponse> {
     try {

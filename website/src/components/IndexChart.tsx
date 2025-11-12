@@ -17,7 +17,7 @@ import { IndexChartResponse, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
 
 interface IndexChartProps {
-  indexType: "btc" | "eth" | "composite";
+  indexType: "btc" | "eth" | "sol" | "composite";
   title?: string;
 }
 
@@ -132,6 +132,8 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
         return "#f97316"; // orange
       case "eth":
         return "#3b82f6"; // blue
+      case "sol":
+        return "#14f195"; // green (Solana brand color)
       case "composite":
         return "#a855f7"; // purple
       default:
@@ -145,6 +147,14 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
     if (value >= 40) return "#eab308"; // yellow - neutral
     if (value >= 20) return "#f97316"; // orange - fear
     return "#dc2626"; // red - extreme fear
+  };
+
+  const getSentimentLabel = (value: number): string => {
+    if (value >= 80) return "Extreme Greed";
+    if (value >= 60) return "Greed";
+    if (value >= 40) return "Neutral";
+    if (value >= 20) return "Fear";
+    return "Extreme Fear";
   };
 
   interface TooltipPayload {
@@ -195,22 +205,24 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
                   </p>
                 );
               }
-              if (entry.dataKey === "btcPrice" && entry.value !== undefined) {
-                return (
-                  <p key={index} className="text-sm" style={{ color: entry.color }}>
-                    {`Цена Bitcoin: $${formatPrice(entry.value)}`}
-                  </p>
-                );
-              }
-              if (entry.dataKey === "btcVolume" && entry.value !== undefined) {
-                return (
-                  <p key={index} className="text-sm" style={{ color: entry.color }}>
-                    {`Объем Bitcoin: $${formatVolume(entry.value)}`}
-                  </p>
-                );
-              }
-              return null;
-            })}
+            if (entry.dataKey === "btcPrice" && entry.value !== undefined) {
+              const assetName = indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin";
+              return (
+                <p key={index} className="text-sm" style={{ color: entry.color }}>
+                  {`Цена ${assetName}: $${formatPrice(entry.value)}`}
+                </p>
+              );
+            }
+            if (entry.dataKey === "btcVolume" && entry.value !== undefined) {
+              const assetName = indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin";
+              return (
+                <p key={index} className="text-sm" style={{ color: entry.color }}>
+                  {`Объем ${assetName}: $${formatVolume(entry.value)}`}
+                </p>
+              );
+            }
+            return null;
+          })}
           </div>
           
           {/* Притоки ETF */}
@@ -298,8 +310,6 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
   }));
 
   const indexColor = getIndexColor(indexType);
-  const currentIndexValue = data.current.indexValue;
-  const currentIndexColor = getSentimentColor(currentIndexValue);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -351,11 +361,15 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-gray-500"></div>
-            <span>Bitcoin Price</span>
+            <span>
+              {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"} Price
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-gray-700"></div>
-            <span>Bitcoin Volume</span>
+            <span>
+              {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"} Volume
+            </span>
           </div>
         </div>
       </div>
@@ -474,19 +488,23 @@ export default function IndexChart({ indexType, title }: IndexChartProps) {
               <p className="text-sm text-gray-600">Текущее значение индекса</p>
               <p
                 className="text-2xl font-bold"
-                style={{ color: currentIndexColor }}
+                style={{ color: getSentimentColor(data.current.indexValue) }}
               >
                 {formatIndexValue(data.current.indexValue)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Цена Bitcoin</p>
+              <p className="text-sm text-gray-600">
+                Цена {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"}
+              </p>
               <p className="text-xl font-semibold text-gray-900">
                 ${formatPrice(data.current.btcPrice)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Объем Bitcoin</p>
+              <p className="text-sm text-gray-600">
+                Объем {indexType === "btc" ? "Bitcoin" : indexType === "eth" ? "Ethereum" : indexType === "sol" ? "Solana" : "Bitcoin"}
+              </p>
               <p className="text-xl font-semibold text-gray-900">
                 ${formatVolume(data.current.btcVolume)}
               </p>

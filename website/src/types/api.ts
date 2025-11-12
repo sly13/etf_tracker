@@ -12,6 +12,12 @@ export interface SummaryData {
     count: number;
     latestDate: string | null;
   };
+  solana: {
+    totalAssets: number;
+    currentFlow: number;
+    count: number;
+    latestDate: string | null;
+  };
   overall: {
     totalAssets: number;
     currentFlow: number;
@@ -51,11 +57,13 @@ export interface FundHoldingsData {
     {
       eth: number;
       btc: number;
+      sol: number;
     }
   >;
   summary: {
     totalEth: number;
     totalBtc: number;
+    totalSol: number;
     totalHoldings: number;
     fundCount: number;
   };
@@ -108,6 +116,7 @@ export interface BPFData {
 export interface AllCEFIIndices {
   btc: CEFIIndexResponse;
   eth: CEFIIndexResponse;
+  sol: CEFIIndexResponse;
   composite: CEFIIndexResponse;
   bpf: {
     bitcoin: BPFData[];

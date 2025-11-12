@@ -24,7 +24,7 @@ export default function ETFSummaryCard() {
       } catch (err: unknown) {
         const apiError = err as ApiError;
         let errorMessage: string;
-        
+
         if (apiError?.timeoutError && apiError?.timeoutMessage) {
           errorMessage = apiError.timeoutMessage;
         } else {
@@ -33,7 +33,7 @@ export default function ETFSummaryCard() {
             apiError?.message ||
             "Произошла ошибка при загрузке данных";
         }
-        
+
         setError(errorMessage);
         console.error("ETF Summary fetch error:", err);
       } finally {
@@ -55,6 +55,23 @@ export default function ETFSummaryCard() {
     return num.toFixed(1);
   };
 
+  // Форматирование потоков: данные приходят в миллионах
+  // Для отдельных ETF всегда показываем в миллионах (M)
+  // Для общего потока: если >= 1000M, показываем в миллиардах (B), иначе в миллионах (M)
+  const formatFlow = (num: number, isOverall: boolean = false): string => {
+    if (isOverall && num >= 1000) {
+      return `${(num / 1000).toFixed(1)}B`;
+    }
+    return `${num.toFixed(1)}M`;
+  };
+
+  // Форматирование активов: данные приходят в миллионах, конвертируем в доллары
+  const formatAssets = (num: number): string => {
+    // Умножаем на 1,000,000 чтобы получить доллары, затем форматируем
+    const dollars = num * 1000000;
+    return formatNumber(dollars);
+  };
+
   const formatDate = (dateString: string | null): string => {
     if (!dateString) return "Нет данных";
     const date = new Date(dateString);
@@ -66,7 +83,8 @@ export default function ETFSummaryCard() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="h-20 bg-gray-200 rounded"></div>
             <div className="h-20 bg-gray-200 rounded"></div>
             <div className="h-20 bg-gray-200 rounded"></div>
             <div className="h-20 bg-gray-200 rounded"></div>
@@ -107,7 +125,52 @@ export default function ETFSummaryCard() {
         Суммарные данные ETF фондов
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Общий итог */}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+              <svg
+                className="w-5 h-5 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Общий итог</h3>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Общие активы:</span>
+              <span className="font-semibold text-green-600">
+                ${formatAssets(data.overall.totalAssets)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Общий поток:</span>
+              <span className="font-semibold text-green-600">
+                ${formatFlow(data.overall.currentFlow, true)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 opacity-0">Количество дней:</span>
+              <span className="font-semibold text-green-600 opacity-0">0</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Последнее обновление:</span>
+              <span className="text-sm text-gray-500">
+                {formatDate(data.overall.lastUpdated)}
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Bitcoin */}
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
           <div className="flex items-center mb-4">
@@ -121,13 +184,13 @@ export default function ETFSummaryCard() {
             <div className="flex justify-between">
               <span className="text-gray-600">Общие активы:</span>
               <span className="font-semibold text-orange-600">
-                ${(data.bitcoin.totalAssets / 1000000000).toFixed(1)}B
+                ${formatAssets(data.bitcoin.totalAssets)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Текущий поток:</span>
               <span className="font-semibold text-orange-600">
-                ${formatNumber(data.bitcoin.currentFlow)}M
+                ${formatFlow(data.bitcoin.currentFlow)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -160,13 +223,13 @@ export default function ETFSummaryCard() {
             <div className="flex justify-between">
               <span className="text-gray-600">Общие активы:</span>
               <span className="font-semibold text-blue-600">
-                ${formatNumber(data.ethereum.totalAssets)}
+                ${formatAssets(data.ethereum.totalAssets)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Текущий поток:</span>
               <span className="font-semibold text-blue-600">
-                ${formatNumber(data.ethereum.currentFlow)}M
+                ${formatFlow(data.ethereum.currentFlow)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -184,46 +247,38 @@ export default function ETFSummaryCard() {
           </div>
         </div>
 
-        {/* Общий итог */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+        {/* Solana */}
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
           <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-sm">◎</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Общий итог</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Solana ETF</h3>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Общие активы:</span>
-              <span className="font-semibold text-green-600">
-                ${formatNumber(data.overall.totalAssets)}
+              <span className="font-semibold text-purple-600">
+                ${formatAssets(data.solana.totalAssets)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Общий поток:</span>
-              <span className="font-semibold text-green-600">
-                ${(data.overall.currentFlow / 1000).toFixed(1)}B
+              <span className="text-gray-600">Текущий поток:</span>
+              <span className="font-semibold text-purple-600">
+                ${formatFlow(data.solana.currentFlow)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 opacity-0">Количество дней:</span>
-              <span className="font-semibold text-green-600 opacity-0">0</span>
+              <span className="text-gray-600">Количество дней:</span>
+              <span className="font-semibold text-purple-600">
+                {data.solana.count}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Последнее обновление:</span>
               <span className="text-sm text-gray-500">
-                {formatDate(data.overall.lastUpdated)}
+                {formatDate(data.solana.latestDate)}
               </span>
             </div>
           </div>
