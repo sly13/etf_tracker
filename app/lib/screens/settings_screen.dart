@@ -23,6 +23,7 @@ import 'theme_selection_screen.dart';
 import 'language_selection_screen.dart';
 import 'subscription_selection_screen.dart';
 import '../utils/adaptive_text_utils.dart';
+import '../services/device_settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -36,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool? _cachedSubscriptionStatus;
   int _versionTapCount = 0;
   String _appVersion = '1.0.0'; // Версия по умолчанию
+  bool _isTestingNotifications = false;
 
   @override
   void initState() {
@@ -1211,56 +1213,201 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildNotificationSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark
-              ? Colors.grey.withOpacity(0.2)
-              : Colors.grey.withOpacity(0.3),
-          width: 0.5,
-        ),
-      ),
-      child: ListTile(
-        leading: Icon(
-          Icons.notifications,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
-        title: Text(
-          'profile.notifications'.tr(),
-          style: TextStyle(
-            fontSize: 16,
-            color: isDark ? Colors.white : Colors.black87,
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 0.5,
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.notifications,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            title: Text(
+              'profile.notifications'.tr(),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            subtitle: Text(
+              'telegram.notification_management'.tr(),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? Colors.grey.withOpacity(0.6)
+                    : Colors.grey.withOpacity(0.5),
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: isDark
+                  ? Colors.grey.withOpacity(0.6)
+                  : Colors.grey.withOpacity(0.7),
+              size: 20,
+            ),
+            onTap: () {
+              HapticUtils.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
           ),
         ),
-        subtitle: Text(
-          'telegram.notification_management'.tr(),
-          style: TextStyle(
-            fontSize: 14,
-            color: isDark
-                ? Colors.grey.withOpacity(0.6)
-                : Colors.grey.withOpacity(0.5),
+        // Кнопка "Проверить уведомления"
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 0.5,
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.notifications_active,
+              color: isDark ? Colors.blue : Colors.blue,
+            ),
+            title: Text(
+              'Проверить уведомления',
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            subtitle: Text(
+              'Отправить тестовое уведомление ETF',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? Colors.grey.withOpacity(0.6)
+                    : Colors.grey.withOpacity(0.5),
+              ),
+            ),
+            trailing: _isTestingNotifications
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  )
+                : Icon(
+                    Icons.send,
+                    color: isDark ? Colors.blue : Colors.blue,
+                    size: 20,
+                  ),
+            onTap: _isTestingNotifications
+                ? null
+                : () async {
+                    HapticUtils.lightImpact();
+                    await _testETFNotification();
+                  },
           ),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: isDark
-              ? Colors.grey.withOpacity(0.6)
-              : Colors.grey.withOpacity(0.7),
-          size: 20,
-        ),
-        onTap: () {
-          HapticUtils.lightImpact();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const NotificationSettingsScreen(),
+      ],
+    );
+  }
+
+  Future<void> _testETFNotification() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isTestingNotifications = true;
+    });
+
+    try {
+      // Получаем deviceId
+      final deviceId = await NotificationService.getDeviceId();
+      
+      // Вызываем сервис для тестирования уведомлений
+      final result = await DeviceSettingsService.testETFNotification(
+        appName: AppConfig.appName,
+        deviceId: deviceId,
+      );
+
+      if (mounted) {
+        if (result != null && result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      result['message'] ?? 'Уведомление отправлено',
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
             ),
           );
-        },
-      ),
-    );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(
+                    Icons.error,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      result?['error'] ?? 'Ошибка отправки уведомления',
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTestingNotifications = false;
+        });
+      }
+    }
   }
 }

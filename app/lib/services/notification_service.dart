@@ -81,9 +81,13 @@ class NotificationService {
 
     // Обработка уведомлений когда приложение в foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint(
-        '📱 Получено уведомление в foreground: ${message.notification?.title}',
-      );
+      debugPrint('📱 ===== ПОЛУЧЕНО УВЕДОМЛЕНИЕ В FOREGROUND =====');
+      debugPrint('📱 Заголовок: ${message.notification?.title}');
+      debugPrint('📱 Текст: ${message.notification?.body}');
+      debugPrint('📱 Данные: ${message.data}');
+      debugPrint('📱 Message ID: ${message.messageId}');
+      debugPrint('📱 От: ${message.from}');
+      debugPrint('📱 ============================================');
       _showLocalNotification(message);
     });
 
@@ -361,14 +365,16 @@ class NotificationService {
 
   /// Показ локального уведомления
   static Future<void> _showLocalNotification(RemoteMessage message) async {
+    debugPrint('🔔 ===== ПОКАЗ ЛОКАЛЬНОГО УВЕДОМЛЕНИЯ =====');
+    
     if (_localNotifications == null) {
-      debugPrint('❌ _localNotifications is null');
+      debugPrint('❌ _localNotifications is null - уведомление не может быть показано');
       return;
     }
 
-    debugPrint(
-      '🔔 Показываем локальное уведомление: ${message.notification?.title}',
-    );
+    debugPrint('🔔 Заголовок: ${message.notification?.title ?? "НЕТ"}');
+    debugPrint('🔔 Текст: ${message.notification?.body ?? "НЕТ"}');
+    debugPrint('🔔 Данные: ${message.data}');
 
     const androidDetails = AndroidNotificationDetails(
       'etf_notifications',
@@ -396,15 +402,31 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _localNotifications!.show(
-      message.hashCode,
-      message.notification?.title ?? 'ETF Flow Update',
-      message.notification?.body ?? 'Новые данные о потоках ETF',
-      notificationDetails,
-      payload: json.encode(message.data),
-    );
+    try {
+      final notificationId = message.hashCode;
+      final title = message.notification?.title ?? 'ETF Flow Update';
+      final body = message.notification?.body ?? 'Новые данные о потоках ETF';
+      
+      debugPrint('🔔 Показываем уведомление:');
+      debugPrint('   ID: $notificationId');
+      debugPrint('   Заголовок: $title');
+      debugPrint('   Текст: $body');
+      
+      await _localNotifications!.show(
+        notificationId,
+        title,
+        body,
+        notificationDetails,
+        payload: json.encode(message.data),
+      );
 
-    debugPrint('✅ Локальное уведомление показано успешно');
+      debugPrint('✅ Локальное уведомление показано успешно');
+      debugPrint('🔔 ============================================');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Ошибка показа локального уведомления: $e');
+      debugPrint('❌ Stack trace: $stackTrace');
+      debugPrint('🔔 ============================================');
+    }
   }
 
   /// Обработка нажатия на уведомление

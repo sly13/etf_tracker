@@ -1,9 +1,33 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:io';
 
 class AppConfig {
   static const String _defaultBackendUrl = 'https://api-etf.vadimsemenko.ru';
-  static const String _defaultLocalBackendUrl = 'http://localhost:3066';
+  // Для iOS симулятора используем IP адрес Mac, для других платформ - localhost
+  // IP адрес можно переопределить через LOCAL_BACKEND_HOST в .env
+  static String get _defaultLocalBackendUrl {
+    // Проверяем, указан ли хост в .env
+    try {
+      final localHost = dotenv.env['LOCAL_BACKEND_HOST'];
+      if (localHost != null && localHost.isNotEmpty) {
+        return 'http://$localHost:3066';
+      }
+    } catch (e) {
+      // Игнорируем ошибки
+    }
+
+    // На iOS симуляторе используем IP адрес Mac (можно указать в .env)
+    // Для других платформ используем localhost
+    if (Platform.isIOS) {
+      // По умолчанию для iOS используем IP адрес Mac
+      // Можно указать LOCAL_BACKEND_HOST=192.168.10.244 в .env
+      return 'http://192.168.10.244:3066';
+    }
+
+    // Для Android и других платформ используем localhost
+    return 'http://127.0.0.1:3066';
+  }
 
   // Название приложения для регистрации в бэкенде
   static const String appName = 'etf.flow';
@@ -21,24 +45,38 @@ class AppConfig {
   static bool get isDebugMode => !kReleaseMode;
 
   // Получаем базовый URL бэкенда
+  // В debug режиме всегда используется локальный URL
+  // В production режиме используется значение из .env или дефолтный продакшн URL
   static String get backendBaseUrl {
+    // В debug режиме всегда используем локальный URL
+    if (isDebugMode) {
+      print(
+        '🔧 Debug режим: Используем локальный URL: $_defaultLocalBackendUrl',
+      );
+      return _defaultLocalBackendUrl;
+    }
+
+    // В production режиме проверяем переменную окружения
     try {
-      // Сначала проверяем переменную окружения
       final envBackendUrl = dotenv.env['BACKEND_API_URL'];
       if (envBackendUrl != null && envBackendUrl.isNotEmpty) {
-        print('🔧 Используем BACKEND_API_URL из .env: $envBackendUrl');
-        return envBackendUrl;
+        // Убираем /api из конца, если есть (добавляется в getApiUrl)
+        final cleanUrl = envBackendUrl.endsWith('/api')
+            ? envBackendUrl.substring(0, envBackendUrl.length - 4)
+            : envBackendUrl;
+        print(
+          '🔧 Production режим: Используем BACKEND_API_URL из .env: $cleanUrl',
+        );
+        return cleanUrl;
       }
     } catch (e) {
       print('⚠️ Ошибка получения BACKEND_API_URL из .env: $e');
     }
 
-    // В режиме отладки используем локальный URL, иначе - продакшн
-    if (isDebugMode) {
-      print('🔧 Используем локальный URL: $_defaultLocalBackendUrl');
-      return _defaultLocalBackendUrl;
-    }
-    print('🔧 Используем продакшн URL: $_defaultBackendUrl');
+    // Если переменной окружения нет, используем продакшн URL по умолчанию
+    print(
+      '🔧 Production режим: Используем продакшн URL по умолчанию: $_defaultBackendUrl',
+    );
     return _defaultBackendUrl;
   }
 

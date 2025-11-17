@@ -123,4 +123,45 @@ class DeviceSettingsService {
       return null;
     }
   }
+
+  /// Тестирование уведомлений ETF: создает тестовую запись и отправляет уведомления
+  static Future<Map<String, dynamic>?> testETFNotification({
+    String? appName,
+    String? deviceId,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('/notifications/test-etf-notification');
+      print('🔔 DeviceSettingsService: Тестирование ETF уведомлений по URL: $url');
+
+      final body = <String, dynamic>{};
+      if (appName != null) body['appName'] = appName;
+      if (deviceId != null) body['deviceId'] = deviceId;
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      print('🔔 DeviceSettingsService: Статус ответа: ${response.statusCode}');
+      print('🔔 DeviceSettingsService: Тело ответа: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        print('✅ Тестовое уведомление ETF отправлено');
+        return data;
+      } else {
+        print('❌ Ошибка тестирования ETF уведомлений: ${response.statusCode}');
+        print('❌ Тело ответа: ${response.body}');
+        final errorData = json.decode(response.body);
+        return errorData;
+      }
+    } catch (e) {
+      print('❌ Ошибка тестирования ETF уведомлений: $e');
+      return {
+        'success': false,
+        'error': 'Ошибка сети: $e',
+      };
+    }
+  }
 }
