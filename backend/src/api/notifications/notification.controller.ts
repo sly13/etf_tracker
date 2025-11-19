@@ -1,9 +1,17 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Logger } from '@nestjs/common';
 import { NotificationService } from './notification.service';
+import { ETFNotificationService } from '../etf/etf-notification.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 
 @Controller('notifications')
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  private readonly logger = new Logger(NotificationController.name);
+
+  constructor(
+    private readonly notificationService: NotificationService,
+    private readonly etfNotificationService: ETFNotificationService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   /**
    * Регистрация устройства
@@ -285,5 +293,67 @@ export class NotificationController {
       success,
       message: success ? 'Настройки обновлены' : 'Ошибка обновления настроек',
     };
+  }
+
+  /**
+   * Тестирование уведомлений ETF: создает тестовую запись и отправляет уведомления
+   */
+  @Post('test-etf-notification')
+  async testETFNotification(
+    @Body()
+    body: {
+      appName?: string;
+      deviceId?: string;
+    },
+  ) {
+    try {
+      const appName = body.appName || 'etf.flow';
+      this.logger.log(`🧪 Тестирование ETF уведомлений для приложения: ${appName}`);
+      if (body.deviceId) {
+        this.logger.log(`   DeviceId: ${body.deviceId}`);
+      }
+
+      // Создаем тестовую запись ETFNewRecord
+      const testDate = new Date();
+      this.logger.log(`📝 Создание тестовой записи ETF...`);
+      const testRecord = await this.prismaService.eTFNewRecord.create({
+        data: {
+          date: testDate,
+          assetType: 'bitcoin',
+          company: 'blackrock',
+          amount: 150.5, // Тестовое значение в миллионах
+          previousAmount: 100.0,
+          dedupeKey: `test_${Date.now()}_${Math.random()}`,
+        },
+      });
+
+      this.logger.log(`✅ Тестовая запись создана: ${testRecord.id}`);
+      this.logger.log(`📤 Начинаю отправку уведомлений...`);
+
+      // Отправляем уведомления о новой записи
+      await this.etfNotificationService.sendETFNotificationsForNewRecords(
+        appName,
+      );
+
+      this.logger.log(`✅ Процесс отправки уведомлений завершен`);
+
+      return {
+        success: true,
+        message: 'Тестовое уведомление ETF создано и отправлено',
+        recordId: testRecord.id,
+        record: {
+          date: testRecord.date,
+          assetType: testRecord.assetType,
+          company: testRecord.company,
+          amount: testRecord.amount,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`❌ Ошибка при тестировании уведомлений ETF:`, error);
+      return {
+        success: false,
+        error: error.message || 'Ошибка при тестировании уведомлений ETF',
+      };
+    }
   }
 }

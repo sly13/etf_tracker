@@ -202,7 +202,13 @@
     "daily_total_net_inflow": "Ежедневный общий чистый приток",
     "weekly_total_net_inflow": "Еженедельный общий чистый приток",
     "monthly_total_net_inflow": "Ежемесячный общий чистый приток",
-    "no_data_for_date": "Нет данных за"
+    "no_data_for_date": "Нет данных за",
+    "today_flows": "Притоки за сегодня",
+    "flows": "Притоки",
+    "latest_flows": "Последние притоки",
+    "show_more": "Показать еще",
+    "no_events_today": "Нет событий за сегодня",
+    "flow_events": "События притоков"
   },
   "auth": {
     "sign_in_with_apple": "Войти через Apple",

@@ -7,5 +7,12 @@ helper.txt
 dist/
 # Firebase service account key
 *.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.build.json
+!nest-cli.json
+!eslint.config.mjs
+etf-flow-firebase.json
 # Data files
 data/

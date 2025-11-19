@@ -5,6 +5,110 @@ import '../models/etf_flow_data.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../utils/card_style_utils.dart';
 
+/// Обертка для календаря, которая пропускает вертикальные жесты к родительскому ScrollView
+class _ScrollableCalendarWrapper extends StatefulWidget {
+  final Widget child;
+
+  const _ScrollableCalendarWrapper({required this.child});
+
+  @override
+  State<_ScrollableCalendarWrapper> createState() => _ScrollableCalendarWrapperState();
+}
+
+class _ScrollableCalendarWrapperState extends State<_ScrollableCalendarWrapper> {
+  Offset? _dragStartPosition;
+  bool _isVerticalDrag = false;
+  ScrollPosition? _parentScrollPosition;
+  static const double _dragThreshold = 8.0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Находим родительский ScrollPosition один раз
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final scrollable = Scrollable.maybeOf(context);
+      if (scrollable != null) {
+        _parentScrollPosition = scrollable.position;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Обновляем ссылку на родительский ScrollPosition при каждом билде
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable != null) {
+      _parentScrollPosition = scrollable.position;
+    }
+
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (event) {
+        _dragStartPosition = event.localPosition;
+        _isVerticalDrag = false;
+      },
+      onPointerMove: (event) {
+        if (_dragStartPosition == null) return;
+
+        final delta = event.localPosition - _dragStartPosition!;
+        final absDeltaX = delta.dx.abs();
+        final absDeltaY = delta.dy.abs();
+
+        // Определяем направление жеста после порогового движения
+        if (!_isVerticalDrag && (absDeltaX > _dragThreshold || absDeltaY > _dragThreshold)) {
+          final isVertical = absDeltaY > absDeltaX;
+          if (isVertical) {
+            // Вертикальный жест - блокируем календарь и передаем жест родителю
+            setState(() {
+              _isVerticalDrag = true;
+            });
+          }
+        }
+
+        // Если это вертикальный жест, передаем его родительскому ScrollView
+        if (_isVerticalDrag && _parentScrollPosition != null) {
+          // Используем только текущее движение (разница между текущей и предыдущей позицией)
+          // Но так как мы обновляем _dragStartPosition, delta уже содержит только текущее движение
+          final scrollDelta = delta.dy;
+          if (scrollDelta.abs() > 0.1) {
+            final currentPixels = _parentScrollPosition!.pixels;
+            final newPixels = currentPixels - scrollDelta;
+            // Ограничиваем прокрутку границами
+            final clampedPixels = newPixels.clamp(
+              _parentScrollPosition!.minScrollExtent,
+              _parentScrollPosition!.maxScrollExtent,
+            );
+            _parentScrollPosition!.moveTo(clampedPixels);
+            // Обновляем начальную позицию для следующего движения
+            _dragStartPosition = event.localPosition;
+          }
+        }
+      },
+      onPointerUp: (_) {
+        _dragStartPosition = null;
+        if (_isVerticalDrag) {
+          setState(() {
+            _isVerticalDrag = false;
+          });
+        }
+      },
+      onPointerCancel: (_) {
+        _dragStartPosition = null;
+        if (_isVerticalDrag) {
+          setState(() {
+            _isVerticalDrag = false;
+          });
+        }
+      },
+      child: AbsorbPointer(
+        // Полностью блокируем календарь при вертикальном жесте
+        absorbing: _isVerticalDrag,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class FlowCalendar extends StatefulWidget {
   final List<dynamic> flowData;
   final String title;
@@ -121,15 +225,9 @@ class _FlowCalendarState extends State<FlowCalendar> {
           ),
 
           // Календарь
-          // Оборачиваем в GestureDetector для правильной обработки жестов скролла
-          // Это позволяет вертикальным жестам проходить к родительскому ScrollView
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            // Пропускаем вертикальные жесты к родительскому ScrollView
-            onVerticalDragUpdate: (_) {},
-            onVerticalDragEnd: (_) {},
-            onVerticalDragStart: (_) {},
-            // Горизонтальные жесты для переключения месяцев обрабатываются внутренним PageView календаря
+          // Обертка пропускает вертикальные жесты к родительскому ScrollView
+          // Горизонтальные жесты обрабатываются календарем для переключения месяцев
+          _ScrollableCalendarWrapper(
             child: TableCalendar<dynamic>(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),

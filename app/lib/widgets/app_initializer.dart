@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../providers/onboarding_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../screens/main_navigation_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/subscription_selection_screen.dart';
 import '../utils/revenuecat_checker.dart';
+import 'dart:async';
 
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
@@ -22,7 +22,10 @@ class _AppInitializerState extends State<AppInitializer> {
   @override
   void initState() {
     super.initState();
-    _initializeProviders();
+    // Запускаем инициализацию асинхронно, не блокируя UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeProviders();
+    });
   }
 
   Future<void> _initializeProviders() async {
@@ -37,13 +40,13 @@ class _AppInitializerState extends State<AppInitializer> {
         listen: false,
       );
 
-      // Сначала быстро инициализируем онбординг (он обычно быстрый)
-      await onboardingProvider.initialize();
-
-      // Затем инициализируем подписку с таймаутом
-      try {
-        await subscriptionProvider.initialize().timeout(
-          const Duration(seconds: 5),
+      // Параллельная инициализация для ускорения загрузки
+      await Future.wait([
+        // Сначала быстро инициализируем онбординг (он обычно быстрый)
+        onboardingProvider.initialize(),
+        // Затем инициализируем подписку с таймаутом
+        subscriptionProvider.initialize().timeout(
+          const Duration(seconds: 3),
           onTimeout: () {
             print(
               '⚠️ Таймаут инициализации SubscriptionProvider, используем кэш',
@@ -51,11 +54,14 @@ class _AppInitializerState extends State<AppInitializer> {
             // Если таймаут, используем кэшированные данные
             return;
           },
-        );
-      } catch (e) {
-        print('⚠️ Ошибка инициализации SubscriptionProvider: $e');
-        // Продолжаем работу даже если подписка не инициализировалась
-      }
+        ).catchError((e) {
+          print('⚠️ Ошибка инициализации SubscriptionProvider: $e');
+          // Продолжаем работу даже если подписка не инициализировалась
+        }),
+      ]);
+
+      // Минимальная задержка для плавного перехода от splash screen
+      await Future.delayed(const Duration(milliseconds: 300));
 
       if (mounted) {
         setState(() {
@@ -84,34 +90,28 @@ class _AppInitializerState extends State<AppInitializer> {
     // Показываем загрузку пока провайдеры не инициализированы
     if (_isInitializing) {
       return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.black,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Показываем логотип или иконку приложения
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.trending_up,
-                  color: Colors.white,
-                  size: 40,
+              // Показываем логотип приложения с закругленными краями
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'assets/etf_tracker_logo.png',
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 24),
-              CircularProgressIndicator(color: Theme.of(context).primaryColor),
-              const SizedBox(height: 16),
-              Text(
-                'common.loading'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.color?.withOpacity(0.7),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).primaryColor,
+                  strokeWidth: 2,
                 ),
               ),
             ],

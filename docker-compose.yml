@@ -46,7 +46,7 @@ services:
       context: ./admin
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=http://localhost:3066/api
+        - REACT_APP_API_URL=https://api-etf.vadimsemenko.ru/api
         - NODE_ENV=development
     container_name: etf_admin
     ports:

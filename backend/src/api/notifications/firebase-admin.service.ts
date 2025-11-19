@@ -9,9 +9,11 @@ export class FirebaseAdminService {
   private app: admin.app.App | null = null;
 
   constructor() {
+    this.logger.log('🔧 Инициализация FirebaseAdminService...');
     try {
       this.initializeFirebase();
     } catch (error) {
+      this.logger.error('❌ Ошибка при инициализации Firebase:', error);
       this.logger.warn(
         '⚠️ Firebase не инициализирован, push уведомления недоступны',
       );
@@ -31,7 +33,9 @@ export class FirebaseAdminService {
               process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
             );
             credential = admin.credential.cert(serviceAccount);
-            this.logger.log('✅ Firebase инициализирован из переменной окружения');
+            this.logger.log(
+              '✅ Firebase инициализирован из переменной окружения',
+            );
           } catch (error) {
             this.logger.error(
               '❌ Ошибка парсинга FIREBASE_SERVICE_ACCOUNT_JSON:',
@@ -46,6 +50,10 @@ export class FirebaseAdminService {
             path.join(process.cwd(), 'etf-flow-firebase.json');
 
           // Проверяем существование файла
+          this.logger.log(
+            `🔍 Ищем файл Firebase по пути: ${serviceAccountPath}`,
+          );
+
           if (!fs.existsSync(serviceAccountPath)) {
             this.logger.warn(
               `⚠️ Файл Firebase не найден по пути: ${serviceAccountPath}`,
@@ -69,17 +77,24 @@ export class FirebaseAdminService {
             }
           }
 
-          this.logger.log(`🔍 Ищем файл Firebase по пути: ${serviceAccountPath}`);
+          this.logger.log(`✅ Файл найден: ${serviceAccountPath}`);
           credential = admin.credential.cert(serviceAccountPath);
         }
 
         // Инициализируем Firebase Admin SDK
+        this.logger.log('🔧 Инициализация Firebase Admin SDK...');
         this.app = admin.initializeApp({
           credential,
           projectId: process.env.FIREBASE_PROJECT_ID || 'etf-flow',
         });
 
-        this.logger.log('✅ Firebase Admin SDK инициализирован');
+        this.logger.log('✅ Firebase Admin SDK успешно инициализирован!');
+        this.logger.log(
+          `   Project ID: ${process.env.FIREBASE_PROJECT_ID || 'etf-flow'}`,
+        );
+        this.logger.log(
+          `   Service Account: ${credential ? 'найден' : 'не найден'}`,
+        );
       } else {
         this.app = admin.app();
         this.logger.log('✅ Firebase Admin SDK уже инициализирован');
@@ -106,7 +121,23 @@ export class FirebaseAdminService {
   ): Promise<boolean> {
     if (!this.app) {
       this.logger.error('❌ Firebase Admin SDK не инициализирован');
+      this.logger.error(
+        '   Проверьте наличие файла etf-flow-firebase.json или переменную FIREBASE_SERVICE_ACCOUNT_JSON',
+      );
       return false;
+    }
+
+    // Проверяем, что токен не пустой
+    if (!token || token.trim().length === 0) {
+      this.logger.error('❌ Пустой токен для отправки уведомления');
+      return false;
+    }
+
+    // Проверяем формат токена (FCM токены обычно длинные)
+    if (token.length < 50) {
+      this.logger.warn(
+        `⚠️ Подозрительно короткий токен: ${token.length} символов`,
+      );
     }
 
     try {
@@ -122,6 +153,8 @@ export class FirebaseAdminService {
           notification: {
             icon: 'ic_launcher',
             color: '#000000',
+            sound: 'default',
+            channelId: 'etf_notifications',
           },
         },
         apns: {
@@ -133,16 +166,50 @@ export class FirebaseAdminService {
               },
               badge: 1,
               sound: 'default',
+              contentAvailable: true,
             },
           },
         },
       };
 
+      this.logger.log(`📤 ===== ОТПРАВКА УВЕДОМЛЕНИЯ =====`);
+      this.logger.log(
+        `📤 Токен: ${token.substring(0, 30)}... (длина: ${token.length})`,
+      );
+      this.logger.log(`📤 Заголовок: ${title}`);
+      this.logger.log(`📤 Текст: ${body}`);
+      this.logger.log(`📤 Данные: ${JSON.stringify(data || {})}`);
+
       const response = await admin.messaging().send(message);
-      this.logger.log(`✅ Уведомление отправлено: ${response}`);
+      this.logger.log(`✅ Уведомление отправлено успешно!`);
+      this.logger.log(`✅ Response: ${response}`);
+      this.logger.log(`📤 =================================`);
       return true;
-    } catch (error) {
-      this.logger.error('❌ Ошибка отправки уведомления:', error);
+    } catch (error: any) {
+      this.logger.error('❌ ===== ОШИБКА ОТПРАВКИ УВЕДОМЛЕНИЯ =====');
+      this.logger.error(`❌ Токен: ${token.substring(0, 30)}...`);
+      this.logger.error(`❌ Код ошибки: ${error.code || 'неизвестно'}`);
+      this.logger.error(`❌ Сообщение: ${error.message || 'неизвестно'}`);
+
+      if (
+        error.code === 'messaging/invalid-registration-token' ||
+        error.code === 'messaging/registration-token-not-registered'
+      ) {
+        this.logger.error('   ⚠️ Токен недействителен или не зарегистрирован');
+        this.logger.error('   💡 Возможные причины:');
+        this.logger.error('      - Токен устарел');
+        this.logger.error('      - Приложение было переустановлено');
+        this.logger.error('      - Токен был отозван');
+      } else if (error.code === 'messaging/invalid-argument') {
+        this.logger.error('   ⚠️ Неверный аргумент в сообщении');
+      } else if (error.code === 'messaging/unavailable') {
+        this.logger.error('   ⚠️ Сервис Firebase недоступен');
+      } else if (error.code === 'messaging/internal-error') {
+        this.logger.error('   ⚠️ Внутренняя ошибка Firebase');
+      }
+
+      this.logger.error(`❌ Полная ошибка:`, error);
+      this.logger.error('❌ ========================================');
       return false;
     }
   }
@@ -303,7 +370,9 @@ export class FirebaseAdminService {
       process.env.NODE_ENV === 'development' &&
       (token.startsWith('test_') || token.startsWith('simulator_'))
     ) {
-      this.logger.log(`🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`);
+      this.logger.log(
+        `🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`,
+      );
       return true;
     }
 
@@ -311,7 +380,9 @@ export class FirebaseAdminService {
       this.logger.warn('⚠️ Firebase app не инициализирован');
       // В режиме разработки разрешаем регистрацию без валидации
       if (process.env.NODE_ENV === 'development') {
-        this.logger.warn('⚠️ Разрешаем регистрацию без валидации (development режим)');
+        this.logger.warn(
+          '⚠️ Разрешаем регистрацию без валидации (development режим)',
+        );
         return true;
       }
       return false;
@@ -322,7 +393,9 @@ export class FirebaseAdminService {
       process.env.NODE_ENV === 'development' &&
       (token.startsWith('test_') || token.startsWith('simulator_'))
     ) {
-      this.logger.log(`🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`);
+      this.logger.log(
+        `🧪 Тестовый токен принят (симулятор): ${token.substring(0, 30)}...`,
+      );
       return true;
     }
 

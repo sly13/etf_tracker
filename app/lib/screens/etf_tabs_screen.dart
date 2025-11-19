@@ -10,6 +10,7 @@ import '../components/flow_calendar.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../services/screenshot_service.dart';
 import '../utils/card_style_utils.dart';
+import '../widgets/today_flows_panel.dart';
 
 class ETFTabsScreen extends StatefulWidget {
   const ETFTabsScreen({super.key});
@@ -180,6 +181,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     // Общая сводка
                     _buildSummaryCard(etfProvider),
                     const SizedBox(height: 24),
+                    // Панель притоков за сегодня
+                    const TodayFlowsPanel(),
+                    const SizedBox(height: 24),
                     // Календарь суммарных потоков (BTC+ETH+SOL)
                     _buildCombinedCalendar(etfProvider),
                     // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
@@ -314,6 +318,118 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               },
             ),
 
+            // Притоки/оттоки за последний день
+            if (etfProvider.summaryData != null) ...[
+              SizedBox(height: CardStyleUtils.getSpacing(context)),
+              Divider(
+                color: CardStyleUtils.getSubtitleColor(context).withOpacity(0.3),
+              ),
+              SizedBox(height: CardStyleUtils.getSpacing(context)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bitcoin',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: CardStyleUtils.getSubtitleColor(context),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _formatFlow(
+                            (etfProvider.summaryData!['bitcoin']?['currentFlow']
+                                    ?.toDouble() ??
+                                0.0),
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: (etfProvider.summaryData!['bitcoin']
+                                        ?['currentFlow']?.toDouble() ??
+                                    0.0) >=
+                                    0
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ethereum',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: CardStyleUtils.getSubtitleColor(context),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _formatFlow(
+                            (etfProvider.summaryData!['ethereum']
+                                    ?['currentFlow']?.toDouble() ??
+                                0.0),
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: (etfProvider.summaryData!['ethereum']
+                                        ?['currentFlow']?.toDouble() ??
+                                    0.0) >=
+                                    0
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Solana',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: CardStyleUtils.getSubtitleColor(context),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _formatFlow(
+                            (etfProvider.summaryData!['solana']?['currentFlow']
+                                    ?.toDouble() ??
+                                0.0),
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: (etfProvider.summaryData!['solana']
+                                        ?['currentFlow']?.toDouble() ??
+                                    0.0) >=
+                                    0
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             SizedBox(height: CardStyleUtils.getSpacing(context)),
             Text(
               '${'common.updated'.tr()}: ${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
@@ -341,6 +457,18 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       return '$prefix${(absValue / 1000).toStringAsFixed(2)}B';
     } else {
       return '$prefix${absValue.toStringAsFixed(2)}M';
+    }
+  }
+
+  // Функция для форматирования притоков/оттоков (без знака доллара)
+  String _formatFlow(double value) {
+    final absValue = value.abs();
+    final sign = value >= 0 ? '+' : '-';
+
+    if (absValue >= 1000) {
+      return '$sign${(absValue / 1000).toStringAsFixed(2)}B';
+    } else {
+      return '$sign${absValue.toStringAsFixed(2)}M';
     }
   }
 

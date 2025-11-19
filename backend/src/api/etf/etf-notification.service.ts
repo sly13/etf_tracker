@@ -38,20 +38,33 @@ export class ETFNotificationService {
       }
 
       const settings = user.settings as any;
+      
+      // Поддерживаем оба формата настроек
+      // Новый формат: settings.etfNotifications.enabled
+      // Старый формат: settings.notifications.enableETFUpdates
+      const etfNotifications = settings.etfNotifications || {};
+      const notifications = settings.notifications || {};
+      
+      // Уведомления включены, если включены в любом из форматов
+      const isEnabled = 
+        etfNotifications.enabled === true || 
+        notifications.enableETFUpdates === true ||
+        (etfNotifications.enabled !== false && notifications.enableETFUpdates !== false);
+      
       return {
-        minAmount: settings.etfNotifications?.minAmount || 1,
-        enabledCompanies: settings.etfNotifications?.enabledCompanies || [
+        minAmount: etfNotifications.minAmount || 1,
+        enabledCompanies: etfNotifications.enabledCompanies || [
           'blackrock',
           'fidelity',
         ],
-        enabledAssets: settings.etfNotifications?.enabledAssets || [
+        enabledAssets: etfNotifications.enabledAssets || [
           'bitcoin',
           'ethereum',
         ],
-        notificationTypes: settings.etfNotifications?.notificationTypes || [
+        notificationTypes: etfNotifications.notificationTypes || [
           'instant',
         ],
-        enabled: settings.etfNotifications?.enabled !== false,
+        enabled: isEnabled,
       };
     } catch (error) {
       this.logger.error('Ошибка при получении настроек уведомлений:', error);
@@ -105,26 +118,13 @@ export class ETFNotificationService {
    */
   async getUsersForETFNotifications(appName: string): Promise<any[]> {
     try {
-      const users = await this.prisma.user.findMany({
+      this.logger.log(`🔍 Ищу пользователей для ETF уведомлений (appName: ${appName})`);
+      
+      // Сначала получаем всех активных пользователей приложения
+      const allUsers = await this.prisma.user.findMany({
         where: {
           application: { name: appName },
           isActive: true,
-          // deviceToken проверяется в JavaScript фильтре ниже (так как поле не nullable в схеме)
-          settings: {
-            path: ['etfNotifications', 'enabled'],
-            equals: true,
-          },
-          // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
-          // subscriptions: {
-          //   some: {
-          //     isActive: true,
-          //     isPremium: true,
-          //     OR: [
-          //       { expirationDate: null },
-          //       { expirationDate: { gt: new Date() } },
-          //     ],
-          //   },
-          // },
         },
         select: {
           id: true,
@@ -134,21 +134,51 @@ export class ETFNotificationService {
         },
       });
 
-      return users.filter((user) => {
-        // Фильтруем пользователей с deviceToken (на случай, если в БД есть null значения)
-        if (!user.deviceToken) {
-          return false;
+      this.logger.log(`   Найдено ${allUsers.length} активных пользователей приложения`);
+
+      // Фильтруем пользователей с настройками
+      // Поддерживаем оба формата: settings.notifications.enableETFUpdates и settings.etfNotifications.enabled
+      const usersWithSettings = allUsers.filter((user) => {
+        const settings = user.settings as any;
+        
+        // Проверяем новый формат (etfNotifications.enabled)
+        const newFormatEnabled = settings?.etfNotifications?.enabled === true;
+        
+        // Проверяем старый формат (notifications.enableETFUpdates)
+        const oldFormatEnabled = settings?.notifications?.enableETFUpdates === true;
+        
+        // Уведомления включены, если включены в любом из форматов
+        const hasEnabled = newFormatEnabled || oldFormatEnabled;
+        
+        if (!hasEnabled) {
+          this.logger.log(
+            `   Пользователь ${user.id}: уведомления отключены`,
+          );
+          this.logger.log(
+            `      settings.etfNotifications.enabled = ${settings?.etfNotifications?.enabled}`,
+          );
+          this.logger.log(
+            `      settings.notifications.enableETFUpdates = ${settings?.notifications?.enableETFUpdates}`,
+          );
         }
         
-        // Дополнительная проверка настроек (на случай, если path фильтр не сработал)
-        const settings = user.settings as any;
-        return settings?.etfNotifications?.enabled !== false;
-        
-        // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
-        // Для включения проверки подписки раскомментируйте:
-        // const hasActivePremium = await this.checkUserPremiumSubscription(user.id);
-        // return settings?.etfNotifications?.enabled !== false && hasActivePremium;
+        return hasEnabled;
       });
+
+      this.logger.log(`   Пользователей с включенными уведомлениями: ${usersWithSettings.length}`);
+
+      // Фильтруем пользователей с deviceToken
+      const usersWithToken = usersWithSettings.filter((user) => {
+        if (!user.deviceToken) {
+          this.logger.log(`   Пользователь ${user.id}: нет deviceToken`);
+          return false;
+        }
+        return true;
+      });
+
+      this.logger.log(`   Пользователей с deviceToken: ${usersWithToken.length}`);
+
+      return usersWithToken;
     } catch (error) {
       this.logger.error(
         'Ошибка при получении пользователей для ETF уведомлений:',
@@ -203,13 +233,21 @@ export class ETFNotificationService {
       const users = await this.getUsersForETFNotifications(appName);
 
       if (users.length === 0) {
-        this.logger.log('👥 Пользователей для уведомлений не найдено');
+        this.logger.warn('👥 Пользователей для уведомлений не найдено');
+        this.logger.warn('   Проверьте настройки пользователей: settings.etfNotifications.enabled должно быть true');
         return;
       }
 
       this.logger.log(
         `👥 Найдено ${users.length} пользователей для уведомлений`,
       );
+      
+      // Логируем информацию о пользователях для отладки
+      users.forEach((user, index) => {
+        this.logger.log(
+          `   Пользователь ${index + 1}: id=${user.id}, токен=${user.deviceToken?.substring(0, 30)}...`,
+        );
+      });
 
       let totalSent = 0;
       let totalFailed = 0;
@@ -268,7 +306,13 @@ export class ETFNotificationService {
             const title = this.formatNotificationTitle(record);
             const body = this.formatNotificationBody(record);
 
-            await this.firebaseAdminService.sendNotificationToToken(
+            this.logger.log(
+              `📤 Отправляю уведомление пользователю ${user.id}, токен: ${user.deviceToken?.substring(0, 20)}...`,
+            );
+            this.logger.log(`   Заголовок: ${title}`);
+            this.logger.log(`   Текст: ${body}`);
+
+            const sendResult = await this.firebaseAdminService.sendNotificationToToken(
               user.deviceToken,
               title,
               body,
@@ -281,6 +325,14 @@ export class ETFNotificationService {
                 date: record.date.toISOString(),
               },
             );
+
+            if (!sendResult) {
+              this.logger.error(
+                `❌ Не удалось отправить уведомление пользователю ${user.id}`,
+              );
+              totalFailed++;
+              continue;
+            }
 
             // Отмечаем как отправленное (если запись доставки была создана)
             if (delivery) {
@@ -302,7 +354,7 @@ export class ETFNotificationService {
 
             totalSent++;
             this.logger.log(
-              `✅ Уведомление отправлено пользователю ${user.id}`,
+              `✅ Уведомление успешно отправлено пользователю ${user.id}`,
             );
 
             // Отправляем Telegram уведомление, если есть chatId

@@ -199,4 +199,64 @@ class ETFService {
       throw Exception('Ошибка сети: $e');
     }
   }
+
+  // Получить последние N событий притоков/оттоков за сегодня
+  Future<Map<String, dynamic>> getTodayEvents({int limit = 5}) async {
+    try {
+      final url = AppConfig.getApiUrl('/etf-flow/events/today?limit=$limit');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        throw Exception(
+          'Ошибка загрузки событий за сегодня: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
+  // Получить все события притоков/оттоков с пагинацией
+  Future<Map<String, dynamic>> getAllEvents({int page = 1, int limit = 20}) async {
+    try {
+      final url = AppConfig.getApiUrl('/etf-flow/events?page=$page&limit=$limit');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        throw Exception(
+          'Ошибка загрузки событий: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
 }

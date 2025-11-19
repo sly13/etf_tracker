@@ -22,77 +22,96 @@ void main() async {
   // Инициализируем Flutter
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализируем easy_localization
-  await EasyLocalization.ensureInitialized();
-  print('🔧 EasyLocalization инициализирован');
-
-  // Загружаем переменные окружения
-  try {
-    await dotenv.load(fileName: ".env");
-    print('✅ Файл .env загружен успешно');
-  } catch (e) {
-    print('⚠️ Ошибка загрузки .env файла: $e');
-    print('🔧 Используем значения по умолчанию');
-  }
+  // Критичные инициализации (блокирующие запуск приложения)
+  await Future.wait([
+    // Инициализируем easy_localization
+    EasyLocalization.ensureInitialized().then((_) {
+      print('🔧 EasyLocalization инициализирован');
+    }),
+    // Загружаем переменные окружения
+    dotenv.load(fileName: ".env").then((_) {
+      print('✅ Файл .env загружен успешно');
+    }).catchError((e) {
+      print('⚠️ Ошибка загрузки .env файла: $e');
+      print('🔧 Используем значения по умолчанию');
+    }),
+  ]);
 
   // Отладочная информация
   print('🔧 Загружены переменные окружения:');
   print('BACKEND_API_URL : ${dotenv.env['BACKEND_API_URL ']}');
   print('REVENUECAT_IOS_API_KEY: ${dotenv.env['REVENUECAT_IOS_API_KEY']}');
 
-  // Инициализируем Firebase.
-  try {
-    await Firebase.initializeApp();
-    print('✅ Firebase Core инициализирован');
-  } catch (e) {
-    print('❌ Ошибка инициализации Firebase Core: $e');
-  }
-
-  // Инициализируем Firebase Analytics
-  try {
-    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-    print('✅ Firebase Analytics инициализирован');
-  } catch (e) {
-    print('❌ Ошибка инициализации Firebase Analytics: $e');
-  }
-
-  // Инициализируем уведомления ПЕРВЫМИ (регистрируем устройство)
-  try {
-    await NotificationService.initialize();
-    print('✅ NotificationService инициализирован');
-
-    // Проверяем/создаем пользователя после регистрации устройства
-    try {
-      await UserCheckService.registerDeviceWithFullData();
-      print('✅ Пользователь проверен/создан');
-    } catch (e) {
-      print('⚠️ Ошибка проверки пользователя: $e');
-      print('🔧 Продолжаем работу...');
-    }
-  } catch (e) {
-    print('❌ Ошибка инициализации NotificationService: $e');
-    print('🔧 Приложение будет работать без пуш-уведомлений');
-  }
-
-  // Инициализируем RevenueCat ПОСЛЕ регистрации устройства
-  try {
-    await SubscriptionService.initialize();
-    print('✅ RevenueCat инициализирован');
-    // Диагностика будет выполнена после запуска приложения в AppInitializer
-  } catch (e) {
-    print('❌ Ошибка инициализации RevenueCat: $e');
-    print('🔧 Приложение будет работать без функций подписки');
-  }
-
-  // Инициализируем App Links для обработки deep links
-  try {
-    await _initializeAppLinks();
-    print('✅ App Links инициализирован');
-  } catch (e) {
-    print('❌ Ошибка инициализации App Links: $e');
-  }
-
+  // Запускаем приложение сразу, не блокируя UI
   runApp(const MyApp());
+
+  // Инициализируем некритичные сервисы в фоне (не блокируют запуск UI)
+  _initializeBackgroundServices();
+}
+
+// Инициализация сервисов в фоновом режиме
+Future<void> _initializeBackgroundServices() async {
+  // Параллельная инициализация Firebase сервисов
+  try {
+    await Future.wait([
+      Firebase.initializeApp().then((_) {
+        print('✅ Firebase Core инициализирован');
+      }).catchError((e) {
+        print('❌ Ошибка инициализации Firebase Core: $e');
+      }),
+      Future.value().then((_) async {
+        try {
+          await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+          print('✅ Firebase Analytics инициализирован');
+        } catch (e) {
+          print('❌ Ошибка инициализации Firebase Analytics: $e');
+        }
+      }),
+    ]);
+  } catch (e) {
+    print('⚠️ Ошибка инициализации Firebase: $e');
+  }
+
+  // Инициализируем уведомления в фоне
+  Future.microtask(() async {
+    try {
+      await NotificationService.initialize();
+      print('✅ NotificationService инициализирован');
+
+      // Проверяем/создаем пользователя после регистрации устройства
+      try {
+        await UserCheckService.registerDeviceWithFullData();
+        print('✅ Пользователь проверен/создан');
+      } catch (e) {
+        print('⚠️ Ошибка проверки пользователя: $e');
+        print('🔧 Продолжаем работу...');
+      }
+    } catch (e) {
+      print('❌ Ошибка инициализации NotificationService: $e');
+      print('🔧 Приложение будет работать без пуш-уведомлений');
+    }
+  });
+
+  // Инициализируем RevenueCat в фоне
+  Future.microtask(() async {
+    try {
+      await SubscriptionService.initialize();
+      print('✅ RevenueCat инициализирован');
+    } catch (e) {
+      print('❌ Ошибка инициализации RevenueCat: $e');
+      print('🔧 Приложение будет работать без функций подписки');
+    }
+  });
+
+  // Инициализируем App Links в фоне
+  Future.microtask(() async {
+    try {
+      await _initializeAppLinks();
+      print('✅ App Links инициализирован');
+    } catch (e) {
+      print('❌ Ошибка инициализации App Links: $e');
+    }
+  });
 }
 
 // Инициализация App Links

@@ -223,7 +223,13 @@
     "daily_total_net_inflow": "Daily Total Net Inflow",
     "weekly_total_net_inflow": "Weekly Total Net Inflow",
     "monthly_total_net_inflow": "Monthly Total Net Inflow",
-    "no_data_for_date": "No data for"
+    "no_data_for_date": "No data for",
+    "today_flows": "Today's Flows",
+    "flows": "Flows",
+    "latest_flows": "Latest Flows",
+    "show_more": "Show More",
+    "no_events_today": "No events today",
+    "flow_events": "Flow Events"
   },
   "auth": {
     "sign_in_with_apple": "Sign in with Apple",

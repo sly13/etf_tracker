@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Param,
+  Query,
   HttpException,
   HttpStatus,
   Logger,
@@ -663,6 +664,492 @@ export class ETFFlowController {
     } catch (error) {
       console.error('Ошибка при получении данных виджета:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Получить последние N событий притоков/оттоков за сегодня
+   * GET /etf-flow/events/today?limit=5
+   * Использует таблицу etf_new_records, если есть данные, иначе генерирует из потоков
+   * Если за сегодня нет данных, возвращает события за последний доступный день
+   */
+  @Get('events/today')
+  async getTodayEvents(@Query('limit') limit?: string) {
+    try {
+      const limitNum = limit ? parseInt(limit, 10) : 5;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Сначала пытаемся получить из etf_new_records
+      try {
+        // Пытаемся получить за сегодня
+        let newRecords = await this.prisma.eTFNewRecord.findMany({
+          where: {
+            date: {
+              gte: today,
+              lt: tomorrow,
+            },
+          },
+          orderBy: { detectedAt: 'desc' },
+          take: limitNum,
+        });
+
+        // Если за сегодня нет данных, берем последний доступный день
+        if (newRecords.length === 0) {
+          const latestRecord = await this.prisma.eTFNewRecord.findFirst({
+            orderBy: { date: 'desc' },
+            select: { date: true },
+          });
+
+          if (latestRecord) {
+            const latestDate = new Date(latestRecord.date);
+            latestDate.setHours(0, 0, 0, 0);
+            const latestTomorrow = new Date(latestDate);
+            latestTomorrow.setDate(latestTomorrow.getDate() + 1);
+
+            newRecords = await this.prisma.eTFNewRecord.findMany({
+              where: {
+                date: {
+                  gte: latestDate,
+                  lt: latestTomorrow,
+                },
+              },
+              orderBy: { detectedAt: 'desc' },
+              take: limitNum,
+            });
+          }
+        }
+
+        if (newRecords.length > 0) {
+          const events = newRecords.map((record) => {
+            const etfName =
+              record.assetType === 'bitcoin'
+                ? 'Bitcoin ETF'
+                : record.assetType === 'ethereum'
+                  ? 'Ethereum ETF'
+                  : 'Solana ETF';
+
+            // Маппинг названий компаний
+            const companyMap: Record<string, string> = {
+              blackrock: 'BlackRock',
+              fidelity: 'Fidelity',
+              bitwise: 'Bitwise',
+              twentyOneShares: '21Shares',
+              vanEck: 'VanEck',
+              invesco: 'Invesco',
+              franklin: 'Franklin Templeton',
+              grayscale: 'Grayscale',
+              grayscaleBtc: 'Grayscale BTC',
+              grayscaleEth: 'Grayscale Crypto',
+              valkyrie: 'Valkyrie',
+              wisdomTree: 'WisdomTree',
+            };
+
+            return {
+              time: record.detectedAt.toISOString(),
+              company: companyMap[record.company] || record.company,
+              etf: etfName,
+              amount: record.amount,
+              date: record.date.toISOString().split('T')[0],
+            };
+          });
+
+          // Подсчитываем общее количество за тот же день, что и события
+          const eventDate = newRecords[0].date;
+          const eventDateStart = new Date(eventDate);
+          eventDateStart.setHours(0, 0, 0, 0);
+          const eventDateEnd = new Date(eventDateStart);
+          eventDateEnd.setDate(eventDateEnd.getDate() + 1);
+
+          const totalToday = await this.prisma.eTFNewRecord.count({
+            where: {
+              date: {
+                gte: eventDateStart,
+                lt: eventDateEnd,
+              },
+            },
+          });
+
+          return {
+            events,
+            total: totalToday,
+            source: 'etf_new_records',
+            date: eventDate.toISOString().split('T')[0],
+            isToday: eventDateStart.getTime() === today.getTime(),
+          };
+        }
+      } catch (error: any) {
+        // Если таблица не существует, продолжаем с генерацией из потоков
+        if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+          this.logger.warn('Ошибка при чтении etf_new_records, используем генерацию из потоков:', error.message);
+        }
+      }
+
+      // Fallback: генерируем из таблиц потоков
+      // Сначала пытаемся за сегодня, если нет - берем последний доступный день
+      let targetDateStart = today;
+      let targetDateEnd = tomorrow;
+      let isToday = true;
+
+      // Проверяем, есть ли данные за сегодня
+      const [ethToday, btcToday, solToday] = await Promise.all([
+        this.prisma.eTFFlow.findFirst({
+          where: {
+            date: {
+              gte: today,
+              lt: tomorrow,
+            },
+          },
+        }),
+        this.prisma.bTCFlow.findFirst({
+          where: {
+            date: {
+              gte: today,
+              lt: tomorrow,
+            },
+          },
+        }),
+        this.prisma.solFlow.findFirst({
+          where: {
+            date: {
+              gte: today,
+              lt: tomorrow,
+            },
+          },
+        }),
+      ]);
+
+      // Если за сегодня нет данных, берем последний доступный день
+      if (!ethToday && !btcToday && !solToday) {
+        const [latestEth, latestBtc, latestSol] = await Promise.all([
+          this.prisma.eTFFlow.findFirst({
+            orderBy: { date: 'desc' },
+            select: { date: true },
+          }),
+          this.prisma.bTCFlow.findFirst({
+            orderBy: { date: 'desc' },
+            select: { date: true },
+          }),
+          this.prisma.solFlow.findFirst({
+            orderBy: { date: 'desc' },
+            select: { date: true },
+          }),
+        ]);
+
+        const dates = [latestEth?.date, latestBtc?.date, latestSol?.date].filter(
+          (d): d is Date => d !== null,
+        );
+        if (dates.length > 0) {
+          const latestDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+          targetDateStart = new Date(latestDate);
+          targetDateStart.setHours(0, 0, 0, 0);
+          targetDateEnd = new Date(targetDateStart);
+          targetDateEnd.setDate(targetDateEnd.getDate() + 1);
+          isToday = false;
+        }
+      }
+
+      const [ethData, btcData, solData] = await Promise.all([
+        this.prisma.eTFFlow.findFirst({
+          where: {
+            date: {
+              gte: targetDateStart,
+              lt: targetDateEnd,
+            },
+          },
+        }),
+        this.prisma.bTCFlow.findFirst({
+          where: {
+            date: {
+              gte: targetDateStart,
+              lt: targetDateEnd,
+            },
+          },
+        }),
+        this.prisma.solFlow.findFirst({
+          where: {
+            date: {
+              gte: targetDateStart,
+              lt: targetDateEnd,
+            },
+          },
+        }),
+      ]);
+
+      const events: any[] = [];
+
+      // Функция для добавления событий из данных
+      const addEvents = (
+        data: any,
+        asset: 'bitcoin' | 'ethereum' | 'solana',
+        companyMap: Record<string, string>,
+      ) => {
+        if (!data) return;
+
+        const date = data.date instanceof Date ? data.date : new Date(data.date);
+        const timeStr = date.toISOString();
+        const dateStr = date.toISOString().split('T')[0];
+
+        Object.entries(companyMap).forEach(([key, companyName]) => {
+          const value = data[key];
+          if (value != null && value !== 0) {
+            events.push({
+              time: timeStr,
+              company: companyName,
+              etf: asset === 'bitcoin' ? 'Bitcoin ETF' : asset === 'ethereum' ? 'Ethereum ETF' : 'Solana ETF',
+              amount: value,
+              date: dateStr,
+            });
+          }
+        });
+      };
+
+      // Маппинг компаний для Ethereum
+      const ethCompanyMap: Record<string, string> = {
+        blackrock: 'BlackRock',
+        fidelity: 'Fidelity',
+        bitwise: 'Bitwise',
+        twentyOneShares: '21Shares',
+        vanEck: 'VanEck',
+        invesco: 'Invesco',
+        franklin: 'Franklin Templeton',
+        grayscale: 'Grayscale',
+        grayscaleEth: 'Grayscale Crypto',
+      };
+
+      // Маппинг компаний для Bitcoin
+      const btcCompanyMap: Record<string, string> = {
+        blackrock: 'BlackRock',
+        fidelity: 'Fidelity',
+        bitwise: 'Bitwise',
+        twentyOneShares: '21Shares',
+        vanEck: 'VanEck',
+        invesco: 'Invesco',
+        franklin: 'Franklin Templeton',
+        grayscale: 'Grayscale',
+        grayscaleBtc: 'Grayscale BTC',
+        valkyrie: 'Valkyrie',
+        wisdomTree: 'WisdomTree',
+      };
+
+      // Маппинг компаний для Solana
+      const solCompanyMap: Record<string, string> = {
+        bitwise: 'Bitwise',
+        grayscale: 'Grayscale',
+      };
+
+      addEvents(ethData, 'ethereum', ethCompanyMap);
+      addEvents(btcData, 'bitcoin', btcCompanyMap);
+      addEvents(solData, 'solana', solCompanyMap);
+
+      // Сортируем по времени (новые сначала) и берем первые N
+      events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+      return {
+        events: events.slice(0, limitNum),
+        total: events.length,
+        source: 'flow_tables',
+        date: targetDateStart.toISOString().split('T')[0],
+        isToday,
+      };
+    } catch (error) {
+      this.logger.error('Ошибка при получении событий за сегодня:', error);
+      throw new HttpException(
+        {
+          message: 'Ошибка при получении событий за сегодня',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Получить все события притоков/оттоков с пагинацией
+   * GET /etf-flow/events?page=1&limit=20
+   * Использует таблицу etf_new_records, если есть данные, иначе генерирует из потоков
+   */
+  @Get('events')
+  async getAllEvents(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    try {
+      const pageNum = page ? parseInt(page, 10) : 1;
+      const limitNum = limit ? parseInt(limit, 10) : 20;
+      const skip = (pageNum - 1) * limitNum;
+
+      // Сначала пытаемся получить из etf_new_records
+      try {
+        const total = await this.prisma.eTFNewRecord.count();
+        const newRecords = await this.prisma.eTFNewRecord.findMany({
+          orderBy: { detectedAt: 'desc' },
+          skip,
+          take: limitNum,
+        });
+
+        if (total > 0) {
+          const companyMap: Record<string, string> = {
+            blackrock: 'BlackRock',
+            fidelity: 'Fidelity',
+            bitwise: 'Bitwise',
+            twentyOneShares: '21Shares',
+            vanEck: 'VanEck',
+            invesco: 'Invesco',
+            franklin: 'Franklin Templeton',
+            grayscale: 'Grayscale',
+            grayscaleBtc: 'Grayscale BTC',
+            grayscaleEth: 'Grayscale Crypto',
+            valkyrie: 'Valkyrie',
+            wisdomTree: 'WisdomTree',
+          };
+
+          const events = newRecords.map((record) => {
+            const etfName =
+              record.assetType === 'bitcoin'
+                ? 'Bitcoin ETF'
+                : record.assetType === 'ethereum'
+                  ? 'Ethereum ETF'
+                  : 'Solana ETF';
+
+            return {
+              time: record.detectedAt.toISOString(),
+              company: companyMap[record.company] || record.company,
+              etf: etfName,
+              amount: record.amount,
+              date: record.date.toISOString().split('T')[0],
+            };
+          });
+
+          const hasMore = skip + limitNum < total;
+
+          return {
+            events,
+            pagination: {
+              page: pageNum,
+              limit: limitNum,
+              total,
+              hasMore,
+            },
+            source: 'etf_new_records',
+          };
+        }
+      } catch (error: any) {
+        // Если таблица не существует, продолжаем с генерацией из потоков
+        if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+          this.logger.warn('Ошибка при чтении etf_new_records, используем генерацию из потоков:', error.message);
+        }
+      }
+
+      // Fallback: генерируем из таблиц потоков
+      const [ethData, btcData, solData] = await Promise.all([
+        this.prisma.eTFFlow.findMany({
+          orderBy: { date: 'desc' },
+        }),
+        this.prisma.bTCFlow.findMany({
+          orderBy: { date: 'desc' },
+        }),
+        this.prisma.solFlow.findMany({
+          orderBy: { date: 'desc' },
+        }),
+      ]);
+
+      const events: any[] = [];
+
+      // Функция для добавления событий из данных
+      const addEvents = (
+        dataArray: any[],
+        asset: 'bitcoin' | 'ethereum' | 'solana',
+        companyMap: Record<string, string>,
+      ) => {
+        dataArray.forEach((data) => {
+          if (!data) return;
+
+          const date = data.date instanceof Date ? data.date : new Date(data.date);
+          const timeStr = date.toISOString();
+          const dateStr = date.toISOString().split('T')[0];
+
+          Object.entries(companyMap).forEach(([key, companyName]) => {
+            const value = data[key];
+            if (value != null && value !== 0) {
+              events.push({
+                time: timeStr,
+                company: companyName,
+                etf: asset === 'bitcoin' ? 'Bitcoin ETF' : asset === 'ethereum' ? 'Ethereum ETF' : 'Solana ETF',
+                amount: value,
+                date: dateStr,
+              });
+            }
+          });
+        });
+      };
+
+      // Маппинг компаний для Ethereum
+      const ethCompanyMap: Record<string, string> = {
+        blackrock: 'BlackRock',
+        fidelity: 'Fidelity',
+        bitwise: 'Bitwise',
+        twentyOneShares: '21Shares',
+        vanEck: 'VanEck',
+        invesco: 'Invesco',
+        franklin: 'Franklin Templeton',
+        grayscale: 'Grayscale',
+        grayscaleEth: 'Grayscale Crypto',
+      };
+
+      // Маппинг компаний для Bitcoin
+      const btcCompanyMap: Record<string, string> = {
+        blackrock: 'BlackRock',
+        fidelity: 'Fidelity',
+        bitwise: 'Bitwise',
+        twentyOneShares: '21Shares',
+        vanEck: 'VanEck',
+        invesco: 'Invesco',
+        franklin: 'Franklin Templeton',
+        grayscale: 'Grayscale',
+        grayscaleBtc: 'Grayscale BTC',
+        valkyrie: 'Valkyrie',
+        wisdomTree: 'WisdomTree',
+      };
+
+      // Маппинг компаний для Solana
+      const solCompanyMap: Record<string, string> = {
+        bitwise: 'Bitwise',
+        grayscale: 'Grayscale',
+      };
+
+      addEvents(ethData, 'ethereum', ethCompanyMap);
+      addEvents(btcData, 'bitcoin', btcCompanyMap);
+      addEvents(solData, 'solana', solCompanyMap);
+
+      // Сортируем по времени (новые сначала)
+      events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+      const total = events.length;
+      const paginatedEvents = events.slice(skip, skip + limitNum);
+      const hasMore = skip + limitNum < total;
+
+      return {
+        events: paginatedEvents,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          hasMore,
+        },
+        source: 'flow_tables',
+      };
+    } catch (error) {
+      this.logger.error('Ошибка при получении всех событий:', error);
+      throw new HttpException(
+        {
+          message: 'Ошибка при получении всех событий',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

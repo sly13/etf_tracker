@@ -93,4 +93,54 @@ class FundLogoService {
         return fundKey;
     }
   }
+
+  /// Получить ключ фонда по названию компании
+  static String? getFundKeyFromCompanyName(String companyName) {
+    // Нормализуем название для сравнения
+    final normalized = companyName.toLowerCase().trim();
+    
+    // Прямое сопоставление
+    switch (normalized) {
+      case 'blackrock':
+        return 'blackrock';
+      case 'fidelity':
+        return 'fidelity';
+      case 'bitwise':
+        return 'bitwise';
+      case '21shares':
+        return 'twentyOneShares';
+      case 'vaneck':
+        return 'vanEck';
+      case 'invesco':
+        return 'invesco';
+      case 'franklin templeton':
+      case 'franklin':
+        return 'franklin';
+      case 'grayscale':
+      case 'grayscale btc':
+        return 'grayscale';
+      case 'grayscale crypto':
+        return 'grayscaleCrypto';
+      case 'valkyrie':
+        return 'valkyrie';
+      case 'wisdomtree':
+      case 'wisdom tree':
+        return 'wisdomTree';
+      default:
+        // Попытка найти по частичному совпадению
+        if (normalized.contains('blackrock')) return 'blackrock';
+        if (normalized.contains('fidelity')) return 'fidelity';
+        if (normalized.contains('bitwise')) return 'bitwise';
+        if (normalized.contains('21shares') || normalized.contains('21 shares')) return 'twentyOneShares';
+        if (normalized.contains('vaneck')) return 'vanEck';
+        if (normalized.contains('invesco')) return 'invesco';
+        if (normalized.contains('franklin')) return 'franklin';
+        if (normalized.contains('grayscale')) {
+          return normalized.contains('crypto') ? 'grayscaleCrypto' : 'grayscale';
+        }
+        if (normalized.contains('valkyrie')) return 'valkyrie';
+        if (normalized.contains('wisdom')) return 'wisdomTree';
+        return null;
+    }
+  }
 }
