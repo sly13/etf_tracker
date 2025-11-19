@@ -17,7 +17,6 @@ class TodayFlowsPanel extends StatefulWidget {
 class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
   final ETFService _etfService = ETFService();
   List<FlowEvent> _events = [];
-  double _todayTotal = 0.0;
   bool _isLoading = true;
   String? _error;
   bool _isToday = true;
@@ -39,16 +38,9 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
       final eventsList = (data['events'] as List)
           .map((e) => FlowEvent.fromJson(e))
           .toList();
-      
-      // Вычисляем сумму за день
-      final total = eventsList.fold<double>(
-        0.0,
-        (sum, event) => sum + event.amount,
-      );
 
       setState(() {
         _events = eventsList;
-        _todayTotal = total;
         _isToday = data['isToday'] as bool? ?? true;
         _isLoading = false;
       });
@@ -141,29 +133,6 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
                     ],
                   ),
                 ),
-                const Spacer(),
-                // Сумма за день
-                if (!_isLoading && _error == null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _todayTotal >= 0
-                          ? Colors.green.withOpacity(0.15)
-                          : Colors.red.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _formatFlow(_todayTotal),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _todayTotal >= 0 ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ),
               ],
             ),
             SizedBox(height: CardStyleUtils.getSpacing(context)),
@@ -211,7 +180,7 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
                   // Кнопка "Показать еще"
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -220,13 +189,26 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
                           ),
                         );
                       },
-                      style: ElevatedButton.styleFrom(
+                      style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        backgroundColor: CardStyleUtils.getNestedCardColor(context),
+                        foregroundColor: CardStyleUtils.getTitleColor(context),
+                        side: BorderSide(
+                          color: CardStyleUtils.getDividerColor(context),
+                          width: 0.5,
+                        ),
                       ),
-                      child: Text('etf.show_more'.tr()),
+                      child: Text(
+                        'etf.show_more'.tr(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: CardStyleUtils.getTitleColor(context),
+                        ),
+                      ),
                     ),
                   ),
                 ],

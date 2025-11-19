@@ -40,29 +40,31 @@ struct SmallWidgetView: View {
     var body: some View {
         VStack(spacing: 0) {
             // BTC секция
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("BTC")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Bitcoin ETF")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=btc")!) {
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("BTC")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Bitcoin ETF")
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
+                        Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
+                            .font(.system(size: 10))
+                            .foregroundColor(.primary)
+                    }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
-                    Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
-                        .font(.system(size: 10))
-                        .foregroundColor(.primary)
-                }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 2)
-            .padding(.vertical, 10)
             
             // Разделитель
             Rectangle()
@@ -70,29 +72,31 @@ struct SmallWidgetView: View {
                 .frame(height: 0.5)
             
             // ETH секция
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("ETH")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Ethereum ETF")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=eth")!) {
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("ETH")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Ethereum ETF")
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.ethereumFlow))
+                        Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
+                            .font(.system(size: 10))
+                            .foregroundColor(.primary)
+                    }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.ethereumFlow))
-                    Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
-                        .font(.system(size: 10))
-                        .foregroundColor(.primary)
-                }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 2)
-            .padding(.vertical, 10)
             
             // Разделитель
             Rectangle()
@@ -100,33 +104,34 @@ struct SmallWidgetView: View {
                 .frame(height: 0.5)
             
             // SOL секция
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("SOL")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Solana ETF")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=sol")!) {
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("SOL")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Solana ETF")
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.solanaFlow))
+                        Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
+                            .font(.system(size: 10))
+                            .foregroundColor(.primary)
+                    }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.solanaFlow))
-                    Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
-                        .font(.system(size: 10))
-                        .foregroundColor(.primary)
-                }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 2)
-            .padding(.vertical, 10)
             
         }
         .padding(.vertical, 10)
-        .widgetURL(URL(string: "etfapp://open"))
     }
 }
 
@@ -137,38 +142,40 @@ struct MediumWidgetView: View {
     var body: some View {
         VStack(spacing: 0) {
             // BTC секция
-            HStack(spacing: 12) {
-                // BTC слева
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("BTC")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Bitcoin ETF")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=btc")!) {
+                HStack(spacing: 12) {
+                    // BTC слева
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("BTC")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Bitcoin ETF")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(width: 100, alignment: .leading) // Фиксированная ширина
+                    
+                    Spacer()
+                    
+                    // Мини-график в центре
+                    MiniBarsView(values: entry.etfData.bitcoinDailyFlows)
+                        .frame(width: 60, height: 30)
+                    
+                    Spacer()
+                    
+                    // Значение потока и суммарные активы справа
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
+                        Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .frame(width: 100, alignment: .leading) // Фиксированная ширина
-                
-                Spacer()
-                
-                // Мини-график в центре
-                MiniBarsView(values: entry.etfData.bitcoinDailyFlows)
-                    .frame(width: 60, height: 30)
-                
-                Spacer()
-                
-                // Значение потока и суммарные активы справа
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
-                    Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
             
             // Разделитель
             Rectangle()
@@ -177,38 +184,40 @@ struct MediumWidgetView: View {
                 .padding(.vertical, 2)
             
             // ETH секция
-            HStack(spacing: 12) {
-                // ETH слева
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("ETH")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Ethereum ETF")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=eth")!) {
+                HStack(spacing: 12) {
+                    // ETH слева
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("ETH")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Ethereum ETF")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(width: 100, alignment: .leading) // Фиксированная ширина
+                    
+                    Spacer()
+                    
+                    // Мини-график в центре
+                    MiniBarsView(values: entry.etfData.ethereumDailyFlows)
+                        .frame(width: 60, height: 30)
+                    
+                    Spacer()
+                    
+                    // Значение потока и суммарные активы справа
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.ethereumFlow))
+                        Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .frame(width: 100, alignment: .leading) // Фиксированная ширина
-                
-                Spacer()
-                
-                // Мини-график в центре
-                MiniBarsView(values: entry.etfData.ethereumDailyFlows)
-                    .frame(width: 60, height: 30)
-                
-                Spacer()
-                
-                // Значение потока и суммарные активы справа
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.ethereumFlow))
-                    Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
             
             // Разделитель
             Rectangle()
@@ -217,41 +226,42 @@ struct MediumWidgetView: View {
                 .padding(.vertical, 2)
             
             // SOL секция
-            HStack(spacing: 12) {
-                // SOL слева
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("SOL")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text("Solana ETF")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
+            Link(destination: URL(string: "etfapp://crypto-etf?tab=sol")!) {
+                HStack(spacing: 12) {
+                    // SOL слева
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SOL")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Solana ETF")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(width: 100, alignment: .leading) // Фиксированная ширина
+                    
+                    Spacer()
+                    
+                    // Мини-график в центре
+                    MiniBarsView(values: entry.etfData.solanaDailyFlows)
+                        .frame(width: 60, height: 30)
+                    
+                    Spacer()
+                    
+                    // Значение потока и суммарные активы справа
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(flowColor(entry.etfData.solanaFlow))
+                        Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .frame(width: 100, alignment: .leading) // Фиксированная ширина
-                
-                Spacer()
-                
-                // Мини-график в центре
-                MiniBarsView(values: entry.etfData.solanaDailyFlows)
-                    .frame(width: 60, height: 30)
-                
-                Spacer()
-                
-                // Значение потока и суммарные активы справа
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(flowColor(entry.etfData.solanaFlow))
-                    Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
         }
         .padding(.vertical, 6)
-        .widgetURL(URL(string: "etfapp://open"))
     }
 }
 
@@ -282,40 +292,46 @@ struct LargeWidgetView: View {
             // Секции с данными
             VStack(spacing: 0) {
                 // BTC секция
-                createRow(
-                    title: "BTC",
-                    subtitle: "Bitcoin ETF",
-                    flow: entry.etfData.bitcoinFlow,
-                    totalAssets: entry.etfData.bitcoinTotalAssets,
-                    dailyFlows: entry.etfData.bitcoinDailyFlows,
-                    fundFlows: entry.etfData.bitcoinFundFlows
-                )
+                Link(destination: URL(string: "etfapp://crypto-etf?tab=btc")!) {
+                    createRow(
+                        title: "BTC",
+                        subtitle: "Bitcoin ETF",
+                        flow: entry.etfData.bitcoinFlow,
+                        totalAssets: entry.etfData.bitcoinTotalAssets,
+                        dailyFlows: entry.etfData.bitcoinDailyFlows,
+                        fundFlows: entry.etfData.bitcoinFundFlows
+                    )
+                }
                 
                 Divider()
                     .background(Color.secondary.opacity(0.3))
                 
                 // ETH секция
-                createRow(
-                    title: "ETH",
-                    subtitle: "Ethereum ETF",
-                    flow: entry.etfData.ethereumFlow,
-                    totalAssets: entry.etfData.ethereumTotalAssets,
-                    dailyFlows: entry.etfData.ethereumDailyFlows,
-                    fundFlows: entry.etfData.ethereumFundFlows
-                )
+                Link(destination: URL(string: "etfapp://crypto-etf?tab=eth")!) {
+                    createRow(
+                        title: "ETH",
+                        subtitle: "Ethereum ETF",
+                        flow: entry.etfData.ethereumFlow,
+                        totalAssets: entry.etfData.ethereumTotalAssets,
+                        dailyFlows: entry.etfData.ethereumDailyFlows,
+                        fundFlows: entry.etfData.ethereumFundFlows
+                    )
+                }
                 
                 Divider()
                     .background(Color.secondary.opacity(0.3))
                 
                 // SOL секция
-                createRow(
-                    title: "SOL",
-                    subtitle: "Solana ETF",
-                    flow: entry.etfData.solanaFlow,
-                    totalAssets: entry.etfData.solanaTotalAssets,
-                    dailyFlows: entry.etfData.solanaDailyFlows,
-                    fundFlows: entry.etfData.solanaFundFlows
-                )
+                Link(destination: URL(string: "etfapp://crypto-etf?tab=sol")!) {
+                    createRow(
+                        title: "SOL",
+                        subtitle: "Solana ETF",
+                        flow: entry.etfData.solanaFlow,
+                        totalAssets: entry.etfData.solanaTotalAssets,
+                        dailyFlows: entry.etfData.solanaDailyFlows,
+                        fundFlows: entry.etfData.solanaFundFlows
+                    )
+                }
                 
                 Divider()
                     .background(Color.secondary.opacity(0.3))
@@ -341,7 +357,6 @@ struct LargeWidgetView: View {
                 .padding(.vertical, 14)
             }
         }
-        .widgetURL(URL(string: "etfapp://open"))
     }
     
     @ViewBuilder

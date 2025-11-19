@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'bitcoin_etf_screen.dart';
 import 'ethereum_etf_screen.dart';
 import 'solana_etf_screen.dart';
+import '../providers/etf_provider.dart';
 
 class CryptoETFTabsScreen extends StatefulWidget {
   const CryptoETFTabsScreen({super.key});
@@ -17,9 +19,19 @@ class _CryptoETFTabsScreenState extends State<CryptoETFTabsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final etfProvider = Provider.of<ETFProvider>(context, listen: false);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: etfProvider.cryptoETFTabIndex,
+    );
     _tabController.addListener(() {
       setState(() {}); // Обновляем состояние при изменении таба
+      // Синхронизируем с провайдером
+      final etfProvider = Provider.of<ETFProvider>(context, listen: false);
+      if (_tabController.index != etfProvider.cryptoETFTabIndex) {
+        etfProvider.switchCryptoETFTab(_tabController.index);
+      }
     });
   }
 
@@ -32,6 +44,14 @@ class _CryptoETFTabsScreenState extends State<CryptoETFTabsScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final etfProvider = Provider.of<ETFProvider>(context);
+
+    // Синхронизируем TabController с провайдером
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_tabController.index != etfProvider.cryptoETFTabIndex) {
+        _tabController.animateTo(etfProvider.cryptoETFTabIndex);
+      }
+    });
 
     return Scaffold(
       body: Column(

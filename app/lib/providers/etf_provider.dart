@@ -24,6 +24,7 @@ class ETFProvider with ChangeNotifier {
   String? _error;
   String _currentTab = 'ethereum'; // 'ethereum' или 'bitcoin'
   int _navigationTabIndex = 0; // Индекс текущего таба в навигации
+  int _cryptoETFTabIndex = 0; // Индекс текущего таба в CryptoETFTabsScreen (0=BTC, 1=ETH, 2=SOL)
   DateTime? _lastDataUpdate; // Время последнего обновления данных
 
   // Getters
@@ -45,6 +46,7 @@ class ETFProvider with ChangeNotifier {
   String? get error => _error;
   String get currentTab => _currentTab;
   int get navigationTabIndex => _navigationTabIndex;
+  int get cryptoETFTabIndex => _cryptoETFTabIndex;
   DateTime? get lastDataUpdate => _lastDataUpdate;
 
   // Проверка готовности основных данных
@@ -59,6 +61,19 @@ class ETFProvider with ChangeNotifier {
   // Переключить навигационный таб
   void switchNavigationTab(int tabIndex) {
     _navigationTabIndex = tabIndex;
+    notifyListeners();
+  }
+
+  // Переключить таб в CryptoETFTabsScreen
+  void switchCryptoETFTab(int tabIndex) {
+    _cryptoETFTabIndex = tabIndex;
+    notifyListeners();
+  }
+
+  // Установить навигацию на Crypto ETF экран с нужным табом
+  void navigateToCryptoETF(int tabIndex) {
+    _navigationTabIndex = 1; // CryptoETFTabsScreen находится на индексе 1
+    _cryptoETFTabIndex = tabIndex;
     notifyListeners();
   }
 

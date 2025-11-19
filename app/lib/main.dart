@@ -18,6 +18,9 @@ import 'services/subscription_service.dart';
 import 'services/notification_service.dart';
 import 'services/user_check_service.dart';
 
+// Глобальный ключ для доступа к контексту приложения
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   // Инициализируем Flutter
   WidgetsFlutterBinding.ensureInitialized();
@@ -137,10 +140,63 @@ void _handleDeepLink(Uri uri) {
   print('🔗 Обрабатываем deep link: ${uri.toString()}');
 
   if (uri.scheme == 'etfapp') {
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      print('⚠️ Контекст недоступен, откладываем обработку deep link');
+      // Откладываем обработку до готовности контекста
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _handleDeepLink(uri);
+      });
+      return;
+    }
+
+    final etfProvider = Provider.of<ETFProvider>(context, listen: false);
+
     switch (uri.host) {
       case 'open':
         print('🔗 Открываем главный экран приложения');
-        // Здесь можно добавить логику навигации к определенному экрану
+        // Обрабатываем параметр таба, если есть
+        final tabParam = uri.queryParameters['tab'];
+        if (tabParam != null) {
+          int? tabIndex;
+          switch (tabParam.toLowerCase()) {
+            case 'btc':
+              tabIndex = 0;
+              break;
+            case 'eth':
+              tabIndex = 1;
+              break;
+            case 'sol':
+              tabIndex = 2;
+              break;
+          }
+          if (tabIndex != null) {
+            print('🔗 Открываем Crypto ETF с табом: $tabParam (индекс: $tabIndex)');
+            etfProvider.navigateToCryptoETF(tabIndex);
+          }
+        }
+        break;
+      case 'crypto-etf':
+        // Альтернативный формат: etfapp://crypto-etf?tab=btc
+        final tabParam = uri.queryParameters['tab'];
+        if (tabParam != null) {
+          int? tabIndex;
+          switch (tabParam.toLowerCase()) {
+            case 'btc':
+              tabIndex = 0;
+              break;
+            case 'eth':
+              tabIndex = 1;
+              break;
+            case 'sol':
+              tabIndex = 2;
+              break;
+          }
+          if (tabIndex != null) {
+            print('🔗 Открываем Crypto ETF с табом: $tabParam (индекс: $tabIndex)');
+            etfProvider.navigateToCryptoETF(tabIndex);
+          }
+        }
         break;
       default:
         print('🔗 Неизвестный deep link: ${uri.host}');
@@ -232,6 +288,7 @@ class MyApp extends StatelessWidget {
         child: Consumer2<ThemeProvider, LanguageProvider>(
           builder: (context, themeProvider, languageProvider, child) {
             return MaterialApp(
+              navigatorKey: navigatorKey,
               title: 'app.title'.tr(),
               theme: themeProvider.currentTheme,
               localizationsDelegates: context.localizationDelegates,
