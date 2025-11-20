@@ -409,7 +409,17 @@ export class ETFNotificationService {
             // Проверяем, не отправляли ли мы уже уведомление для этой группы этому пользователю
             // Используем первую запись из группы для проверки
             const firstRecordId = aggregated.recordIds[0];
-            let existingDelivery = null;
+            let existingDelivery: {
+              error: string | null;
+              id: string;
+              createdAt: Date;
+              updatedAt: Date;
+              userId: string;
+              recordId: string;
+              sent: boolean;
+              sentAt: Date | null;
+              channel: string | null;
+            } | null = null;
             try {
               existingDelivery = await this.prisma.eTFNotificationDelivery.findUnique({
                 where: {
