@@ -11,6 +11,21 @@ import 'user_check_service.dart';
 import 'subscription_status_service.dart';
 
 class SubscriptionService {
+  // Флаг инициализации RevenueCat
+  static bool _isInitialized = false;
+  
+  // Проверка, инициализирован ли RevenueCat
+  static bool get isInitialized => _isInitialized;
+
+  // Вспомогательный метод для проверки инициализации перед использованием API
+  static void _ensureInitialized() {
+    if (!_isInitialized) {
+      throw Exception(
+        'RevenueCat не инициализирован. Вызовите SubscriptionService.initialize() перед использованием API.',
+      );
+    }
+  }
+
   // Получение API ключей из переменных окружения
   static String get _iosApiKey {
     try {
@@ -146,6 +161,9 @@ class SubscriptionService {
       }
 
       await Purchases.configure(configuration);
+      
+      // Устанавливаем флаг инициализации после успешной настройки
+      _isInitialized = true;
 
       // Устанавливаем ваш deviceId как App User ID в RevenueCat
       final deviceId = await NotificationService.getDeviceId();
@@ -186,6 +204,7 @@ class SubscriptionService {
       // Синхронизируем существующие подписки с бэкендом
       await syncSubscriptionsOnStartup();
     } catch (e) {
+      _isInitialized = false;
       print('❌ Ошибка инициализации RevenueCat: $e');
       // Не выбрасываем исключение, чтобы приложение могло работать без RevenueCat
       print('🔧 Приложение будет работать без функций подписки');
@@ -196,6 +215,8 @@ class SubscriptionService {
   // Установка пользователя
   static Future<void> setUser(String userId) async {
     try {
+      _ensureInitialized();
+      
       // В debug режиме используем реальный RevenueCat
       print('🔧 Debug режим: Устанавливаем пользователя в RevenueCat: $userId');
 
@@ -210,6 +231,8 @@ class SubscriptionService {
   // Получение доступных подписок
   static Future<List<StoreProduct>> getAvailablePackages() async {
     try {
+      _ensureInitialized();
+      
       print('🔧 Получаем подписки из RevenueCat...');
 
       final offerings = await Purchases.getOfferings();
@@ -296,6 +319,8 @@ class SubscriptionService {
   // Покупка подписки
   static Future<CustomerInfo> purchasePackage(StoreProduct product) async {
     try {
+      _ensureInitialized();
+      
       // В debug режиме используем реальный RevenueCat
       print('🔧 Debug режим: Реальная покупка подписки: ${product.identifier}');
 
@@ -345,6 +370,8 @@ class SubscriptionService {
   // Получение информации о пользователе
   static Future<CustomerInfo> getCustomerInfo() async {
     try {
+      _ensureInitialized();
+      
       // В debug режиме используем реальный RevenueCat для тестирования
       print('🔧 Debug режим: Получаем реальную информацию о пользователе');
 
@@ -386,6 +413,8 @@ class SubscriptionService {
   // Восстановление покупок
   static Future<CustomerInfo> restorePurchases() async {
     try {
+      _ensureInitialized();
+      
       // В debug режиме используем реальный RevenueCat для тестирования
       print('🔧 Debug режим: Реальное восстановление покупок');
 
@@ -413,6 +442,8 @@ class SubscriptionService {
   // Получение активных подписок
   static Future<List<EntitlementInfo>> getActiveEntitlements() async {
     try {
+      _ensureInitialized();
+      
       // В debug режиме используем реальный RevenueCat для тестирования
       print('🔧 Debug режим: Получаем реальные активные подписки');
 
@@ -427,6 +458,8 @@ class SubscriptionService {
   // Получение всех доступных entitlements из RevenueCat Dashboard
   static Future<List<String>> getAllAvailableEntitlements() async {
     try {
+      _ensureInitialized();
+      
       print('🔧 Получаем все доступные entitlements из RevenueCat...');
 
       final customerInfo = await Purchases.getCustomerInfo();
@@ -479,6 +512,8 @@ class SubscriptionService {
   // Диагностика проблем с RevenueCat
   static Future<void> diagnoseRevenueCatIssues() async {
     try {
+      _ensureInitialized();
+      
       print('🔍 Диагностика проблем с RevenueCat...');
 
       // Проверяем инициализацию

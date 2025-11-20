@@ -538,6 +538,32 @@ export class ETFNotificationService {
               continue;
             }
 
+            // Проверяем настройку flowAmountThreshold пользователя
+            const userSettings = (user.settings as any) || {};
+            const notifications = userSettings.notifications || {};
+            const enableFlowAmount = notifications.enableFlowAmount ?? false;
+            const flowAmountThreshold = notifications.flowAmountThreshold ?? 10.0;
+
+            if (enableFlowAmount) {
+              // Вычисляем максимальный поток по абсолютному значению
+              const maxFlow = Math.max(
+                Math.abs(aggregated.bitcoin),
+                Math.abs(aggregated.ethereum),
+                Math.abs(aggregated.solana),
+              );
+
+              if (maxFlow < flowAmountThreshold) {
+                this.logger.log(
+                  `⏭️ Пропускаем уведомление для пользователя ${user.id} - поток ${maxFlow.toFixed(2)}M меньше порога ${flowAmountThreshold}M (enableFlowAmount: true)`,
+                );
+                continue;
+              }
+
+              this.logger.log(
+                `✅ Поток ${maxFlow.toFixed(2)}M превышает порог ${flowAmountThreshold}M для пользователя ${user.id}`,
+              );
+            }
+
             this.logger.log(
               `📤 Отправляю уведомление пользователю ${user.id}, токен: ${user.deviceToken?.substring(0, 20)}...`,
             );

@@ -369,6 +369,32 @@ export class NotificationService {
 
       // Отправляем push уведомления
       for (const user of users) {
+        // Проверяем настройку flowAmountThreshold пользователя
+        const userSettings = (user.settings as UserSettings) || {};
+        const notifications = userSettings.notifications || {};
+        const enableFlowAmount = notifications.enableFlowAmount ?? false;
+        const flowAmountThreshold = notifications.flowAmountThreshold ?? 10.0;
+
+        if (enableFlowAmount) {
+          // Вычисляем максимальный поток по абсолютному значению
+          const maxFlow = Math.max(
+            Math.abs(data.bitcoinFlow || 0),
+            Math.abs(data.ethereumFlow || 0),
+            Math.abs((data as any).solanaFlow || 0),
+          );
+
+          if (maxFlow < flowAmountThreshold) {
+            this.logger.log(
+              `⏭️ Пропускаем уведомление для пользователя ${user.id} - поток ${maxFlow.toFixed(2)}M меньше порога ${flowAmountThreshold}M (enableFlowAmount: true)`,
+            );
+            continue;
+          }
+
+          this.logger.log(
+            `✅ Поток ${maxFlow.toFixed(2)}M превышает порог ${flowAmountThreshold}M для пользователя ${user.id}`,
+          );
+        }
+
         await this.firebaseAdminService.sendNotificationToToken(
           user.deviceToken,
           '📊 ETF Flow Update',

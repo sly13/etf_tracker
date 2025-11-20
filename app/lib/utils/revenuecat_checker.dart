@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import '../services/subscription_service.dart';
 
 class RevenueCatChecker {
   /// Быстрая проверка статуса RevenueCat
@@ -15,8 +16,16 @@ class RevenueCatChecker {
     try {
       print('🔍 Быстрая проверка RevenueCat...');
 
-      // Проверяем инициализацию
-      final customerInfo = await Purchases.getCustomerInfo();
+      // Проверяем, инициализирован ли RevenueCat
+      if (!SubscriptionService.isInitialized) {
+        result['status'] = 'not_initialized';
+        result['message'] = 'RevenueCat еще не инициализирован';
+        result['issues'].add('Дождитесь завершения инициализации RevenueCat');
+        return result;
+      }
+
+      // Проверяем инициализацию (вызов getCustomerInfo подтверждает, что SDK настроен)
+      await Purchases.getCustomerInfo();
       result['status'] = 'initialized';
 
       // Проверяем offerings
@@ -79,6 +88,8 @@ class RevenueCatChecker {
         return '✅ Готов к работе';
       case 'initialized':
         return '⚠️ Инициализирован, но есть проблемы';
+      case 'not_initialized':
+        return '⏳ Не инициализирован';
       case 'no_offering':
         return '❌ Нет offering';
       case 'no_products':

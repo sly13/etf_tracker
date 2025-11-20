@@ -7,6 +7,7 @@ import '../screens/main_navigation_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/subscription_selection_screen.dart';
 import '../utils/revenuecat_checker.dart';
+import '../services/subscription_service.dart';
 import 'dart:async';
 
 class AppInitializer extends StatefulWidget {
@@ -69,11 +70,8 @@ class _AppInitializerState extends State<AppInitializer> {
         });
         
         // Запускаем диагностику RevenueCat после запуска приложения
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (kDebugMode) {
-            RevenueCatChecker.printDiagnostics();
-          }
-        });
+        // Ждем инициализации RevenueCat перед запуском диагностики
+        _runRevenueCatDiagnostics();
       }
     } catch (e) {
       print('❌ Ошибка инициализации провайдеров: $e');
@@ -82,6 +80,28 @@ class _AppInitializerState extends State<AppInitializer> {
           _isInitializing = false;
         });
       }
+    }
+  }
+
+  /// Запуск диагностики RevenueCat с ожиданием инициализации
+  Future<void> _runRevenueCatDiagnostics() async {
+    if (!kDebugMode) return;
+
+    // Ждем инициализации RevenueCat (максимум 5 секунд)
+    int attempts = 0;
+    const maxAttempts = 50; // 50 попыток по 100мс = 5 секунд
+    
+    while (!SubscriptionService.isInitialized && attempts < maxAttempts) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      attempts++;
+    }
+
+    if (SubscriptionService.isInitialized) {
+      // Небольшая задержка для завершения всех операций инициализации
+      await Future.delayed(const Duration(milliseconds: 500));
+      RevenueCatChecker.printDiagnostics();
+    } else {
+      print('⚠️ RevenueCat не инициализирован, пропускаем диагностику');
     }
   }
 
