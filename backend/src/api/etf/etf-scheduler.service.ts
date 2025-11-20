@@ -219,6 +219,26 @@ export class ETFSchedulerService {
         `📊 Вычисленные потоки: Bitcoin: ${bitcoinFlow.toFixed(2)}M (текущий: ${currentBitcoinTotal.toFixed(2)}M, предыдущий: ${previousBitcoinTotal.toFixed(2)}M), Ethereum: ${ethereumFlow.toFixed(2)}M (текущий: ${currentEthereumTotal.toFixed(2)}M, предыдущий: ${previousEthereumTotal.toFixed(2)}M)`,
       );
 
+      // Проверяем, что данные за текущий день (не за прошлые дни)
+      const notificationDate = ethereumNewData?.date
+        ? new Date(ethereumNewData.date)
+        : latestEthereum?.date
+          ? new Date(latestEthereum.date)
+          : new Date();
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const notificationDateOnly = new Date(notificationDate);
+      notificationDateOnly.setHours(0, 0, 0, 0);
+
+      // Отправляем уведомление только за текущий день
+      if (notificationDateOnly.getTime() !== today.getTime()) {
+        this.logger.log(
+          `⏭️ Пропускаем отправку уведомления - данные за ${notificationDateOnly.toISOString().split('T')[0]}, а не за сегодня`,
+        );
+        return;
+      }
+
       // Отправляем уведомление только если есть значительные потоки
       if (
         Math.abs(ethereumFlow) > 0.1 ||
@@ -232,10 +252,7 @@ export class ETFSchedulerService {
           bitcoinTotal: currentBitcoinTotal,
           ethereumTotal: currentEthereumTotal,
           solanaTotal: currentSolanaTotal,
-          date:
-            ethereumNewData?.date ||
-            latestEthereum.date ||
-            new Date().toISOString(),
+          date: notificationDate.toISOString(),
           bitcoinData: bitcoinNewData || latestBitcoin,
           ethereumData: ethereumNewData || latestEthereum,
           solanaData: solanaNewData || undefined,

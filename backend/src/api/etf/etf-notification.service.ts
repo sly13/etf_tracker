@@ -120,7 +120,7 @@ export class ETFNotificationService {
     try {
       this.logger.log(`🔍 Ищу пользователей для ETF уведомлений (appName: ${appName})`);
       
-      // Сначала получаем всех активных пользователей приложения
+      // Получаем всех активных пользователей приложения с подписками
       const allUsers = await this.prisma.user.findMany({
         where: {
           application: { name: appName },
@@ -131,14 +131,51 @@ export class ETFNotificationService {
           deviceToken: true,
           telegramChatId: true,
           settings: true,
+          subscriptions: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1, // Берем только последнюю подписку
+          },
         },
       });
 
       this.logger.log(`   Найдено ${allUsers.length} активных пользователей приложения`);
 
+      // Фильтруем пользователей с активной подпиской
+      const usersWithActiveSubscription = allUsers.filter((user) => {
+        const latestSubscription = user.subscriptions?.[0];
+        
+        if (!latestSubscription) {
+          this.logger.log(
+            `   Пользователь ${user.id}: нет подписки`,
+          );
+          return false;
+        }
+
+        // Проверяем, активна ли подписка
+        const isActive =
+          latestSubscription.isActive &&
+          (!latestSubscription.expirationDate ||
+            latestSubscription.expirationDate > new Date());
+
+        if (!isActive) {
+          this.logger.log(
+            `   Пользователь ${user.id}: подписка неактивна (isActive: ${latestSubscription.isActive}, expirationDate: ${latestSubscription.expirationDate})`,
+          );
+          return false;
+        }
+
+        return true;
+      });
+
+      this.logger.log(
+        `   Пользователей с активной подпиской: ${usersWithActiveSubscription.length}`,
+      );
+
       // Фильтруем пользователей с настройками
       // Поддерживаем оба формата: settings.notifications.enableETFUpdates и settings.etfNotifications.enabled
-      const usersWithSettings = allUsers.filter((user) => {
+      const usersWithSettings = usersWithActiveSubscription.filter((user) => {
         const settings = user.settings as any;
         
         // Проверяем новый формат (etfNotifications.enabled)
@@ -196,18 +233,35 @@ export class ETFNotificationService {
       this.logger.log('🔔 Начинаю отправку уведомлений о новых записях ETF...');
 
       // Получаем новые записи без отправленных уведомлений
+      // ВАЖНО: Отправляем уведомления только за текущий день (по полю date, а не detectedAt)
+      // Это предотвращает отправку уведомлений за прошлые дни, если они не были отправлены ранее
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Начало текущего дня
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1); // Начало следующего дня
+
       let newRecords;
       try {
+        // Получаем записи за текущий день, для которых нет отправленных доставок
+        // Используем NOT для проверки, что нет доставок с sent: true
         newRecords = await this.prisma.eTFNewRecord.findMany({
           where: {
+            date: {
+              gte: today, // Дата записи >= начало текущего дня
+              lt: tomorrow, // Дата записи < начало следующего дня
+            },
+            // Записи, для которых нет отправленных доставок
+            // Это означает, что либо доставок нет вообще, либо они не отправлены (sent: false)
             deliveries: {
-              none: {}, // Записи без доставок уведомлений
+              none: {
+                sent: true, // Нет отправленных доставок
+              },
             },
           },
           orderBy: {
             detectedAt: 'desc',
           },
-          take: 20, // Ограничиваем количество для обработки
+          take: 100, // Лимит для обработки
         });
       } catch (error: any) {
         // Проверяем, является ли ошибка отсутствием таблицы (P2021)
@@ -221,16 +275,16 @@ export class ETFNotificationService {
       }
 
       if (newRecords.length === 0) {
-        this.logger.log('📭 Новых записей для уведомлений не найдено');
+        this.logger.log('📭 Новых записей для уведомлений не найдено за текущий день');
         return;
       }
 
       this.logger.log(
-        `📊 Найдено ${newRecords.length} новых записей для уведомлений`,
+        `📊 Найдено ${newRecords.length} новых записей для уведомлений за текущий день (${today.toISOString().split('T')[0]})`,
       );
 
-      // Группируем записи по времени обнаружения (detectedAt) с точностью до минуты
-      // Если несколько записей пришли в одну минуту, суммируем их потоки
+      // Группируем записи по времени обнаружения (detectedAt) с точностью до 5 минут
+      // Это уменьшит количество уведомлений и объединит близкие по времени события
       const aggregatedFlows = new Map<string, {
         bitcoin: number;
         ethereum: number;
@@ -242,10 +296,14 @@ export class ETFNotificationService {
       }>();
 
       for (const record of newRecords) {
-        // Используем время обнаружения с точностью до минуты как ключ
-        // Округляем до минуты: обрезаем секунды и миллисекунды
+        // Используем время обнаружения с точностью до 5 минут как ключ
+        // Округляем до 5 минут: обрезаем секунды и миллисекунды, округляем минуты до кратных 5
         const detectedAt = new Date(record.detectedAt);
         detectedAt.setSeconds(0, 0);
+        detectedAt.setMilliseconds(0);
+        const minutes = detectedAt.getMinutes();
+        const roundedMinutes = Math.floor(minutes / 5) * 5;
+        detectedAt.setMinutes(roundedMinutes);
         const timeKey = detectedAt.toISOString();
         
         if (!aggregatedFlows.has(timeKey)) {
@@ -298,6 +356,38 @@ export class ETFNotificationService {
           `   Пользователь ${index + 1}: id=${user.id}, токен=${user.deviceToken?.substring(0, 30)}...`,
         );
       });
+
+      // Проверяем последние отправленные уведомления для каждого пользователя
+      // чтобы избежать слишком частых уведомлений (не более одного в 5 минут)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const userLastNotificationMap = new Map<string, Date | null>();
+      
+      for (const user of users) {
+        try {
+          const lastNotification = await this.prisma.eTFNotificationDelivery.findFirst({
+            where: {
+              userId: user.id,
+              sent: true,
+              sentAt: {
+                gte: fiveMinutesAgo,
+              },
+            },
+            orderBy: {
+              sentAt: 'desc',
+            },
+            select: {
+              sentAt: true,
+            },
+          });
+          userLastNotificationMap.set(user.id, lastNotification?.sentAt || null);
+        } catch (error: any) {
+          // Игнорируем ошибки, если таблица не существует
+          if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+            this.logger.error('Ошибка проверки последнего уведомления:', error);
+          }
+          userLastNotificationMap.set(user.id, null);
+        }
+      }
 
       let totalSent = 0;
       let totalFailed = 0;
@@ -406,29 +496,36 @@ export class ETFNotificationService {
         // Отправляем уведомления каждому пользователю
         for (const user of users) {
           try {
+            // Проверяем частоту отправки - не более одного уведомления в 5 минут
+            const lastNotificationTime = userLastNotificationMap.get(user.id);
+            if (lastNotificationTime && lastNotificationTime >= fiveMinutesAgo) {
+              this.logger.log(
+                `⏭️ Пропускаем уведомление для пользователя ${user.id} - последнее уведомление было ${Math.round((Date.now() - lastNotificationTime.getTime()) / 1000)} секунд назад (лимит: 5 минут)`,
+              );
+              continue;
+            }
+
             // Проверяем, не отправляли ли мы уже уведомление для этой группы этому пользователю
-            // Используем первую запись из группы для проверки
-            const firstRecordId = aggregated.recordIds[0];
-            let existingDelivery: {
-              error: string | null;
-              id: string;
-              createdAt: Date;
-              updatedAt: Date;
-              userId: string;
-              recordId: string;
-              sent: boolean;
-              sentAt: Date | null;
-              channel: string | null;
-            } | null = null;
+            // Проверяем ВСЕ записи в группе - если хотя бы одна уже отправлена, пропускаем всю группу
+            let shouldSkip = false;
             try {
-              existingDelivery = await this.prisma.eTFNotificationDelivery.findUnique({
+              const existingDeliveries = await this.prisma.eTFNotificationDelivery.findMany({
                 where: {
-                  userId_recordId: {
-                    userId: user.id,
-                    recordId: firstRecordId,
+                  userId: user.id,
+                  recordId: {
+                    in: aggregated.recordIds,
                   },
+                  sent: true,
                 },
+                take: 1, // Нам нужно только знать, есть ли хотя бы одна
               });
+
+              if (existingDeliveries.length > 0) {
+                shouldSkip = true;
+                this.logger.log(
+                  `⏭️ Уведомление для пользователя ${user.id} и группы ${timeKey} уже отправлено (найдено ${existingDeliveries.length} отправленных записей из ${aggregated.recordIds.length}), пропускаем`,
+                );
+              }
             } catch (error: any) {
               // Игнорируем ошибки, если таблица не существует
               if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
@@ -437,10 +534,7 @@ export class ETFNotificationService {
             }
 
             // Если доставка уже существует и отправлена, пропускаем
-            if (existingDelivery?.sent) {
-              this.logger.log(
-                `⏭️ Уведомление для пользователя ${user.id} и группы ${timeKey} уже отправлено, пропускаем`,
-              );
+            if (shouldSkip) {
               continue;
             }
 
@@ -502,6 +596,8 @@ export class ETFNotificationService {
             }
 
             totalSent++;
+            // Обновляем время последнего уведомления для пользователя
+            userLastNotificationMap.set(user.id, new Date());
             this.logger.log(
               `✅ Уведомление успешно отправлено пользователю ${user.id}`,
             );

@@ -252,6 +252,7 @@ export class NotificationService {
 
   /**
    * Получение пользователей с включенными ETF уведомлениями
+   * ВАЖНО: Только для пользователей с активной подпиской
    */
   async getUsersWithETFNotifications(appName: string): Promise<any[]> {
     try {
@@ -264,10 +265,39 @@ export class NotificationService {
             equals: true,
           },
         },
-        include: { application: true },
+        include: {
+          application: true,
+          subscriptions: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1, // Берем только последнюю подписку
+          },
+        },
       });
 
-      return users;
+      // Фильтруем только пользователей с активной подпиской
+      const usersWithActiveSubscription = users.filter((user) => {
+        const latestSubscription = user.subscriptions?.[0];
+        
+        if (!latestSubscription) {
+          return false;
+        }
+
+        // Проверяем, активна ли подписка
+        const isActive =
+          latestSubscription.isActive &&
+          (!latestSubscription.expirationDate ||
+            latestSubscription.expirationDate > new Date());
+
+        return isActive;
+      });
+
+      this.logger.log(
+        `📊 Найдено ${usersWithActiveSubscription.length} пользователей с активной подпиской и включенными ETF уведомлениями (из ${users.length} всего)`,
+      );
+
+      return usersWithActiveSubscription;
     } catch (error) {
       this.logger.error(
         'Ошибка получения пользователей с ETF уведомлениями:',
