@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import '../services/etf_service.dart';
+import '../services/local_storage_service.dart';
 import '../models/flow_event.dart';
 import '../utils/card_style_utils.dart';
 import '../utils/adaptive_text_utils.dart';
@@ -28,45 +29,117 @@ class TodayFlowsPanel extends StatefulWidget {
   const TodayFlowsPanel({super.key});
 
   @override
-  State<TodayFlowsPanel> createState() => _TodayFlowsPanelState();
+  State<TodayFlowsPanel> createState() => TodayFlowsPanelState();
 }
 
-class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
+class TodayFlowsPanelState extends State<TodayFlowsPanel> {
   final ETFService _etfService = ETFService();
+  final LocalStorageService _storageService = LocalStorageService();
   List<FlowEvent> _events = [];
   bool _isLoading = true;
+  bool _isRefreshing = false; // Флаг для состояния обновления
   String? _error;
   bool _isToday = true;
 
   @override
   void initState() {
     super.initState();
+    // Загружаем данные из кэша сразу, без установки loading
+    _loadFromCacheImmediately();
+    // Затем загружаем с сервера в фоне
     _loadTodayEvents();
   }
 
-  Future<void> _loadTodayEvents() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
+  // Загрузить данные из кэша немедленно
+  Future<void> _loadFromCacheImmediately() async {
     try {
-      final data = await _etfService.getTodayEvents(limit: 5);
-      final eventsList = (data['events'] as List)
-          .map((e) => FlowEvent.fromJson(e))
-          .toList();
+      final cachedData = await _storageService.getTodayEvents();
+      if (mounted) {
+        if (cachedData != null) {
+          final eventsList = (cachedData['events'] as List)
+              .map((e) => FlowEvent.fromJson(e))
+              .toList();
 
-      setState(() {
-        _events = eventsList;
-        _isToday = data['isToday'] as bool? ?? true;
-        _isLoading = false;
-      });
+          setState(() {
+            _events = eventsList;
+            _isToday = cachedData['isToday'] as bool? ?? true;
+            _isLoading = false;
+          });
+        }
+        // Если данных в кэше нет, оставляем _isLoading = true для показа скелетонов
+      }
     } catch (e) {
+      debugPrint('Ошибка загрузки кэшированных today events: $e');
+      // При ошибке оставляем loading = true, чтобы показать скелетоны
+    }
+  }
+
+  Future<void> _loadTodayEvents({bool isRefresh = false}) async {
+    // Если данные уже загружены из кэша, не показываем loading
+    if (_events.isEmpty && !isRefresh) {
       setState(() {
-        _error = e.toString();
-        _isLoading = false;
+        _isLoading = true;
+        _error = null;
+      });
+    } else if (isRefresh) {
+      // При обновлении показываем флаг обновления
+      setState(() {
+        _isRefreshing = true;
+        _error = null;
       });
     }
+
+    try {
+      // Обновляем данные с сервера в фоне
+      try {
+        final data = await _etfService.getTodayEvents(limit: 5);
+        final eventsList = (data['events'] as List)
+            .map((e) => FlowEvent.fromJson(e))
+            .toList();
+
+        // Сохраняем в кэш
+        await _storageService.saveTodayEvents(data);
+
+        if (mounted) {
+          setState(() {
+            _events = eventsList;
+            _isToday = data['isToday'] as bool? ?? true;
+            _isLoading = false;
+            _isRefreshing = false;
+          });
+        }
+      } catch (e) {
+        // Ошибка обновления не критична, используем кэшированные данные
+        debugPrint('Ошибка обновления today events: $e');
+        if (mounted) {
+          if (_events.isEmpty) {
+            setState(() {
+              _isLoading = false;
+              _isRefreshing = false;
+            });
+          } else {
+            // При обновлении оставляем старые данные, но убираем флаг обновления
+            setState(() {
+              _isRefreshing = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
+
+  // Публичный метод для обновления данных извне
+  // При обновлении показываем скелетон
+  Future<void> refresh() async {
+    await _loadTodayEvents(isRefresh: true);
   }
 
   String _formatFlow(double value) {
@@ -183,13 +256,14 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const ValueKey('today_flows_panel_container'),
       decoration: CardStyleUtils.getCardDecoration(context),
       child: Padding(
         padding: CardStyleUtils.getCardPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Заголовок
+            // Заголовок - всегда показываем
             Row(
               children: [
                 Expanded(
@@ -214,82 +288,81 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
             ),
             SizedBox(height: CardStyleUtils.getSpacing(context)),
 
-            // Содержимое
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_error != null)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Ошибка: $_error',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              )
-            else if (_events.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'etf.no_events_today'.tr(),
-                    style: TextStyle(
-                      color: CardStyleUtils.getSubtitleColor(context),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: [
-                  // Timeline с событиями
-                  _buildTimeline(),
-                  SizedBox(height: CardStyleUtils.getSpacing(context)),
-                  // Кнопка "Показать еще"
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FlowEventsScreen(),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        backgroundColor: CardStyleUtils.getNestedCardColor(context),
-                        foregroundColor: CardStyleUtils.getTitleColor(context),
-                        side: BorderSide(
-                          color: CardStyleUtils.getDividerColor(context),
-                          width: 0.5,
-                        ),
-                      ),
+            // Содержимое - всегда показываем блок
+            Column(
+              children: [
+                // Timeline с событиями или сообщение
+                // При обновлении показываем данные, но числа будут со скелетоном
+                if (_isLoading && _events.isEmpty)
+                  _buildSkeleton()
+                else if (_events.isNotEmpty)
+                  KeyedSubtree(
+                    key: const ValueKey('today_flows_timeline'),
+                    child: _buildTimeline(),
+                  )
+                else if (_error != null && _events.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Text(
-                        'etf.show_more'.tr(),
+                        'Ошибка: $_error',
                         style: TextStyle(
+                          color: Colors.red,
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: CardStyleUtils.getTitleColor(context),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'etf.no_events_today'.tr(),
+                        style: TextStyle(
+                          color: CardStyleUtils.getSubtitleColor(context),
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                SizedBox(height: CardStyleUtils.getSpacing(context)),
+                // Кнопка "Показать еще" (показываем всегда)
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FlowEventsScreen(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      backgroundColor: CardStyleUtils.getNestedCardColor(context),
+                      foregroundColor: CardStyleUtils.getTitleColor(context),
+                      side: BorderSide(
+                        color: CardStyleUtils.getDividerColor(context),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Text(
+                      'etf.show_more'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CardStyleUtils.getTitleColor(context),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -297,7 +370,10 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
   }
 
   Widget _buildTimeline() {
-    if (_events.isEmpty) return const SizedBox.shrink();
+    // События всегда есть, если вызывается этот метод
+    if (_events.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     final grouped = _groupEventsByDate(_events);
     final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
@@ -448,15 +524,25 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    _formatFlow(event.amount),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                  // Показываем скелетон на числах при обновлении
+                  _isRefreshing
+                      ? Container(
+                          width: 60,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        )
+                      : Text(
+                          _formatFlow(event.amount),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                 ],
               ),
             );
@@ -524,18 +610,124 @@ class _TodayFlowsPanelState extends State<TodayFlowsPanel> {
             ),
           ),
           const SizedBox(width: 10),
-          // Сумма
-          Text(
-            _formatFlow(event.amount),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
-              letterSpacing: 0.3,
-            ),
-          ),
+          // Сумма - показываем скелетон при обновлении
+          _isRefreshing
+              ? Container(
+                  width: 60,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                )
+              : Text(
+                  _formatFlow(event.amount),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
+                    letterSpacing: 0.3,
+                  ),
+                ),
         ],
       ),
+    );
+  }
+
+  /// Создать скелетон для состояния загрузки
+  Widget _buildSkeleton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(3, (index) {
+        final isLast = index == 2;
+        return TimelineTile(
+          alignment: TimelineAlign.start,
+          isFirst: index == 0,
+          isLast: isLast,
+          indicatorStyle: IndicatorStyle(
+            width: 32,
+            height: 32,
+            indicator: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: CardStyleUtils.getNestedCardColor(context),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: CardStyleUtils.getDividerColor(context),
+                  width: 1.5,
+                ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          beforeLineStyle: LineStyle(
+            color: CardStyleUtils.getDividerColor(context),
+            thickness: 2,
+          ),
+          afterLineStyle: !isLast
+              ? LineStyle(
+                  color: CardStyleUtils.getDividerColor(context),
+                  thickness: 2,
+                )
+              : null,
+          endChild: Container(
+            margin: const EdgeInsets.only(bottom: 12, left: 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: CardStyleUtils.getNestedCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: CardStyleUtils.getDividerColor(context),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 120,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 60,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: CardStyleUtils.getSubtitleColor(context).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 }

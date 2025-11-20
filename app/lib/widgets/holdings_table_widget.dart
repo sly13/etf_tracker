@@ -83,152 +83,156 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final columnPadding = isSmallScreen ? 2.0 : 4.0;
 
     return Row(
-        children: [
-          // Название компании
-          Expanded(
-            flex: 2,
+      children: [
+        // Название компании
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: () => _handleSort('name'),
+            child: Row(
+              children: [
+                Text(
+                  'holdings.company'.tr(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: CardStyleUtils.getSubtitleColor(context),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  _getSortIcon('name'),
+                  size: 14,
+                  color: widget.sortBy == 'name'
+                      ? CardStyleUtils.getTitleColor(context)
+                      : CardStyleUtils.getSubtitleColor(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Вертикальный разделитель между столбцом компании и остальными
+        Container(
+          width: 1,
+          margin: EdgeInsets.symmetric(horizontal: columnSpacing / 2),
+          color: CardStyleUtils.getDividerColor(context),
+        ),
+        // BTC колонка
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: columnPadding),
             child: GestureDetector(
-              onTap: () => _handleSort('name'),
-              child: Row(
-                children: [
-                  Text(
-                    'holdings.company'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CardStyleUtils.getSubtitleColor(context),
+              onTap: () => _handleSort('btc'),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'BTC',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: CardStyleUtils.getSubtitleColor(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _getSortIcon('name'),
-                    size: 14,
-                    color: widget.sortBy == 'name'
-                        ? CardStyleUtils.getTitleColor(context)
-                        : CardStyleUtils.getSubtitleColor(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Вертикальный разделитель между столбцом компании и остальными
-          Container(
-            width: 1,
-            margin: EdgeInsets.symmetric(horizontal: columnSpacing / 2),
-            color: CardStyleUtils.getDividerColor(context),
-          ),
-          // BTC колонка
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: columnPadding),
-              child: GestureDetector(
-                onTap: () => _handleSort('btc'),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'BTC',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        _getSortIcon('btc'),
-                        size: 14,
-                        color: widget.sortBy == 'btc'
-                            ? Colors.orange
-                            : CardStyleUtils.getSubtitleColor(context),
-                      ),
-                    ],
-                  ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _getSortIcon('btc'),
+                      size: 14,
+                      color: widget.sortBy == 'btc'
+                          ? CardStyleUtils.getTitleColor(context)
+                          : CardStyleUtils.getSubtitleColor(context),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          SizedBox(width: columnSpacing),
-          // ETH колонка
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: columnPadding),
-              child: GestureDetector(
-                onTap: () => _handleSort('eth'),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'ETH',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
-                        ),
+        ),
+        SizedBox(width: columnSpacing),
+        // ETH колонка
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: columnPadding),
+            child: GestureDetector(
+              onTap: () => _handleSort('eth'),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'ETH',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: CardStyleUtils.getSubtitleColor(context),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        _getSortIcon('eth'),
-                        size: 14,
-                        color: widget.sortBy == 'eth'
-                            ? Colors.blue
-                            : CardStyleUtils.getSubtitleColor(context),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _getSortIcon('eth'),
+                      size: 14,
+                      color: widget.sortBy == 'eth'
+                          ? CardStyleUtils.getTitleColor(context)
+                          : CardStyleUtils.getSubtitleColor(context),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          SizedBox(width: columnSpacing),
-          // SOL колонка
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: columnPadding),
-              child: GestureDetector(
-                onTap: () => _handleSort('sol'),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'SOL',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.purple,
-                        ),
+        ),
+        SizedBox(width: columnSpacing),
+        // SOL колонка
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: columnPadding),
+            child: GestureDetector(
+              onTap: () => _handleSort('sol'),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'SOL',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: CardStyleUtils.getSubtitleColor(context),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        _getSortIcon('sol'),
-                        size: 14,
-                        color: widget.sortBy == 'sol'
-                            ? Colors.purple
-                            : CardStyleUtils.getSubtitleColor(context),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _getSortIcon('sol'),
+                      size: 14,
+                      color: widget.sortBy == 'sol'
+                          ? CardStyleUtils.getTitleColor(context)
+                          : CardStyleUtils.getSubtitleColor(context),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ],
     );
   }
 
-  Widget _buildTableRow(BuildContext context, Map<String, dynamic> data, bool isDark) {
+  Widget _buildTableRow(
+    BuildContext context,
+    Map<String, dynamic> data,
+    bool isDark,
+  ) {
     final company = data['company'] as String;
     final btcValue = data['btc'] as double?;
     final ethValue = data['eth'] as double?;
@@ -254,7 +258,9 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: CardStyleUtils.getTitleColor(context),
+                color: isDark
+                    ? Colors.grey[300]! // Более светлый серый для темной темы
+                    : Colors.grey[700]!, // Более темный серый для светлой темы
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -283,7 +289,9 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
                         style: TextStyle(
                           fontSize: valueFontSize,
                           fontWeight: FontWeight.bold,
-                          color: btcValue != null ? Colors.orange : CardStyleUtils.getSubtitleColor(context),
+                          color: btcValue != null
+                              ? CardStyleUtils.getTitleColor(context)
+                              : CardStyleUtils.getSubtitleColor(context),
                         ),
                         textAlign: TextAlign.right,
                         softWrap: false,
@@ -315,7 +323,9 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
                         style: TextStyle(
                           fontSize: valueFontSize,
                           fontWeight: FontWeight.bold,
-                          color: ethValue != null ? Colors.blue : CardStyleUtils.getSubtitleColor(context),
+                          color: ethValue != null
+                              ? CardStyleUtils.getTitleColor(context)
+                              : CardStyleUtils.getSubtitleColor(context),
                         ),
                         textAlign: TextAlign.right,
                         softWrap: false,
@@ -347,7 +357,9 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
                         style: TextStyle(
                           fontSize: valueFontSize,
                           fontWeight: FontWeight.bold,
-                          color: solValue != null ? Colors.purple : CardStyleUtils.getSubtitleColor(context),
+                          color: solValue != null
+                              ? CardStyleUtils.getTitleColor(context)
+                              : CardStyleUtils.getSubtitleColor(context),
                         ),
                         textAlign: TextAlign.right,
                         softWrap: false,
@@ -493,7 +505,12 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
   //   }
   // }
 
-  Widget _buildFlowChange(String companyName, String type, bool isDark, double fontSize) {
+  Widget _buildFlowChange(
+    String companyName,
+    String type,
+    bool isDark,
+    double fontSize,
+  ) {
     final companyChanges = widget.separateFlowChanges[companyName];
     final change = companyChanges?[type];
 

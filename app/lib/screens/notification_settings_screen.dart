@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/notification_provider.dart';
@@ -63,89 +64,90 @@ class NotificationSettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Кнопка для тестового уведомления (перемещена выше для лучшей видимости)
-                Card(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1C1C1E)
-                      : Colors.green.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Тестовое уведомление',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Отправить тестовое уведомление на устройство для проверки работы',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[300]
-                                : Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              print('🔔 NotificationSettingsScreen: Кнопка нажата, отправляем тестовое уведомление...');
-                              try {
-                                await NotificationService.showTestNotification(
-                                  title: 'Тестовое уведомление',
-                                  body: 'Это тестовое уведомление для проверки работы на симуляторе',
-                                );
-                                print('🔔 NotificationSettingsScreen: Метод showTestNotification завершен');
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text('Тестовое уведомление отправлено. Если не видите уведомление, сверните приложение.'),
-                                      duration: const Duration(seconds: 4),
-                                      action: SnackBarAction(
-                                        label: 'OK',
-                                        onPressed: () {},
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } catch (e, stackTrace) {
-                                print('❌ NotificationSettingsScreen: Ошибка при отправке уведомления: $e');
-                                print('❌ NotificationSettingsScreen: Stack trace: $stackTrace');
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Ошибка: $e'),
-                                      backgroundColor: Colors.red,
-                                      duration: const Duration(seconds: 3),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                            icon: const Icon(Icons.notifications_active),
-                            label: const Text('Отправить тестовое уведомление'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                // Кнопка для тестового уведомления (только в debug режиме)
+                if (kDebugMode) ...[
+                  Card(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1C1C1E)
+                        : Colors.green.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Тестовое уведомление',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black87,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Отправить тестовое уведомление на устройство для проверки работы',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                print('🔔 NotificationSettingsScreen: Кнопка нажата, отправляем тестовое уведомление...');
+                                try {
+                                  await NotificationService.showTestNotification(
+                                    title: 'Тестовое уведомление',
+                                    body: 'Это тестовое уведомление для проверки работы на симуляторе',
+                                  );
+                                  print('🔔 NotificationSettingsScreen: Метод showTestNotification завершен');
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text('Тестовое уведомление отправлено. Если не видите уведомление, сверните приложение.'),
+                                        duration: const Duration(seconds: 4),
+                                        action: SnackBarAction(
+                                          label: 'OK',
+                                          onPressed: () {},
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e, stackTrace) {
+                                  print('❌ NotificationSettingsScreen: Ошибка при отправке уведомления: $e');
+                                  print('❌ NotificationSettingsScreen: Stack trace: $stackTrace');
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Ошибка: $e'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.notifications_active),
+                              label: const Text('Отправить тестовое уведомление'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
+                ],
 
                 // Настройка уведомлений о сумме потоков
                 _buildFlowAmountNotificationCard(

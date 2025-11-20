@@ -358,7 +358,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(isDark ? 0.3 : 0.2),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -418,7 +418,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
               selectedDecoration: CardStyleUtils.getSelectedDayDecoration(context),
               todayDecoration: BoxDecoration(
                 color: Colors.orange.withOpacity(isDark ? 0.3 : 0.2),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(8),
               ),
               markersMaxCount:
                   0, // Убираем маркеры, так как используем кастомные билдеры

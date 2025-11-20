@@ -343,6 +343,20 @@ export class ETFFlowController {
     const solanaData: SolFlowData[] =
       await this.etfFlowService.getETFFlowData('solana');
 
+    // Даты seed данных, которые нужно исключить из расчетов
+    const seedDates = {
+      ethereum: '2024-07-22',
+      solana: '2025-10-27',
+    };
+
+    // Исключаем seed данные из расчетов
+    const filteredEthereumData = ethereumData.filter(
+      (item) => item.date !== seedDates.ethereum,
+    );
+    const filteredSolanaData = solanaData.filter(
+      (item) => item.date !== seedDates.solana,
+    );
+
     // Создаем объект для хранения суммарного владения каждого фонда
     const fundHoldings: Record<
       string,
@@ -368,8 +382,8 @@ export class ETFFlowController {
       wisdomTree: { eth: 0, btc: 0, sol: 0 },
     };
 
-    // Суммируем все потоки Ethereum для каждого фонда
-    ethereumData.forEach((item) => {
+    // Суммируем все потоки Ethereum для каждого фонда (исключая seed данные)
+    filteredEthereumData.forEach((item) => {
       fundHoldings.blackrock.eth += item.blackrock || 0;
       fundHoldings.fidelity.eth += item.fidelity || 0;
       fundHoldings.bitwise.eth += item.bitwise || 0;
@@ -399,8 +413,8 @@ export class ETFFlowController {
       bitcoinFundHoldings.wisdomTree.btc += btcItem.wisdomTree || 0;
     });
 
-    // Суммируем все потоки Solana для каждого фонда
-    solanaData.forEach((item) => {
+    // Суммируем все потоки Solana для каждого фонда (исключая seed данные)
+    filteredSolanaData.forEach((item) => {
       fundHoldings.bitwise.sol += item.bitwise || 0;
       fundHoldings.vanEck.sol += item.vanEck || 0;
       fundHoldings.fidelity.sol += item.fidelity || 0;
@@ -421,17 +435,29 @@ export class ETFFlowController {
         Math.round(allFundHoldings[fund].sol * 10) / 10;
     });
 
-    // Рассчитываем общие суммы без базовой суммы
-    const totalEth = Object.values(allFundHoldings).reduce(
-      (sum, fund) => sum + fund.eth,
+    // Рассчитываем общие суммы - используем тот же метод, что и в summary
+    // для консистентности: суммируем все потоки за все дни через calculateDailyTotal
+    const calculateDailyTotal = (item: any): number => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { total: _total, date: _date, ...funds } = item;
+      const numericFunds: Record<string, number> = funds;
+      return Object.values(numericFunds).reduce(
+        (sum: number, value: number) => sum + (value || 0),
+        0,
+      );
+    };
+
+    // Пересчитываем totals используя тот же метод, что и в summary
+    const totalEth = filteredEthereumData.reduce(
+      (sum, item) => sum + calculateDailyTotal(item),
       0,
     );
-    const totalBtc = Object.values(allFundHoldings).reduce(
-      (sum, fund) => sum + fund.btc,
+    const totalBtc = bitcoinData.reduce(
+      (sum, item) => sum + calculateDailyTotal(item),
       0,
     );
-    const totalSol = Object.values(allFundHoldings).reduce(
-      (sum, fund) => sum + fund.sol,
+    const totalSol = filteredSolanaData.reduce(
+      (sum, item) => sum + calculateDailyTotal(item),
       0,
     );
 

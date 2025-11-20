@@ -22,10 +22,17 @@ class ETFTabsScreen extends StatefulWidget {
 class _ETFTabsScreenState extends State<ETFTabsScreen> {
   // Убран функционал ручного обновления
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey<TodayFlowsPanelState> _todayFlowsPanelKey =
+      GlobalKey<TodayFlowsPanelState>();
+
+  // Создаем виджет один раз, чтобы он не пересоздавался
+  late final TodayFlowsPanel _todayFlowsPanel;
 
   @override
   void initState() {
     super.initState();
+    // Создаем виджет один раз при инициализации
+    _todayFlowsPanel = TodayFlowsPanel(key: _todayFlowsPanelKey);
     // Data is loaded only during app initialization, not here
   }
 
@@ -41,12 +48,56 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     await ScreenshotService.createDailyETFScreenshot(context: context);
   }
 
+  // Создаем контент с данными провайдера
+  Widget _buildContentWithData(ETFProvider etfProvider) {
+    return SingleChildScrollView(
+      key: const ValueKey('main_scroll_view'),
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: AdaptiveTextUtils.getContentPadding(context),
+      child: Column(
+        key: const ValueKey('main_content_column'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Общая сводка
+          RepaintBoundary(
+            key: const ValueKey('summary_card_repaint'),
+            child: KeyedSubtree(
+              key: const ValueKey('summary_card'),
+              child: _buildSummaryCard(etfProvider),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Панель притоков за сегодня - используем статический виджет
+          RepaintBoundary(
+            key: const ValueKey('today_flows_panel_repaint'),
+            child: KeyedSubtree(
+              key: const ValueKey('today_flows_panel_wrapper'),
+              child: _todayFlowsPanel,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Календарь суммарных потоков (BTC+ETH+SOL)
+          RepaintBoundary(
+            key: const ValueKey('combined_calendar_repaint'),
+            child: KeyedSubtree(
+              key: const ValueKey('combined_calendar'),
+              child: _buildCombinedCalendar(etfProvider),
+            ),
+          ),
+          // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Consumer<ETFProvider>(
-          builder: (context, etfProvider, child) {
+          builder: (context, etfProvider, staticChild) {
             // Показываем ошибку только если она есть
             if (etfProvider.error != null) {
               return Center(
@@ -81,7 +132,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                       // Вибрация при начале обновления
                       HapticUtils.lightImpact();
                       try {
-                        await etfProvider.forceRefreshAllData();
+                        // Обновляем все данные параллельно
+                        await Future.wait([
+                          etfProvider.forceRefreshAllData(),
+                          // Обновляем панель сегодняшних потоков
+                          _todayFlowsPanelKey.currentState?.refresh() ??
+                              Future.value(),
+                        ]);
                         // Автоматически скроллим вниз после обновления
                         if (_scrollController.hasClients) {
                           _scrollController.animateTo(
@@ -98,26 +155,17 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                         rethrow;
                       }
                     },
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]!
+                        : Colors.grey[600]!,
                     backgroundColor:
                         Theme.of(context).brightness == Brightness.dark
                         ? const Color(0xFF1C1C1E)
                         : Colors.white,
-                    strokeWidth: 2.5,
-                    displacement: 40.0,
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: AdaptiveTextUtils.getContentPadding(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSummaryCard(etfProvider),
-                          const SizedBox(height: 24),
-                          const SizedBox(height: 100),
-                        ],
-                      ),
-                    ),
+                    strokeWidth: 1.5,
+                    displacement: 20.0,
+                    triggerMode: RefreshIndicatorTriggerMode.onEdge,
+                    child: _buildContentWithData(etfProvider),
                   ),
                   // Индикатор загрузки поверх контента
                   Positioned(
@@ -132,7 +180,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                         width: double.infinity,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[400]!
+                              : Colors.grey[600]!,
                           borderRadius: BorderRadius.circular(1.5),
                         ),
                       ),
@@ -148,7 +198,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 HapticUtils.lightImpact();
 
                 try {
-                  await etfProvider.forceRefreshAllData();
+                  // Обновляем все данные параллельно
+                  await Future.wait([
+                    etfProvider.forceRefreshAllData(),
+                    // Обновляем панель сегодняшних потоков
+                    _todayFlowsPanelKey.currentState?.refresh() ??
+                        Future.value(),
+                  ]);
                   // Автоматически скроллим вниз после обновления
                   if (_scrollController.hasClients) {
                     _scrollController.animateTo(
@@ -165,32 +221,16 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   rethrow;
                 }
               },
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]!
+                  : Colors.grey[600]!,
               backgroundColor: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF1C1C1E)
                   : Colors.white,
-              strokeWidth: 2.5,
-              displacement: 40.0,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: AdaptiveTextUtils.getContentPadding(context),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Общая сводка
-                    _buildSummaryCard(etfProvider),
-                    const SizedBox(height: 24),
-                    // Панель притоков за сегодня
-                    const TodayFlowsPanel(),
-                    const SizedBox(height: 24),
-                    // Календарь суммарных потоков (BTC+ETH+SOL)
-                    _buildCombinedCalendar(etfProvider),
-                    // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              ),
+              strokeWidth: 1.5,
+              displacement: 20.0,
+              triggerMode: RefreshIndicatorTriggerMode.onEdge,
+              child: _buildContentWithData(etfProvider),
             );
           },
         ),
@@ -203,6 +243,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     // Ранее здесь отображалась сумма притоков; теперь не используется
 
     return Container(
+      key: const ValueKey('summary_card_container'),
       decoration: CardStyleUtils.getCardDecoration(context),
       child: Padding(
         padding: CardStyleUtils.getCardPadding(context),
@@ -253,62 +294,72 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ),
             SizedBox(height: CardStyleUtils.getSpacing(context) + 4),
 
-            // Сводка по Bitcoin
-            if (etfProvider.summaryData != null) ...[
-              Builder(
-                builder: (context) {
-                  final btcPrice = context
-                      .watch<CryptoPriceProvider?>()
-                      ?.bitcoinPrice;
-                  final subtitle = btcPrice != null
-                      ? '\$${btcPrice.toStringAsFixed(2)}'
-                      : 'etf.total_assets'.tr();
-                  return _buildSummaryRow(
-                    'etf.bitcoin'.tr(),
-                    etfProvider.summaryData!['bitcoin']['totalAssets']
-                            ?.toDouble() ??
-                        0.0,
-                    'assets/bitcoin.png',
-                    Colors.orange,
-                    subtitle,
-                    (etfProvider.summaryData!['bitcoin']?['currentFlow']
-                            ?.toDouble() ??
-                        0.0),
-                  );
-                },
-              ),
-              SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
-            ],
+            // Сводка по Bitcoin (показываем всегда)
+            Builder(
+              key: const ValueKey('bitcoin_summary_row'),
+              builder: (context) {
+                final btcPrice = context
+                    .watch<CryptoPriceProvider?>()
+                    ?.bitcoinPrice;
+                final subtitle = btcPrice != null
+                    ? '\$${btcPrice.toStringAsFixed(2)}'
+                    : 'etf.total_assets'.tr();
+                return _buildSummaryRow(
+                  'etf.bitcoin'.tr(),
+                  (etfProvider.summaryData != null
+                          ? (etfProvider.summaryData!['bitcoin']?['totalAssets']
+                                    ?.toDouble() ??
+                                0.0)
+                          : 0.0)
+                      .toDouble(),
+                  'assets/bitcoin.png',
+                  Colors.orange,
+                  subtitle,
+                  (etfProvider.summaryData != null
+                      ? (etfProvider.summaryData!['bitcoin']?['currentFlow']
+                                ?.toDouble() ??
+                            0.0)
+                      : 0.0),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
 
-            // Сводка по Ethereum
-            if (etfProvider.summaryData != null) ...[
-              Builder(
-                builder: (context) {
-                  final ethPrice = context
-                      .watch<CryptoPriceProvider?>()
-                      ?.ethereumPrice;
-                  final subtitle = ethPrice != null
-                      ? '\$${ethPrice.toStringAsFixed(2)}'
-                      : 'etf.total_assets'.tr();
-                  return _buildSummaryRow(
-                    'etf.ethereum'.tr(),
-                    etfProvider.summaryData!['ethereum']['totalAssets']
-                            ?.toDouble() ??
-                        0.0,
-                    'assets/ethereum.png',
-                    Colors.blue,
-                    subtitle,
-                    (etfProvider.summaryData!['ethereum']?['currentFlow']
-                            ?.toDouble() ??
-                        0.0),
-                  );
-                },
-              ),
-              SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
-            ],
+            // Сводка по Ethereum (показываем всегда)
+            Builder(
+              key: const ValueKey('ethereum_summary_row'),
+              builder: (context) {
+                final ethPrice = context
+                    .watch<CryptoPriceProvider?>()
+                    ?.ethereumPrice;
+                final subtitle = ethPrice != null
+                    ? '\$${ethPrice.toStringAsFixed(2)}'
+                    : 'etf.total_assets'.tr();
+                return _buildSummaryRow(
+                  'etf.ethereum'.tr(),
+                  (etfProvider.summaryData != null
+                          ? (etfProvider
+                                    .summaryData!['ethereum']?['totalAssets']
+                                    ?.toDouble() ??
+                                0.0)
+                          : 0.0)
+                      .toDouble(),
+                  'assets/ethereum.png',
+                  Colors.blue,
+                  subtitle,
+                  (etfProvider.summaryData != null
+                      ? (etfProvider.summaryData!['ethereum']?['currentFlow']
+                                ?.toDouble() ??
+                            0.0)
+                      : 0.0),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
 
             // Сводка по Solana (показываем всегда, даже если пока 0)
             Builder(
+              key: const ValueKey('solana_summary_row'),
               builder: (context) {
                 final solPrice = context
                     .watch<CryptoPriceProvider?>()
@@ -335,8 +386,6 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 );
               },
             ),
-
-            SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
 
             // Убрали календарь из карточки summary
           ],
@@ -414,6 +463,8 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                 height: 24,
                 color: iconColor,
                 fit: BoxFit.contain,
+                cacheWidth: 48, // Кэшируем в двойном разрешении для четкости
+                cacheHeight: 48,
               ),
             ),
           ),
@@ -445,32 +496,36 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ],
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _formatLargeNumber(value),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CardStyleUtils.getTitleColor(context),
-                height: 1.2,
-                letterSpacing: -0.5,
+        // Блок с ценой
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _formatLargeNumber(value),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: CardStyleUtils.getTitleColor(context),
+                  height: 1.2,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _formatFlow(currentFlow),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: flowColor,
-                height: 1.2,
-                letterSpacing: -0.2,
+              const SizedBox(height: 6),
+              Text(
+                _formatFlow(currentFlow),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: flowColor,
+                  height: 1.2,
+                  letterSpacing: -0.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -536,8 +591,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     }).toList()..sort((a, b) => b.date.compareTo(a.date));
 
     return Container(
+      key: const ValueKey('combined_calendar_container'),
       decoration: CardStyleUtils.getCardDecoration(context),
-      child: FlowCalendar(flowData: combined, title: 'etf.flow_history'.tr()),
+      child: FlowCalendar(
+        key: const ValueKey('flow_calendar'),
+        flowData: combined,
+        title: 'etf.flow_history'.tr(),
+      ),
     );
   }
 

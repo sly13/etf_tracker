@@ -59,6 +59,8 @@ class _AppInitializerState extends State<AppInitializer> {
           print('⚠️ Ошибка инициализации SubscriptionProvider: $e');
           // Продолжаем работу даже если подписка не инициализировалась
         }),
+        // Предзагружаем изображения для summary
+        _precacheImages(context),
       ]);
 
       // Минимальная задержка для плавного перехода от splash screen
@@ -80,6 +82,29 @@ class _AppInitializerState extends State<AppInitializer> {
           _isInitializing = false;
         });
       }
+    }
+  }
+
+  /// Предзагрузка изображений для summary
+  Future<void> _precacheImages(BuildContext context) async {
+    try {
+      final imageAssets = [
+        'assets/bitcoin.png',
+        'assets/ethereum.png',
+        'assets/solana.png',
+      ];
+      
+      // Предзагружаем все изображения параллельно
+      await Future.wait(
+        imageAssets.map((asset) => 
+          precacheImage(AssetImage(asset), context)
+        ),
+      );
+      
+      debugPrint('✅ Изображения для summary предзагружены');
+    } catch (e) {
+      debugPrint('⚠️ Ошибка предзагрузки изображений: $e');
+      // Не критично, продолжаем работу
     }
   }
 

@@ -223,7 +223,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) {
             final provider = ETFProvider();
-            // Инициализируем данные в фоне, не блокируем запуск
+            // Данные из кэша уже загружаются в конструкторе провайдера
+            // Инициализируем обновление с сервера в фоне
             Future.microtask(() => provider.initializeData());
             return provider;
           },

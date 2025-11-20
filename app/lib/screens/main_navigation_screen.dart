@@ -8,7 +8,6 @@ import 'fund_holdings_screen.dart';
 import 'settings_screen.dart';
 import 'crypto_etf_tabs_screen.dart';
 import '../providers/etf_provider.dart';
-import '../widgets/loading_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -48,71 +47,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Consumer<ETFProvider>(
       builder: (context, etfProvider, child) {
-        // Отладочная информация
-        debugPrint(
-          'MainNavigationScreen: isInitializing: ${etfProvider.isInitializing}',
-        );
-        debugPrint(
-          'MainNavigationScreen: isDataReady: ${etfProvider.isDataReady}',
-        );
-        debugPrint(
-          'MainNavigationScreen: isEthereumLoaded: ${etfProvider.isEthereumLoaded}',
-        );
-        debugPrint(
-          'MainNavigationScreen: isBitcoinLoaded: ${etfProvider.isBitcoinLoaded}',
-        );
-        debugPrint('MainNavigationScreen: error: ${etfProvider.error}');
-        debugPrint(
-          'MainNavigationScreen: ethereumData.length: ${etfProvider.ethereumData.length}',
-        );
-        debugPrint(
-          'MainNavigationScreen: bitcoinData.length: ${etfProvider.bitcoinData.length}',
-        );
-
-        // Показываем экран загрузки во время инициализации или если данные еще не готовы
-        if (etfProvider.isInitializing || !etfProvider.isDataReady) {
-          debugPrint('MainNavigationScreen: Показываем экран загрузки');
-          String loadingMessage = 'loading.loading_data'.tr();
-
-          if (etfProvider.error != null) {
-            debugPrint('MainNavigationScreen: Показываем экран ошибки');
-            return LoadingScreen(
-              message: 'loading.error_loading_data'.tr(),
-              showProgress: false,
-              error: etfProvider.error,
-              showDetailedProgress: true,
-              onRetry: () {
-                etfProvider.resetLoadingState();
-                etfProvider.initializeData();
-              },
-            );
-          }
-
-          // Показываем прогресс загрузки с детальной информацией
-          if (etfProvider.isEthereumLoaded && !etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'loading.loading_bitcoin_etf'.tr();
-          } else if (!etfProvider.isEthereumLoaded &&
-              etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'loading.loading_ethereum_etf'.tr();
-          } else if (!etfProvider.isEthereumLoaded &&
-              !etfProvider.isBitcoinLoaded) {
-            loadingMessage = 'loading.loading_etf'.tr();
-          }
-
-          debugPrint(
-            'MainNavigationScreen: Показываем экран загрузки с сообщением: $loadingMessage',
-          );
-          return LoadingScreen(
-            message: loadingMessage,
-            showProgress: true,
-            showDetailedProgress: true,
-          );
-        }
-
-        // Основной интерфейс приложения - показываем только когда данные готовы
-        debugPrint(
-          'MainNavigationScreen: Данные готовы, показываем основной интерфейс',
-        );
+        // Показываем основной интерфейс сразу, загрузка данных происходит в фоне
         return Consumer<ETFProvider>(
           builder: (context, etfProvider, child) {
             // Синхронизируем PageController с navigationTabIndex

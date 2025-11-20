@@ -1,14 +1,17 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/etf_flow_data.dart';
 
 class LocalStorageService {
   static const String _ethereumDataKey = 'ethereum_data';
   static const String _bitcoinDataKey = 'bitcoin_data';
+  static const String _solanaDataKey = 'solana_data';
   static const String _summaryDataKey = 'summary_data';
   static const String _fundHoldingsKey = 'fund_holdings';
   static const String _lastUpdateKey = 'last_update';
   static const String _etfFlowDataKey = 'etf_flow_data';
+  static const String _todayEventsKey = 'today_events';
   static const String _cryptoETFTabIndexKey = 'crypto_etf_tab_index';
   static const String _navigationTabIndexKey = 'navigation_tab_index';
 
@@ -70,19 +73,48 @@ class LocalStorageService {
 
   // Сохранить сводные данные
   Future<void> saveSummaryData(Map<String, dynamic> data) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_summaryDataKey, jsonEncode(data));
-    await _updateLastUpdateTime();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode(data);
+      final saved = await prefs.setString(_summaryDataKey, jsonString);
+      debugPrint('LocalStorageService: [SAVE] Summary данные сохранены: $saved, длина: ${jsonString.length}');
+      if (data.containsKey('bitcoin')) {
+        debugPrint('LocalStorageService: [SAVE] Summary bitcoin totalAssets: ${data['bitcoin']?['totalAssets']}');
+      }
+      if (data.containsKey('ethereum')) {
+        debugPrint('LocalStorageService: [SAVE] Summary ethereum totalAssets: ${data['ethereum']?['totalAssets']}');
+      }
+      await _updateLastUpdateTime();
+    } catch (e) {
+      debugPrint('LocalStorageService: [SAVE] Ошибка сохранения Summary данных: $e');
+      rethrow;
+    }
   }
 
   // Получить сводные данные
   Future<Map<String, dynamic>?> getSummaryData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_summaryDataKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_summaryDataKey);
 
-    if (jsonString == null) return null;
+      if (jsonString == null) {
+        debugPrint('LocalStorageService: [GET] Summary данные не найдены в кэше');
+        return null;
+      }
 
-    return jsonDecode(jsonString) as Map<String, dynamic>;
+      debugPrint('LocalStorageService: [GET] Summary данные найдены в кэше, длина: ${jsonString.length}');
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+      if (data.containsKey('bitcoin')) {
+        debugPrint('LocalStorageService: [GET] Summary bitcoin totalAssets: ${data['bitcoin']?['totalAssets']}');
+      }
+      if (data.containsKey('ethereum')) {
+        debugPrint('LocalStorageService: [GET] Summary ethereum totalAssets: ${data['ethereum']?['totalAssets']}');
+      }
+      return data;
+    } catch (e) {
+      debugPrint('LocalStorageService: [GET] Ошибка загрузки Summary данных: $e');
+      return null;
+    }
   }
 
   // Сохранить данные фондов
@@ -100,6 +132,25 @@ class LocalStorageService {
     if (jsonString == null) return null;
 
     return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
+
+  // Сохранить данные Solana
+  Future<void> saveSolanaData(List<ETFFlowData> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonData = data.map((item) => item.toJson()).toList();
+    await prefs.setString(_solanaDataKey, jsonEncode(jsonData));
+    await _updateLastUpdateTime();
+  }
+
+  // Получить данные Solana
+  Future<List<ETFFlowData>> getSolanaData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_solanaDataKey);
+
+    if (jsonString == null) return [];
+
+    final jsonList = jsonDecode(jsonString) as List;
+    return jsonList.map((json) => ETFFlowData.fromJson(json)).toList();
   }
 
   // Сохранить данные ETF потоков
@@ -121,6 +172,22 @@ class LocalStorageService {
     return jsonList.map((json) => ETFFlowData.fromJson(json)).toList();
   }
 
+  // Сохранить события за сегодня
+  Future<void> saveTodayEvents(Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_todayEventsKey, jsonEncode(data));
+  }
+
+  // Получить события за сегодня
+  Future<Map<String, dynamic>?> getTodayEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_todayEventsKey);
+
+    if (jsonString == null) return null;
+
+    return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
+
   // Обновить время последнего обновления
   Future<void> _updateLastUpdateTime() async {
     final prefs = await SharedPreferences.getInstance();
@@ -132,9 +199,11 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_ethereumDataKey);
     await prefs.remove(_bitcoinDataKey);
+    await prefs.remove(_solanaDataKey);
     await prefs.remove(_summaryDataKey);
     await prefs.remove(_fundHoldingsKey);
     await prefs.remove(_etfFlowDataKey);
+    await prefs.remove(_todayEventsKey);
     await prefs.remove(_lastUpdateKey);
     // Не очищаем индексы табов при очистке кэша данных
   }

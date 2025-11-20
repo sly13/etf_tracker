@@ -93,18 +93,20 @@ class SubscriptionProvider extends ChangeNotifier {
       final syncedStatus =
           await SubscriptionStatusService.syncSubscriptionStatus();
 
-      // Обновляем статус если он изменился
-      if (syncedStatus != _isPremium) {
-        _isPremium = syncedStatus;
-        await _saveCachedStatus();
+      // Всегда обновляем статус после синхронизации, чтобы убедиться, что он сохранён
+      final statusChanged = syncedStatus != _isPremium;
+      _isPremium = syncedStatus;
+      await _saveCachedStatus();
 
-        if (kDebugMode) {
-          print('🔧 SubscriptionProvider: Статус обновлен в фоне: $_isPremium');
+      if (kDebugMode) {
+        print('🔧 SubscriptionProvider: Статус обновлен в фоне: $_isPremium');
+        if (statusChanged) {
+          print('🔧 SubscriptionProvider: Статус изменился с ${!_isPremium} на $_isPremium');
         }
-
-        // Уведомляем слушателей об обновлении
-        notifyListeners();
       }
+
+      // Уведомляем слушателей об обновлении (всегда, чтобы UI обновился)
+      notifyListeners();
     } catch (e) {
       if (kDebugMode) {
         print('⚠️ SubscriptionProvider: Ошибка обновления в фоне: $e');
@@ -140,6 +142,9 @@ class SubscriptionProvider extends ChangeNotifier {
       if (kDebugMode) {
         print('🔧 SubscriptionProvider: Статус премиум обновлен: $isPremium');
       }
+
+      // Уведомляем слушателей об обновлении
+      notifyListeners();
     } catch (e) {
       _setError('Ошибка обновления статуса подписки: $e');
       if (kDebugMode) {
