@@ -143,7 +143,7 @@ async function checkFlowEvents() {
           eventCount += btcFields.filter(field => btcToday[field] != null && btcToday[field] !== 0).length;
         }
         if (solToday) {
-          const solFields = ['bitwise', 'grayscale'];
+          const solFields = ['bitwise', 'vanEck', 'fidelity', 'twentyOneShares', 'grayscale'];
           eventCount += solFields.filter(field => solToday[field] != null && solToday[field] !== 0).length;
         }
         console.log(`\n   📊 Можно сгенерировать ~${eventCount} событий из данных за сегодня`);

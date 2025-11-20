@@ -61,12 +61,14 @@ class ETFProvider with ChangeNotifier {
   // Переключить навигационный таб
   void switchNavigationTab(int tabIndex) {
     _navigationTabIndex = tabIndex;
+    _storageService.saveNavigationTabIndex(tabIndex);
     notifyListeners();
   }
 
   // Переключить таб в CryptoETFTabsScreen
   void switchCryptoETFTab(int tabIndex) {
     _cryptoETFTabIndex = tabIndex;
+    _storageService.saveCryptoETFTabIndex(tabIndex);
     notifyListeners();
   }
 
@@ -74,6 +76,8 @@ class ETFProvider with ChangeNotifier {
   void navigateToCryptoETF(int tabIndex) {
     _navigationTabIndex = 1; // CryptoETFTabsScreen находится на индексе 1
     _cryptoETFTabIndex = tabIndex;
+    _storageService.saveNavigationTabIndex(_navigationTabIndex);
+    _storageService.saveCryptoETFTabIndex(tabIndex);
     notifyListeners();
   }
 
@@ -232,6 +236,12 @@ class ETFProvider with ChangeNotifier {
       notifyListeners();
 
       debugPrint('ETFProvider: Начинаем инициализацию данных');
+
+      // При перезагрузке всегда показываем главную страницу (ETF Summary)
+      _navigationTabIndex = 0;
+      // Но сохраняем индекс таба в Crypto ETF экране (BTC/ETH/SOL)
+      _cryptoETFTabIndex = await _storageService.getCryptoETFTabIndex();
+      debugPrint('ETFProvider: Установлен главный экран, Crypto ETF таб: $_cryptoETFTabIndex');
 
       // При старте приложения всегда загружаем новые данные с сервера
       debugPrint('ETFProvider: Загружаем свежие данные с сервера при старте');

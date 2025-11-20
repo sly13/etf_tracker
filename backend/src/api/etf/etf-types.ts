@@ -21,6 +21,9 @@ export interface BTCFlowData extends ETFFlowData {
 export interface SolFlowData {
   date: string;
   bitwise: number; // BSOL
+  vanEck: number; // VSOL
+  fidelity: number; // FSOL
+  twentyOneShares: number; // TSOL
   grayscale: number; // GSOL
   total: number;
 }

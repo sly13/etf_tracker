@@ -75,20 +75,14 @@ export async function parseSolana(
 
     rows.forEach((row) => {
       const cells = row.querySelectorAll('td');
-      if (cells.length >= 4) {
+      // Теперь ожидаем минимум 7 колонок: дата + 5 фондов + Total
+      if (cells.length >= 7) {
         const firstCellText = getCellText(cells[0]);
         if (!firstCellText) return;
 
         if (firstCellText === 'Seed') {
-          const bitwiseSeed = parseNumber(getCellText(cells[1]));
-          const grayscaleSeed = parseNumber(getCellText(cells[2]));
-          const totalSeed = (bitwiseSeed || 0) + (grayscaleSeed || 0);
-          data.push({
-            date: '2025-10-27',
-            bitwise: bitwiseSeed,
-            grayscale: grayscaleSeed,
-            total: totalSeed,
-          });
+          // Пропускаем seed данные - они не являются реальными дневными потоками
+          // и должны быть исключены из суммарных расчетов
           return;
         }
 
@@ -97,19 +91,42 @@ export async function parseSolana(
         const parsedDate = parseDate(firstCellText);
         if (!parsedDate) return;
 
+        // Парсим все 5 фондов: BSOL, VSOL, FSOL, TSOL, GSOL
         const bitwise = parseNumber(getCellText(cells[1]));
-        const grayscale = parseNumber(getCellText(cells[2]));
-        const total = (bitwise || 0) + (grayscale || 0);
+        const vanEck = parseNumber(getCellText(cells[2]));
+        const fidelity = parseNumber(getCellText(cells[3]));
+        const twentyOneShares = parseNumber(getCellText(cells[4]));
+        const grayscale = parseNumber(getCellText(cells[5]));
+        // Всегда считаем total как сумму всех фондов (не доверяем ячейке total)
+        const total =
+          (bitwise || 0) +
+          (vanEck || 0) +
+          (fidelity || 0) +
+          (twentyOneShares || 0) +
+          (grayscale || 0);
 
         const today = new Date().toISOString().split('T')[0];
         if (parsedDate === today) {
-          const allZero = [bitwise, grayscale, total].every(
-            (v) => (v || 0) === 0,
-          );
+          const allZero = [
+            bitwise,
+            vanEck,
+            fidelity,
+            twentyOneShares,
+            grayscale,
+            total,
+          ].every((v) => (v || 0) === 0);
           if (allZero) return;
         }
 
-        data.push({ date: parsedDate, bitwise, grayscale, total });
+        data.push({
+          date: parsedDate,
+          bitwise,
+          vanEck,
+          fidelity,
+          twentyOneShares,
+          grayscale,
+          total,
+        });
       }
     });
 

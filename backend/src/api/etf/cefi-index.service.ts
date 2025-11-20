@@ -559,7 +559,13 @@ export class CEFIIndexService {
       ];
     } else {
       const solFlow = flow as SolFlowData;
-      return [solFlow.bitwise || 0, solFlow.grayscale || 0];
+      return [
+        solFlow.bitwise || 0,
+        solFlow.vanEck || 0,
+        solFlow.fidelity || 0,
+        solFlow.twentyOneShares || 0,
+        solFlow.grayscale || 0,
+      ];
     }
   }
 
@@ -594,7 +600,7 @@ export class CEFIIndexService {
         'grayscaleEth',
       ];
     } else {
-      return ['bitwise', 'grayscale'];
+      return ['bitwise', 'vanEck', 'fidelity', 'twentyOneShares', 'grayscale'];
     }
   }
 
@@ -769,6 +775,9 @@ export class CEFIIndexService {
         } else if (indexType === 'sol') {
           const solFlow = flowData as SolFlowData;
           if (solFlow.bitwise) funds.bitwise = solFlow.bitwise;
+          if (solFlow.vanEck) funds.vanEck = solFlow.vanEck;
+          if (solFlow.fidelity) funds.fidelity = solFlow.fidelity;
+          if (solFlow.twentyOneShares) funds.twentyOneShares = solFlow.twentyOneShares;
           if (solFlow.grayscale) funds.grayscale = solFlow.grayscale;
         }
         

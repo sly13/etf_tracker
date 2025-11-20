@@ -9,6 +9,8 @@ class LocalStorageService {
   static const String _fundHoldingsKey = 'fund_holdings';
   static const String _lastUpdateKey = 'last_update';
   static const String _etfFlowDataKey = 'etf_flow_data';
+  static const String _cryptoETFTabIndexKey = 'crypto_etf_tab_index';
+  static const String _navigationTabIndexKey = 'navigation_tab_index';
 
   // Время кэширования в миллисекундах (30 минут)
   static const int _cacheDuration = 30 * 60 * 1000;
@@ -134,6 +136,7 @@ class LocalStorageService {
     await prefs.remove(_fundHoldingsKey);
     await prefs.remove(_etfFlowDataKey);
     await prefs.remove(_lastUpdateKey);
+    // Не очищаем индексы табов при очистке кэша данных
   }
 
   // Получить время последнего обновления
@@ -151,5 +154,29 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_ethereumDataKey) != null &&
         prefs.getString(_bitcoinDataKey) != null;
+  }
+
+  // Сохранить индекс таба Crypto ETF
+  Future<void> saveCryptoETFTabIndex(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_cryptoETFTabIndexKey, index);
+  }
+
+  // Получить индекс таба Crypto ETF
+  Future<int> getCryptoETFTabIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_cryptoETFTabIndexKey) ?? 0; // По умолчанию BTC (0)
+  }
+
+  // Сохранить индекс навигационного таба
+  Future<void> saveNavigationTabIndex(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_navigationTabIndexKey, index);
+  }
+
+  // Получить индекс навигационного таба
+  Future<int> getNavigationTabIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_navigationTabIndexKey) ?? 0; // По умолчанию первый таб (ETF Summary)
   }
 }

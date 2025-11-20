@@ -48,13 +48,16 @@ model BTCFlow {
 }
 
 model SolFlow {
-  id        String   @id @default(cuid())
-  date      DateTime @unique
-  bitwise   Float?
-  grayscale Float?
-  total     Float?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+  bitwise         Float?   // BSOL
+  vanEck          Float?   // VSOL
+  fidelity        Float?   // FSOL
+  twentyOneShares Float?   // TSOL
+  grayscale       Float?   // GSOL
+  total           Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("sol_flow")
 }

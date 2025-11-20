@@ -193,6 +193,18 @@ export class UniversalETFFlowService {
 
           const wasExisting = !!existingRecord;
 
+          // Всегда пересчитываем total как сумму всех фондов
+          const calculatedTotal =
+            (ethData.blackrock || 0) +
+            (ethData.fidelity || 0) +
+            (ethData.bitwise || 0) +
+            (ethData.twentyOneShares || 0) +
+            (ethData.vanEck || 0) +
+            (ethData.invesco || 0) +
+            (ethData.franklin || 0) +
+            (ethData.grayscale || 0) +
+            (ethData.grayscaleCrypto || 0);
+
           // Сохраняем данные
           await this.prisma.eTFFlow.upsert({
             where: { date },
@@ -206,7 +218,7 @@ export class UniversalETFFlowService {
               franklin: ethData.franklin,
               grayscale: ethData.grayscale,
               grayscaleEth: ethData.grayscaleCrypto,
-              total: ethData.total,
+              total: calculatedTotal, // Используем пересчитанный total
               updatedAt: new Date(),
             },
             create: {
@@ -220,7 +232,7 @@ export class UniversalETFFlowService {
               franklin: ethData.franklin,
               grayscale: ethData.grayscale,
               grayscaleEth: ethData.grayscaleCrypto,
-              total: ethData.total,
+              total: calculatedTotal, // Используем пересчитанный total
             },
           });
 
@@ -295,6 +307,20 @@ export class UniversalETFFlowService {
 
           const wasExisting = !!existingRecord;
 
+          // Всегда пересчитываем total как сумму всех фондов
+          const calculatedTotal =
+            (btcData.blackrock || 0) +
+            (btcData.fidelity || 0) +
+            (btcData.bitwise || 0) +
+            (btcData.twentyOneShares || 0) +
+            (btcData.invesco || 0) +
+            (btcData.franklin || 0) +
+            (btcData.valkyrie || 0) +
+            (btcData.vanEck || 0) +
+            (btcData.wisdomTree || 0) +
+            (btcData.grayscale || 0) +
+            (btcData.grayscaleBtc || 0);
+
           // Сохраняем данные
           await this.prisma.bTCFlow.upsert({
             where: { date },
@@ -310,7 +336,7 @@ export class UniversalETFFlowService {
               wisdomTree: btcData.wisdomTree,
               grayscale: btcData.grayscale,
               grayscaleBtc: btcData.grayscaleBtc,
-              total: btcData.total,
+              total: calculatedTotal, // Используем пересчитанный total
               updatedAt: new Date(),
             },
             create: {
@@ -326,7 +352,7 @@ export class UniversalETFFlowService {
               wisdomTree: btcData.wisdomTree,
               grayscale: btcData.grayscale,
               grayscaleBtc: btcData.grayscaleBtc,
-              total: btcData.total,
+              total: calculatedTotal, // Используем пересчитанный total
             },
           });
 
@@ -387,30 +413,50 @@ export class UniversalETFFlowService {
               id: true,
               total: true,
               bitwise: true,
+              vanEck: true,
+              fidelity: true,
+              twentyOneShares: true,
               grayscale: true,
             },
           });
 
           const wasExisting = !!existingRecord;
 
+          // Всегда пересчитываем total как сумму всех фондов
+          const calculatedTotal =
+            (solData.bitwise || 0) +
+            (solData.vanEck || 0) +
+            (solData.fidelity || 0) +
+            (solData.twentyOneShares || 0) +
+            (solData.grayscale || 0);
+
           await this.prisma.solFlow.upsert({
             where: { date },
             update: {
               bitwise: solData.bitwise,
+              vanEck: solData.vanEck,
+              fidelity: solData.fidelity,
+              twentyOneShares: solData.twentyOneShares,
               grayscale: solData.grayscale,
-              total: solData.total,
+              total: calculatedTotal, // Используем пересчитанный total
               updatedAt: new Date(),
             },
             create: {
               date,
               bitwise: solData.bitwise,
+              vanEck: solData.vanEck,
+              fidelity: solData.fidelity,
+              twentyOneShares: solData.twentyOneShares,
               grayscale: solData.grayscale,
-              total: solData.total,
+              total: calculatedTotal, // Используем пересчитанный total
             },
           });
 
           const companies = [
             { name: 'bitwise', value: solData.bitwise },
+            { name: 'vanEck', value: solData.vanEck },
+            { name: 'fidelity', value: solData.fidelity },
+            { name: 'twentyOneShares', value: solData.twentyOneShares },
             { name: 'grayscale', value: solData.grayscale },
           ];
           for (const company of companies) {
@@ -522,6 +568,9 @@ export class UniversalETFFlowService {
         return flows.map((flow) => ({
           date: flow.date.toISOString().split('T')[0],
           bitwise: flow.bitwise || 0,
+          vanEck: flow.vanEck || 0,
+          fidelity: flow.fidelity || 0,
+          twentyOneShares: flow.twentyOneShares || 0,
           grayscale: flow.grayscale || 0,
           total: flow.total || 0,
         }));
@@ -572,7 +621,7 @@ export class UniversalETFFlowService {
     try {
       const dedupeKey = `${data.date.toISOString().split('T')[0]}_${data.assetType}_${data.company}_${data.amount.toFixed(2)}`;
 
-      // Проверяем, не создавали ли мы уже такую запись
+      // Проверяем, не создавали ли мы уже такую запись по dedupeKey
       const existingRecord = await this.prisma.eTFNewRecord.findUnique({
         where: { dedupeKey },
       });
@@ -580,6 +629,39 @@ export class UniversalETFFlowService {
       if (existingRecord) {
         this.logger.log(`Запись уже существует: ${dedupeKey}`);
         return null;
+      }
+
+      // Дополнительная проверка: не создавалась ли запись для этой даты/компании/актива за последние 30 минут
+      // Это предотвращает создание дубликатов при быстрых обновлениях данных
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const recentRecord = await this.prisma.eTFNewRecord.findFirst({
+        where: {
+          date: data.date,
+          assetType: data.assetType,
+          company: data.company,
+          detectedAt: {
+            gte: thirtyMinutesAgo,
+          },
+        },
+        orderBy: {
+          detectedAt: 'desc',
+        },
+      });
+
+      if (recentRecord) {
+        // Проверяем, отличается ли новое значение значительно от последнего
+        const difference = Math.abs(data.amount - recentRecord.amount);
+        const differencePercent = recentRecord.amount > 0 
+          ? (difference / Math.abs(recentRecord.amount)) * 100 
+          : 0;
+
+        // Если разница меньше 5% или меньше 0.5M, считаем это дубликатом
+        if (differencePercent < 5 && difference < 0.5) {
+          this.logger.log(
+            `Пропускаем создание записи - похожая запись уже существует за последние 30 минут: ${recentRecord.id} (разница: ${difference.toFixed(2)}M, ${differencePercent.toFixed(2)}%)`,
+          );
+          return null;
+        }
       }
 
       const newRecord = await this.prisma.eTFNewRecord.create({
@@ -600,6 +682,13 @@ export class UniversalETFFlowService {
       if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
         this.logger.warn(
           `⚠️ Таблица etf_new_records не существует. Пропускаем создание записи. Примените миграцию: npx prisma migrate deploy`,
+        );
+        return null;
+      }
+      // Обрабатываем ошибку уникальности (P2002) - это может произойти при race condition
+      if (error?.code === 'P2002') {
+        this.logger.log(
+          `Запись с таким dedupeKey уже существует (race condition): ${error.meta?.target}`,
         );
         return null;
       }

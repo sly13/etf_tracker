@@ -229,6 +229,56 @@ export class ETFNotificationService {
         `📊 Найдено ${newRecords.length} новых записей для уведомлений`,
       );
 
+      // Группируем записи по времени обнаружения (detectedAt) с точностью до минуты
+      // Если несколько записей пришли в одну минуту, суммируем их потоки
+      const aggregatedFlows = new Map<string, {
+        bitcoin: number;
+        ethereum: number;
+        solana: number;
+        date: Date;
+        detectedAt: Date;
+        recordIds: string[];
+        records: any[]; // Сохраняем полные записи для проверки компаний
+      }>();
+
+      for (const record of newRecords) {
+        // Используем время обнаружения с точностью до минуты как ключ
+        // Округляем до минуты: обрезаем секунды и миллисекунды
+        const detectedAt = new Date(record.detectedAt);
+        detectedAt.setSeconds(0, 0);
+        const timeKey = detectedAt.toISOString();
+        
+        if (!aggregatedFlows.has(timeKey)) {
+          aggregatedFlows.set(timeKey, {
+            bitcoin: 0,
+            ethereum: 0,
+            solana: 0,
+            date: record.date,
+            detectedAt: detectedAt,
+            recordIds: [],
+            records: [],
+          });
+        }
+
+        const aggregated = aggregatedFlows.get(timeKey)!;
+        aggregated.recordIds.push(record.id);
+        aggregated.records.push(record);
+
+        // Суммируем потоки по типу актива
+        // amount может быть положительным (приток) или отрицательным (отток)
+        if (record.assetType === 'bitcoin') {
+          aggregated.bitcoin += record.amount || 0;
+        } else if (record.assetType === 'ethereum') {
+          aggregated.ethereum += record.amount || 0;
+        } else if (record.assetType === 'solana') {
+          aggregated.solana += record.amount || 0;
+        }
+      }
+
+      this.logger.log(
+        `📊 Агрегировано ${aggregatedFlows.size} групп записей для уведомлений`,
+      );
+
       // Получаем пользователей для уведомлений
       const users = await this.getUsersForETFNotifications(appName);
 
@@ -252,77 +302,154 @@ export class ETFNotificationService {
       let totalSent = 0;
       let totalFailed = 0;
 
-      // Обрабатываем каждую новую запись
-      for (const record of newRecords) {
+      // Обрабатываем каждую агрегированную группу
+      for (const [timeKey, aggregated] of aggregatedFlows.entries()) {
+        // Пропускаем если нет значительных потоков (приток/отток)
+        if (
+          Math.abs(aggregated.bitcoin) < 0.1 &&
+          Math.abs(aggregated.ethereum) < 0.1 &&
+          Math.abs(aggregated.solana) < 0.1
+        ) {
+          this.logger.log(
+            `⏭️ Пропускаем группу ${timeKey} - потоки слишком малы`,
+          );
+          continue;
+        }
+
         this.logger.log(
-          `📝 Обрабатываю запись: ${record.company} - ${record.amount}M ${record.assetType}`,
+          `📝 Обрабатываю агрегированную группу (обнаружено в ${aggregated.detectedAt.toISOString()}): Bitcoin: ${aggregated.bitcoin.toFixed(2)}M, Ethereum: ${aggregated.ethereum.toFixed(2)}M, Solana: ${aggregated.solana.toFixed(2)}M (${aggregated.recordIds.length} записей)`,
         );
 
+        // Форматируем потоки с знаками + или -
+        const formatFlowWithSign = (value: number): string => {
+          const abs = Math.abs(value);
+          const sign = value >= 0 ? '+' : '-';
+          if (abs >= 1000) {
+            const billions = abs / 1000;
+            return `${sign}${billions.toFixed(2)}B`;
+          }
+          return `${sign}${abs.toFixed(2)}M`;
+        };
+
+        // Проверяем, все ли записи от одной компании
+        const uniqueCompanies = new Set(aggregated.records.map(r => r.company));
+        const isSingleCompany = uniqueCompanies.size === 1;
+
+        let notificationBody: string;
+
+        if (isSingleCompany) {
+          // Если все записи от одной компании, используем формат: "CompanyName +amountM AssetType ETF"
+          const company = aggregated.records[0].company;
+          const companyName = this.getCompanyDisplayName(company);
+          
+          // Определяем, какой актив и сумма
+          const assetFlows: { assetType: string; amount: number; assetName: string }[] = [];
+          
+          if (Math.abs(aggregated.bitcoin) >= 0.1) {
+            assetFlows.push({
+              assetType: 'bitcoin',
+              amount: aggregated.bitcoin,
+              assetName: 'Bitcoin',
+            });
+          }
+          if (Math.abs(aggregated.ethereum) >= 0.1) {
+            assetFlows.push({
+              assetType: 'ethereum',
+              amount: aggregated.ethereum,
+              assetName: 'Ethereum',
+            });
+          }
+          if (Math.abs(aggregated.solana) >= 0.1) {
+            assetFlows.push({
+              assetType: 'solana',
+              amount: aggregated.solana,
+              assetName: 'Solana',
+            });
+          }
+
+          if (assetFlows.length === 0) {
+            continue;
+          }
+
+          // Если один актив - формат: "CompanyName +amountM AssetType ETF"
+          // Если несколько активов - объединяем: "CompanyName +amountM AssetType1 ETF, +amountM AssetType2 ETF"
+          if (assetFlows.length === 1) {
+            const flow = assetFlows[0];
+            notificationBody = `${companyName} ${formatFlowWithSign(flow.amount)} ${flow.assetName} ETF`;
+          } else {
+            // Несколько активов от одной компании
+            const flowParts = assetFlows.map(
+              flow => `${formatFlowWithSign(flow.amount)} ${flow.assetName} ETF`,
+            );
+            notificationBody = `${companyName} ${flowParts.join(', ')}`;
+          }
+        } else {
+          // Если несколько компаний, используем формат с суммированием по активам
+          const parts: string[] = [];
+          if (Math.abs(aggregated.bitcoin) >= 0.1) {
+            parts.push(`Bitcoin: ${formatFlowWithSign(aggregated.bitcoin)}`);
+          }
+          if (Math.abs(aggregated.ethereum) >= 0.1) {
+            parts.push(`Ethereum: ${formatFlowWithSign(aggregated.ethereum)}`);
+          }
+          if (Math.abs(aggregated.solana) >= 0.1) {
+            parts.push(`Solana: ${formatFlowWithSign(aggregated.solana)}`);
+          }
+
+          if (parts.length === 0) {
+            continue;
+          }
+
+          notificationBody = parts.join(', ');
+        }
+
         // Отправляем уведомления каждому пользователю
-        // ВАЖНО: Проверка подписки отключена - уведомления приходят всем пользователям
         for (const user of users) {
           try {
-            const userSettings = await this.getUserNotificationSettings(
-              user.id,
-            );
-
-            // Проверяем, подходит ли запись под настройки пользователя
-            if (!this.shouldNotifyUser(record, userSettings)) {
-              continue;
-            }
-
-            // ПРОВЕРКА ПОДПИСКИ ЗАКОММЕНТИРОВАНА - уведомления приходят всем
-            // Для включения проверки подписки раскомментируйте:
-            // const subscription = await this.subscriptionService.getUserSubscriptionStatus(user.id);
-            // if (!subscription?.isCurrentlyActive || !subscription?.isPremium) {
-            //   continue; // Пропускаем пользователей без активной премиум подписки
-            // }
-
-            // Создаем запись о доставке
-            let delivery;
+            // Проверяем, не отправляли ли мы уже уведомление для этой группы этому пользователю
+            // Используем первую запись из группы для проверки
+            const firstRecordId = aggregated.recordIds[0];
+            let existingDelivery = null;
             try {
-              delivery = await this.prisma.eTFNotificationDelivery.create({
-                data: {
-                  userId: user.id,
-                  recordId: record.id,
-                  sent: false,
-                  channel: 'push',
+              existingDelivery = await this.prisma.eTFNotificationDelivery.findUnique({
+                where: {
+                  userId_recordId: {
+                    userId: user.id,
+                    recordId: firstRecordId,
+                  },
                 },
               });
             } catch (error: any) {
-              // Проверяем, является ли ошибка отсутствием таблицы (P2021)
-              if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
-                this.logger.warn(
-                  '⚠️ Таблица etf_notification_deliveries не существует. Продолжаем без записи доставки.',
-                );
-                // Продолжаем отправку уведомления, но без записи доставки
-                delivery = null;
-              } else {
-                throw error;
+              // Игнорируем ошибки, если таблица не существует
+              if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
+                this.logger.error('Ошибка проверки существующей доставки:', error);
               }
             }
 
-            // Отправляем push уведомление
-            const title = this.formatNotificationTitle(record);
-            const body = this.formatNotificationBody(record);
+            // Если доставка уже существует и отправлена, пропускаем
+            if (existingDelivery?.sent) {
+              this.logger.log(
+                `⏭️ Уведомление для пользователя ${user.id} и группы ${timeKey} уже отправлено, пропускаем`,
+              );
+              continue;
+            }
 
             this.logger.log(
               `📤 Отправляю уведомление пользователю ${user.id}, токен: ${user.deviceToken?.substring(0, 20)}...`,
             );
-            this.logger.log(`   Заголовок: ${title}`);
-            this.logger.log(`   Текст: ${body}`);
+            this.logger.log(`   Текст: ${notificationBody}`);
 
             const sendResult = await this.firebaseAdminService.sendNotificationToToken(
               user.deviceToken,
-              title,
-              body,
+              '📊 ETF Flow Update',
+              notificationBody,
               {
-                type: 'etf_new_record',
-                recordId: record.id,
-                assetType: record.assetType,
-                company: record.company,
-                amount: record.amount.toString(),
-                date: record.date.toISOString(),
+                type: 'etf_update',
+                bitcoinFlow: aggregated.bitcoin.toString(),
+                ethereumFlow: aggregated.ethereum.toString(),
+                solanaFlow: aggregated.solana.toString(),
+                date: aggregated.date.toISOString(),
+                detectedAt: aggregated.detectedAt.toISOString(),
               },
             );
 
@@ -334,20 +461,32 @@ export class ETFNotificationService {
               continue;
             }
 
-            // Отмечаем как отправленное (если запись доставки была создана)
-            if (delivery) {
+            // Отмечаем все записи в группе как отправленные
+            for (const recordId of aggregated.recordIds) {
               try {
-                await this.prisma.eTFNotificationDelivery.update({
-                  where: { id: delivery.id },
-                  data: {
+                await this.prisma.eTFNotificationDelivery.upsert({
+                  where: {
+                    userId_recordId: {
+                      userId: user.id,
+                      recordId: recordId,
+                    },
+                  },
+                  create: {
+                    userId: user.id,
+                    recordId: recordId,
+                    sent: true,
+                    sentAt: new Date(),
+                    channel: 'push',
+                  },
+                  update: {
                     sent: true,
                     sentAt: new Date(),
                   },
                 });
               } catch (error: any) {
-                // Игнорируем ошибки обновления, если таблица не существует
+                // Игнорируем ошибки, если таблица не существует
                 if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
-                  this.logger.error('Ошибка обновления статуса доставки:', error);
+                  this.logger.error('Ошибка создания записи доставки:', error);
                 }
               }
             }
@@ -362,27 +501,8 @@ export class ETFNotificationService {
               try {
                 await this.telegramBotService.sendTestMessage(
                   user.telegramChatId,
-                  `${title}\n\n${body}`,
+                  `📊 ETF Flow Update\n\n${notificationBody}`,
                 );
-
-                // Создаем запись о Telegram доставке
-                try {
-                  await this.prisma.eTFNotificationDelivery.create({
-                    data: {
-                      userId: user.id,
-                      recordId: record.id,
-                      sent: true,
-                      sentAt: new Date(),
-                      channel: 'telegram',
-                    },
-                  });
-                } catch (error: any) {
-                  // Игнорируем ошибки создания записи, если таблица не существует
-                  if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
-                    this.logger.error('Ошибка создания записи Telegram доставки:', error);
-                  }
-                }
-
                 this.logger.log(
                   `📱 Telegram уведомление отправлено пользователю ${user.id}`,
                 );
@@ -399,28 +519,6 @@ export class ETFNotificationService {
               `Ошибка отправки уведомления пользователю ${user.id}:`,
               error,
             );
-
-            // Отмечаем ошибку в доставке
-            try {
-              await this.prisma.eTFNotificationDelivery.updateMany({
-                where: {
-                  userId: user.id,
-                  recordId: record.id,
-                  sent: false,
-                },
-                data: {
-                  error: error.message,
-                },
-              });
-            } catch (updateError: any) {
-              // Игнорируем ошибки, если таблица не существует
-              if (updateError?.code !== 'P2021' && !updateError?.message?.includes('does not exist')) {
-                this.logger.error(
-                  'Ошибка обновления статуса доставки:',
-                  updateError,
-                );
-              }
-            }
           }
         }
       }

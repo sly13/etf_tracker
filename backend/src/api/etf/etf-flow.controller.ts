@@ -144,9 +144,12 @@ export class ETFFlowController {
         : null,
       solana: solanaData
         ? {
-            bitwise: solanaData.bitwise || 0,
-            grayscale: solanaData.grayscale || 0,
-            total: solanaData.total || 0,
+            bitwise: (solanaData as any).bitwise || 0,
+            vanEck: (solanaData as any).vanEck || 0,
+            fidelity: (solanaData as any).fidelity || 0,
+            twentyOneShares: (solanaData as any).twentyOneShares || 0,
+            grayscale: (solanaData as any).grayscale || 0,
+            total: (solanaData as any).total || 0,
           }
         : null,
     };
@@ -193,11 +196,17 @@ export class ETFFlowController {
     // Считаем общий итог как сумму текущих потоков
     const overallTotal = ethereumTotal + bitcoinTotal;
 
+    // Даты seed данных, которые нужно исключить из расчетов
+    const seedDates = {
+      ethereum: '2024-07-22',
+      solana: '2025-10-27',
+    };
+
     // Вычисляем общие активы (total assets) - суммируем все фонды за все дни
-    const ethereumTotalAssets = ethereumData.reduce(
-      (sum, item) => sum + calculateDailyTotal(item),
-      0,
-    );
+    // Исключаем seed данные из расчетов
+    const ethereumTotalAssets = ethereumData
+      .filter((item) => item.date !== seedDates.ethereum)
+      .reduce((sum, item) => sum + calculateDailyTotal(item), 0);
 
     const bitcoinTotalAssets = bitcoinData.reduce(
       (sum, item) => sum + calculateDailyTotal(item),
@@ -335,7 +344,10 @@ export class ETFFlowController {
       await this.etfFlowService.getETFFlowData('solana');
 
     // Создаем объект для хранения суммарного владения каждого фонда
-    const fundHoldings: Record<string, { eth: number; btc: number; sol: number }> = {
+    const fundHoldings: Record<
+      string,
+      { eth: number; btc: number; sol: number }
+    > = {
       blackrock: { eth: 0, btc: 0, sol: 0 },
       fidelity: { eth: 0, btc: 0, sol: 0 },
       bitwise: { eth: 0, btc: 0, sol: 0 },
@@ -348,7 +360,10 @@ export class ETFFlowController {
     };
 
     // Добавляем Bitcoin-специфичные фонды
-    const bitcoinFundHoldings: Record<string, { eth: number; btc: number; sol: number }> = {
+    const bitcoinFundHoldings: Record<
+      string,
+      { eth: number; btc: number; sol: number }
+    > = {
       valkyrie: { eth: 0, btc: 0, sol: 0 },
       wisdomTree: { eth: 0, btc: 0, sol: 0 },
     };
@@ -387,6 +402,9 @@ export class ETFFlowController {
     // Суммируем все потоки Solana для каждого фонда
     solanaData.forEach((item) => {
       fundHoldings.bitwise.sol += item.bitwise || 0;
+      fundHoldings.vanEck.sol += item.vanEck || 0;
+      fundHoldings.fidelity.sol += item.fidelity || 0;
+      fundHoldings.twentyOneShares.sol += item.twentyOneShares || 0;
       fundHoldings.grayscale.sol += item.grayscale || 0;
     });
 
@@ -445,6 +463,13 @@ export class ETFFlowController {
   async parseBitcoinETFFlowData() {
     const data = await this.etfFlowService.parseETFFlowData('bitcoin');
     await this.etfFlowService.saveETFFlowData('bitcoin', data);
+    return { success: true, count: data.length };
+  }
+
+  @Post('parse-solana')
+  async parseSolanaETFFlowData() {
+    const data = await this.etfFlowService.parseETFFlowData('solana');
+    await this.etfFlowService.saveETFFlowData('solana', data);
     return { success: true, count: data.length };
   }
 
@@ -525,13 +550,19 @@ export class ETFFlowController {
           (ethereumDailyFlow + bitcoinDailyFlow + solanaDailyFlow) * 100,
         ) / 100;
 
+      // Даты seed данных, которые нужно исключить из расчетов
+      const seedDates = {
+        ethereum: '2024-07-22',
+        solana: '2025-10-27',
+      };
+
       // Вычисляем общие активы (total assets) - суммируем все фонды за все дни
+      // Исключаем seed данные из расчетов
       const ethereumTotalAssets =
         Math.round(
-          ethereumData.reduce(
-            (sum, item) => sum + calculateDailyTotal(item),
-            0,
-          ) * 100,
+          ethereumData
+            .filter((item) => item.date !== seedDates.ethereum)
+            .reduce((sum, item) => sum + calculateDailyTotal(item), 0) * 100,
         ) / 100;
 
       const bitcoinTotalAssets =
@@ -544,8 +575,9 @@ export class ETFFlowController {
 
       const solanaTotalAssets =
         Math.round(
-          solanaData.reduce((sum, item) => sum + calculateDailyTotal(item), 0) *
-            100,
+          solanaData
+            .filter((item) => item.date !== seedDates.solana)
+            .reduce((sum, item) => sum + calculateDailyTotal(item), 0) * 100,
         ) / 100;
 
       // Для графика берем последние 10 дней и рассчитываем дневные потоки
@@ -684,7 +716,8 @@ export class ETFFlowController {
 
       // Сначала пытаемся получить из etf_new_records
       try {
-        // Пытаемся получить за сегодня
+        // Пытаемся получить ВСЕ события за сегодня, отсортированные по detectedAt (новые сначала)
+        // Не ограничиваем количеством, чтобы показать все события за день
         let newRecords = await this.prisma.eTFNewRecord.findMany({
           where: {
             date: {
@@ -693,7 +726,7 @@ export class ETFFlowController {
             },
           },
           orderBy: { detectedAt: 'desc' },
-          take: limitNum,
+          // Убираем take, чтобы получить все события за день
         });
 
         // Если за сегодня нет данных, берем последний доступный день
@@ -709,6 +742,7 @@ export class ETFFlowController {
             const latestTomorrow = new Date(latestDate);
             latestTomorrow.setDate(latestTomorrow.getDate() + 1);
 
+            // Получаем ВСЕ события за последний доступный день
             newRecords = await this.prisma.eTFNewRecord.findMany({
               where: {
                 date: {
@@ -717,9 +751,18 @@ export class ETFFlowController {
                 },
               },
               orderBy: { detectedAt: 'desc' },
-              take: limitNum,
+              // Убираем take, чтобы получить все события за день
             });
           }
+        }
+
+        // Если все еще нет данных, берем последние N событий по detectedAt (независимо от даты)
+        // Здесь используем лимит, так как это fallback для случая, когда нет данных за конкретный день
+        if (newRecords.length === 0) {
+          newRecords = await this.prisma.eTFNewRecord.findMany({
+            orderBy: { detectedAt: 'desc' },
+            take: limitNum,
+          });
         }
 
         if (newRecords.length > 0) {
@@ -782,8 +825,14 @@ export class ETFFlowController {
         }
       } catch (error: any) {
         // Если таблица не существует, продолжаем с генерацией из потоков
-        if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
-          this.logger.warn('Ошибка при чтении etf_new_records, используем генерацию из потоков:', error.message);
+        if (
+          error?.code !== 'P2021' &&
+          !error?.message?.includes('does not exist')
+        ) {
+          this.logger.warn(
+            'Ошибка при чтении etf_new_records, используем генерацию из потоков:',
+            error.message,
+          );
         }
       }
 
@@ -838,11 +887,15 @@ export class ETFFlowController {
           }),
         ]);
 
-        const dates = [latestEth?.date, latestBtc?.date, latestSol?.date].filter(
-          (d): d is Date => d !== null,
-        );
+        const dates = [
+          latestEth?.date,
+          latestBtc?.date,
+          latestSol?.date,
+        ].filter((d): d is Date => d !== null);
         if (dates.length > 0) {
-          const latestDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+          const latestDate = new Date(
+            Math.max(...dates.map((d) => d.getTime())),
+          );
           targetDateStart = new Date(latestDate);
           targetDateStart.setHours(0, 0, 0, 0);
           targetDateEnd = new Date(targetDateStart);
@@ -888,7 +941,8 @@ export class ETFFlowController {
       ) => {
         if (!data) return;
 
-        const date = data.date instanceof Date ? data.date : new Date(data.date);
+        const date =
+          data.date instanceof Date ? data.date : new Date(data.date);
         const timeStr = date.toISOString();
         const dateStr = date.toISOString().split('T')[0];
 
@@ -898,7 +952,12 @@ export class ETFFlowController {
             events.push({
               time: timeStr,
               company: companyName,
-              etf: asset === 'bitcoin' ? 'Bitcoin ETF' : asset === 'ethereum' ? 'Ethereum ETF' : 'Solana ETF',
+              etf:
+                asset === 'bitcoin'
+                  ? 'Bitcoin ETF'
+                  : asset === 'ethereum'
+                    ? 'Ethereum ETF'
+                    : 'Solana ETF',
               amount: value,
               date: dateStr,
             });
@@ -937,6 +996,9 @@ export class ETFFlowController {
       // Маппинг компаний для Solana
       const solCompanyMap: Record<string, string> = {
         bitwise: 'Bitwise',
+        vanEck: 'VanEck',
+        fidelity: 'Fidelity',
+        twentyOneShares: '21Shares',
         grayscale: 'Grayscale',
       };
 
@@ -945,7 +1007,9 @@ export class ETFFlowController {
       addEvents(solData, 'solana', solCompanyMap);
 
       // Сортируем по времени (новые сначала) и берем первые N
-      events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      events.sort(
+        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
+      );
 
       return {
         events: events.slice(0, limitNum),
@@ -978,7 +1042,7 @@ export class ETFFlowController {
   ) {
     try {
       const pageNum = page ? parseInt(page, 10) : 1;
-      const limitNum = limit ? parseInt(limit, 10) : 20;
+      const limitNum = limit ? parseInt(limit, 10) : 50; // Увеличено с 20 до 50 по умолчанию
       const skip = (pageNum - 1) * limitNum;
 
       // Сначала пытаемся получить из etf_new_records
@@ -1038,8 +1102,14 @@ export class ETFFlowController {
         }
       } catch (error: any) {
         // Если таблица не существует, продолжаем с генерацией из потоков
-        if (error?.code !== 'P2021' && !error?.message?.includes('does not exist')) {
-          this.logger.warn('Ошибка при чтении etf_new_records, используем генерацию из потоков:', error.message);
+        if (
+          error?.code !== 'P2021' &&
+          !error?.message?.includes('does not exist')
+        ) {
+          this.logger.warn(
+            'Ошибка при чтении etf_new_records, используем генерацию из потоков:',
+            error.message,
+          );
         }
       }
 
@@ -1067,7 +1137,8 @@ export class ETFFlowController {
         dataArray.forEach((data) => {
           if (!data) return;
 
-          const date = data.date instanceof Date ? data.date : new Date(data.date);
+          const date =
+            data.date instanceof Date ? data.date : new Date(data.date);
           const timeStr = date.toISOString();
           const dateStr = date.toISOString().split('T')[0];
 
@@ -1077,7 +1148,12 @@ export class ETFFlowController {
               events.push({
                 time: timeStr,
                 company: companyName,
-                etf: asset === 'bitcoin' ? 'Bitcoin ETF' : asset === 'ethereum' ? 'Ethereum ETF' : 'Solana ETF',
+                etf:
+                  asset === 'bitcoin'
+                    ? 'Bitcoin ETF'
+                    : asset === 'ethereum'
+                      ? 'Ethereum ETF'
+                      : 'Solana ETF',
                 amount: value,
                 date: dateStr,
               });
@@ -1117,6 +1193,9 @@ export class ETFFlowController {
       // Маппинг компаний для Solana
       const solCompanyMap: Record<string, string> = {
         bitwise: 'Bitwise',
+        vanEck: 'VanEck',
+        fidelity: 'Fidelity',
+        twentyOneShares: '21Shares',
         grayscale: 'Grayscale',
       };
 
@@ -1125,7 +1204,9 @@ export class ETFFlowController {
       addEvents(solData, 'solana', solCompanyMap);
 
       // Сортируем по времени (новые сначала)
-      events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      events.sort(
+        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
+      );
 
       const total = events.length;
       const paginatedEvents = events.slice(skip, skip + limitNum);

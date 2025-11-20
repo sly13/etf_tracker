@@ -26,23 +26,27 @@ export class SummaryController {
       );
     };
 
-    // Рассчитываем общие активы как кумулятивную сумму всех потоков (накопление)
-    // Используем поле total, которое уже содержит суммарный поток за день
-    // Данные отсортированы от новых к старым, поэтому суммируем все значения
+    // Даты seed данных, которые нужно исключить из расчетов
+    const seedDates = {
+      ethereum: '2024-07-22',
+      solana: '2025-10-27',
+    };
+
+    // Рассчитываем общие активы как сумму всех фондов за все дни
+    // Суммируем все фонды за каждый день (используя calculateDailyTotal)
+    // Исключаем seed данные из расчетов
     const bitcoinTotalAssets = bitcoinData.reduce(
-      (sum, item) => sum + (item.total || 0),
+      (sum, item) => sum + calculateDailyTotal(item),
       0,
     );
 
-    const ethereumTotalAssets = ethereumData.reduce(
-      (sum, item) => sum + (item.total || 0),
-      0,
-    );
+    const ethereumTotalAssets = ethereumData
+      .filter((item) => item.date !== seedDates.ethereum)
+      .reduce((sum, item) => sum + calculateDailyTotal(item), 0);
 
-    const solanaTotalAssets = solanaData.reduce(
-      (sum, item) => sum + (item.total || 0),
-      0,
-    );
+    const solanaTotalAssets = solanaData
+      .filter((item) => item.date !== seedDates.solana)
+      .reduce((sum, item) => sum + calculateDailyTotal(item), 0);
 
     // Получаем последние данные
     const latestEthereum = ethereumData[0];

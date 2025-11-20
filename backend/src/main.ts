@@ -59,35 +59,36 @@ async function bootstrap() {
   });
 
   // Запускаем парсинг данных ETF в фоновом режиме (не блокируем запуск)
-  if (process.env.NODE_ENV !== 'development!') {
-    console.log('📊 Запуск парсинга данных ETF в фоновом режиме...');
-    etfFlowService.parseAllETFFlowData()
-      .then((results) => {
-        console.log('✅ Результаты парсинга в фоне:');
+  // Всегда парсим при старте, чтобы обновить данные с новыми полями
+  console.log('📊 Запуск парсинга данных ETF в фоновом режиме...');
+  etfFlowService
+    .parseAllETFFlowData()
+    .then((results) => {
+      console.log('✅ Результаты парсинга в фоне:');
+      console.log(
+        `   Ethereum: ${results.ethereum.success ? '✅' : '❌'} ${results.ethereum.count} записей`,
+      );
+      console.log(
+        `   Bitcoin: ${results.bitcoin.success ? '✅' : '❌'} ${results.bitcoin.count} записей`,
+      );
+      if (results.solana) {
         console.log(
-          `   Ethereum: ${results.ethereum.success ? '✅' : '❌'} ${results.ethereum.count} записей`,
+          `   Solana: ${results.solana.success ? '✅' : '❌'} ${results.solana.count} записей, новых: ${results.solana.newDataCount || 0}`,
         );
-        console.log(
-          `   Bitcoin: ${results.bitcoin.success ? '✅' : '❌'} ${results.bitcoin.count} записей`,
-        );
-        if (results.solana) {
-          console.log(
-            `   Solana: ${results.solana.success ? '✅' : '❌'} ${results.solana.count} записей`,
-          );
-        }
-        if (results.ethereum.error) {
-          console.log(`   Ошибка Ethereum: ${results.ethereum.error}`);
-        }
-        if (results.bitcoin.error) {
-          console.log(`   Ошибка Bitcoin: ${results.bitcoin.error}`);
-        }
-      })
-      .catch((error) => {
-        console.log('⚠️ Ошибка при парсинге данных ETF в фоне:', error.message);
-      });
-  } else {
-    console.log('🔧 Development режим: пропускаем парсинг данных ETF');
-  }
+      }
+      if (results.ethereum.error) {
+        console.log(`   Ошибка Ethereum: ${results.ethereum.error}`);
+      }
+      if (results.bitcoin.error) {
+        console.log(`   Ошибка Bitcoin: ${results.bitcoin.error}`);
+      }
+      if (results.solana?.error) {
+        console.log(`   Ошибка Solana: ${results.solana.error}`);
+      }
+    })
+    .catch((error) => {
+      console.log('⚠️ Ошибка при парсинге данных ETF в фоне:', error.message);
+    });
 
   // Проверяем состояние Telegram бота
   console.log('📱 Состояние Telegram бота:');

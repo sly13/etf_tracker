@@ -72,14 +72,28 @@ export class EtfService {
   async upsertSolana(params: {
     date: Date;
     bitwise?: number | null;
+    vanEck?: number | null;
+    fidelity?: number | null;
+    twentyOneShares?: number | null;
     grayscale?: number | null;
     total?: number | null;
   }) {
-    const { date, bitwise, grayscale, total } = params;
+    const {
+      date,
+      bitwise,
+      vanEck,
+      fidelity,
+      twentyOneShares,
+      grayscale,
+      total,
+    } = params;
     return this.prisma.solFlow.upsert({
       where: { date },
       update: {
         bitwise,
+        vanEck,
+        fidelity,
+        twentyOneShares,
         grayscale,
         total,
         updatedAt: new Date(),
@@ -87,6 +101,9 @@ export class EtfService {
       create: {
         date,
         bitwise: bitwise ?? null,
+        vanEck: vanEck ?? null,
+        fidelity: fidelity ?? null,
+        twentyOneShares: twentyOneShares ?? null,
         grayscale: grayscale ?? null,
         total: total ?? null,
       },

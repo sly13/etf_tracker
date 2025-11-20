@@ -69,7 +69,7 @@ export class ETFSchedulerService {
         `✅ Solana данные обновлены: ${solanaData.length} записей, новых: ${solanaSaveResult.newDataCount}`,
       );
 
-      // Отправляем уведомления о новых записях ETF
+      // Отправляем уведомления о новых записях ETF (новая система - более точная)
       const allNewRecords = [
         ...(ethereumSaveResult.newRecords || []),
         ...(bitcoinSaveResult.newRecords || []),
@@ -83,25 +83,29 @@ export class ETFSchedulerService {
         await this.etfNotificationService.sendETFNotificationsForNewRecords(
           'etf.flow',
         );
-      }
-
-      // Отправляем уведомление только если есть новые данные (старая система для совместимости)
-      if (
-        ethereumSaveResult.hasNewData ||
-        bitcoinSaveResult.hasNewData ||
-        solanaSaveResult.hasNewData
-      ) {
-        await this.sendETFUpdateNotification(
-          ethereumData,
-          bitcoinData,
-          ethereumSaveResult,
-          bitcoinSaveResult,
-          solanaSaveResult,
-        );
       } else {
-        this.logger.log(
-          '📭 Новых данных не обнаружено, уведомления не отправляются',
-        );
+        // Если нет новых записей через новую систему, используем старую систему для совместимости
+        // Но только если действительно есть новые данные (не просто обновление существующих)
+        if (
+          ethereumSaveResult.hasNewData ||
+          bitcoinSaveResult.hasNewData ||
+          solanaSaveResult.hasNewData
+        ) {
+          this.logger.log(
+            '📊 Новых записей через новую систему нет, но есть новые данные - используем старую систему уведомлений',
+          );
+          await this.sendETFUpdateNotification(
+            ethereumData,
+            bitcoinData,
+            ethereumSaveResult,
+            bitcoinSaveResult,
+            solanaSaveResult,
+          );
+        } else {
+          this.logger.log(
+            '📭 Новых данных не обнаружено, уведомления не отправляются',
+          );
+        }
       }
 
       this.logger.log(
@@ -191,10 +195,29 @@ export class ETFSchedulerService {
         return;
       }
 
-      // Используем новые данные если есть, иначе последние
-      const ethereumFlow = ethereumNewData?.total || latestEthereum.total || 0;
-      const bitcoinFlow = bitcoinNewData?.total || latestBitcoin.total || 0;
-      const solanaFlow = solanaNewData?.total || 0;
+      // Вычисляем реальный поток как разницу между текущим и предыдущим днем
+      // ethereumData и bitcoinData отсортированы по дате desc, поэтому:
+      // [0] - текущий день, [1] - предыдущий день
+      const currentEthereumTotal =
+        ethereumNewData?.total || latestEthereum.total || 0;
+      const previousEthereumTotal = ethereumData[1]?.total || 0;
+      const ethereumFlow = currentEthereumTotal - previousEthereumTotal;
+
+      const currentBitcoinTotal =
+        bitcoinNewData?.total || latestBitcoin.total || 0;
+      const previousBitcoinTotal = bitcoinData[1]?.total || 0;
+      const bitcoinFlow = currentBitcoinTotal - previousBitcoinTotal;
+
+      // Для Solana используем тот же подход
+      const currentSolanaTotal = solanaNewData?.total || 0;
+      const solanaData = await this.etfFlowService.getETFFlowData('solana');
+      const previousSolanaTotal = (solanaData as any[])[1]?.total || 0;
+      const solanaFlow = currentSolanaTotal - previousSolanaTotal;
+
+      // Логируем вычисленные потоки для отладки
+      this.logger.log(
+        `📊 Вычисленные потоки: Bitcoin: ${bitcoinFlow.toFixed(2)}M (текущий: ${currentBitcoinTotal.toFixed(2)}M, предыдущий: ${previousBitcoinTotal.toFixed(2)}M), Ethereum: ${ethereumFlow.toFixed(2)}M (текущий: ${currentEthereumTotal.toFixed(2)}M, предыдущий: ${previousEthereumTotal.toFixed(2)}M)`,
+      );
 
       // Отправляем уведомление только если есть значительные потоки
       if (
@@ -206,9 +229,9 @@ export class ETFSchedulerService {
           bitcoinFlow,
           ethereumFlow,
           solanaFlow,
-          bitcoinTotal: bitcoinFlow,
-          ethereumTotal: ethereumFlow,
-          solanaTotal: solanaFlow,
+          bitcoinTotal: currentBitcoinTotal,
+          ethereumTotal: currentEthereumTotal,
+          solanaTotal: currentSolanaTotal,
           date:
             ethereumNewData?.date ||
             latestEthereum.date ||

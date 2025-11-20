@@ -56,14 +56,17 @@ export class NotificationService {
   /**
    * Форматирование значения потока: числа в БД в миллионах.
    * Если значение >= 1000M, показываем в B (миллиарды), иначе в M (миллионы).
+   * Добавляет знак + для положительных значений и - для отрицательных.
    */
   private formatFlow(value: number): string {
     const abs = Math.abs(value);
+    const sign = value >= 0 ? '+' : '-';
+    
     if (abs >= 1000) {
-      const billions = value / 1000;
-      return `${billions.toFixed(2)}B`;
+      const billions = abs / 1000;
+      return `${sign}${billions.toFixed(2)}B`;
     }
-    return `${value.toFixed(2)}M`;
+    return `${sign}${abs.toFixed(2)}M`;
   }
 
   /**

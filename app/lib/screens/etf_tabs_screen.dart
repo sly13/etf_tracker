@@ -218,17 +218,15 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     'headlineSmall',
                     fontWeight: FontWeight.bold,
                     customBaseSize: 18.0,
-                  ).copyWith(
-                    color: CardStyleUtils.getTitleColor(context),
-                  ),
+                  ).copyWith(color: CardStyleUtils.getTitleColor(context)),
                 ),
                 const Spacer(),
                 // Кнопка скриншота с темным фоном
                 GestureDetector(
                   onTap: () => _createScreenshot(),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.grey[800]
@@ -238,13 +236,22 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     child: Icon(
                       Icons.camera_alt,
                       color: Colors.white,
-                      size: 20,
+                      size: 16,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: CardStyleUtils.getSpacing(context)),
+            const SizedBox(height: 4),
+            Text(
+              '${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
+              style: TextStyle(
+                color: CardStyleUtils.getSubtitleColor(context),
+                fontSize: 12,
+                height: 1.3,
+              ),
+            ),
+            SizedBox(height: CardStyleUtils.getSpacing(context) + 4),
 
             // Сводка по Bitcoin
             if (etfProvider.summaryData != null) ...[
@@ -264,10 +271,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     'assets/bitcoin.png',
                     Colors.orange,
                     subtitle,
+                    (etfProvider.summaryData!['bitcoin']?['currentFlow']
+                            ?.toDouble() ??
+                        0.0),
                   );
                 },
               ),
-              SizedBox(height: CardStyleUtils.getSpacing(context)),
+              SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
             ],
 
             // Сводка по Ethereum
@@ -288,13 +298,16 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     'assets/ethereum.png',
                     Colors.blue,
                     subtitle,
+                    (etfProvider.summaryData!['ethereum']?['currentFlow']
+                            ?.toDouble() ??
+                        0.0),
                   );
                 },
               ),
+              SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
             ],
 
             // Сводка по Solana (показываем всегда, даже если пока 0)
-            SizedBox(height: CardStyleUtils.getSpacing(context)),
             Builder(
               builder: (context) {
                 final solPrice = context
@@ -314,130 +327,16 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   'assets/solana.png',
                   Colors.teal,
                   subtitle,
+                  (etfProvider.summaryData != null
+                      ? (etfProvider.summaryData!['solana']?['currentFlow']
+                                ?.toDouble() ??
+                            0.0)
+                      : 0.0),
                 );
               },
             ),
 
-            // Притоки/оттоки за последний день
-            if (etfProvider.summaryData != null) ...[
-              SizedBox(height: CardStyleUtils.getSpacing(context)),
-              Divider(
-                color: CardStyleUtils.getSubtitleColor(context).withOpacity(0.3),
-              ),
-              SizedBox(height: CardStyleUtils.getSpacing(context)),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bitcoin',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: CardStyleUtils.getSubtitleColor(context),
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          _formatFlow(
-                            (etfProvider.summaryData!['bitcoin']?['currentFlow']
-                                    ?.toDouble() ??
-                                0.0),
-                          ),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: (etfProvider.summaryData!['bitcoin']
-                                        ?['currentFlow']?.toDouble() ??
-                                    0.0) >=
-                                    0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ethereum',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: CardStyleUtils.getSubtitleColor(context),
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          _formatFlow(
-                            (etfProvider.summaryData!['ethereum']
-                                    ?['currentFlow']?.toDouble() ??
-                                0.0),
-                          ),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: (etfProvider.summaryData!['ethereum']
-                                        ?['currentFlow']?.toDouble() ??
-                                    0.0) >=
-                                    0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Solana',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: CardStyleUtils.getSubtitleColor(context),
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          _formatFlow(
-                            (etfProvider.summaryData!['solana']?['currentFlow']
-                                    ?.toDouble() ??
-                                0.0),
-                          ),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: (etfProvider.summaryData!['solana']
-                                        ?['currentFlow']?.toDouble() ??
-                                    0.0) >=
-                                    0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            SizedBox(height: CardStyleUtils.getSpacing(context)),
-            Text(
-              '${'common.updated'.tr()}: ${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
-              style: TextStyle(
-                color: CardStyleUtils.getSubtitleColor(context),
-                fontSize: 12,
-              ),
-            ),
+            SizedBox(height: CardStyleUtils.getSpacing(context) + 8),
 
             // Убрали календарь из карточки summary
           ],
@@ -479,6 +378,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     String imageAsset,
     Color color,
     String subtitle,
+    double currentFlow,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -489,7 +389,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
     final iconColor = CardStyleUtils.getIconColor(context, adjustedColor);
 
+    // Улучшенные цвета для положительных/отрицательных изменений
+    final flowColor = currentFlow >= 0
+        ? (isDark ? Colors.green.shade400 : Colors.green.shade600)
+        : (isDark ? Colors.red.shade400 : Colors.red.shade600);
+
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           width: 48,
@@ -501,12 +407,13 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Image.asset(
                 imageAsset,
-                width: 32,
-                height: 32,
+                width: 24,
+                height: 24,
                 color: iconColor,
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -515,6 +422,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 title,
@@ -522,25 +430,47 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: CardStyleUtils.getTitleColor(context),
+                  height: 1.2,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
                 style: TextStyle(
                   fontSize: 12,
                   color: CardStyleUtils.getSubtitleColor(context),
+                  height: 1.2,
                 ),
               ),
             ],
           ),
         ),
-        Text(
-          _formatLargeNumber(value),
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: CardStyleUtils.getTitleColor(context),
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _formatLargeNumber(value),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CardStyleUtils.getTitleColor(context),
+                height: 1.2,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _formatFlow(currentFlow),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: flowColor,
+                height: 1.2,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -574,7 +504,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       add('invesco', e.invesco);
       add('franklin', e.franklin);
       add('grayscale', e.grayscale);
-      add('total', e.total);
+      // Не добавляем total из базы, будем пересчитывать как сумму фондов
     }
 
     for (final e in etfProvider.ethereumData) accumulate(e, 'ethereum');
@@ -584,7 +514,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     final combined = dateToCompanies.entries.map((entry) {
       final date = entry.key;
       final companies = entry.value;
-      final total = (companies['total'] ?? 0);
+      // Пересчитываем total как сумму всех фондов (исключая служебный ключ 'total')
+      final total = companies.entries
+          .where((e) => e.key != 'total')
+          .fold<double>(0, (sum, e) => sum + e.value);
       // убираем служебный ключ total из компаний
       final companiesOnly = Map<String, double>.from(companies)
         ..remove('total');

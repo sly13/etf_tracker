@@ -76,45 +76,8 @@ export async function parseEthereum(
           .querySelector('span.tabletext')
           ?.textContent?.trim();
         if (firstCellText === 'Seed') {
-          const seedData = {
-            date: '2024-07-22',
-            blackrock: parseNumber(
-              cells[1].querySelector('span.tabletext')?.textContent,
-            ),
-            fidelity: parseNumber(
-              cells[2].querySelector('span.tabletext')?.textContent,
-            ),
-            bitwise: parseNumber(
-              cells[3].querySelector('span.tabletext')?.textContent,
-            ),
-            twentyOneShares: parseNumber(
-              cells[4].querySelector('span.tabletext')?.textContent,
-            ),
-            vanEck: parseNumber(
-              cells[5].querySelector('span.tabletext')?.textContent,
-            ),
-            invesco: parseNumber(
-              cells[6].querySelector('span.tabletext')?.textContent,
-            ),
-            franklin: parseNumber(
-              cells[7].querySelector('span.tabletext')?.textContent,
-            ),
-            grayscale: parseNumber(
-              cells[8].querySelector('span.tabletext')?.textContent,
-            ),
-            grayscaleCrypto: parseNumber(
-              cells[9].querySelector('span.tabletext')?.textContent,
-            ),
-            total: parseNumber(
-              cells[10].querySelector('span.tabletext')?.textContent,
-            ),
-          };
-
-          const today = new Date().toISOString().split('T')[0];
-          if (seedData.date !== today && !seenDates.has(seedData.date)) {
-            seenDates.add(seedData.date);
-            data.push(seedData);
-          }
+          // Пропускаем seed данные - они не являются реальными дневными потоками
+          // и должны быть исключены из суммарных расчетов
           return;
         }
 

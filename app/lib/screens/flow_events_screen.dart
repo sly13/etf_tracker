@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 import '../services/etf_service.dart';
 import '../models/flow_event.dart';
 import '../utils/card_style_utils.dart';
+
+enum _TimelineItemType {
+  single,
+  grouped,
+}
+
+class _TimelineItem {
+  final _TimelineItemType type;
+  final List<FlowEvent> events;
+  final String? tokenLogoPath;
+
+  _TimelineItem({
+    required this.type,
+    required this.events,
+    required this.tokenLogoPath,
+  });
+}
 
 class FlowEventsScreen extends StatefulWidget {
   const FlowEventsScreen({super.key});
@@ -19,7 +37,7 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
   bool _hasMore = true;
   int _currentPage = 1;
   String? _error;
-  static const int _pageSize = 20;
+  static const int _pageSize = 50; // Увеличено с 20 до 50, чтобы загрузить больше событий за раз
 
   @override
   void initState() {
@@ -115,30 +133,123 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
     }
   }
 
-  String _formatDateTime(String timeStr) {
+  String _formatDateTimeFull(String timeStr, BuildContext context) {
     try {
       final dateTime = DateTime.parse(timeStr);
-      return DateFormat('HH:mm').format(dateTime);
+      final locale = Localizations.localeOf(context).languageCode;
+      return DateFormat('dd MMMM yyyy, HH:mm', locale).format(dateTime);
     } catch (e) {
+      return '';
+    }
+  }
+
+  /// Получить путь к логотипу токена на основе названия ETF
+  String? _getTokenLogoPath(String etf) {
+    final etfLower = etf.toLowerCase();
+    if (etfLower.contains('bitcoin') || etfLower.contains('btc')) {
+      return 'assets/bitcoin.png';
+    } else if (etfLower.contains('ethereum') || etfLower.contains('eth')) {
+      return 'assets/ethereum.png';
+    } else if (etfLower.contains('solana') || etfLower.contains('sol')) {
+      return 'assets/solana.png';
+    }
+    return null;
+  }
+
+  /// Определить токен из названия ETF
+  String? _getTokenFromEtf(String etf) {
+    final etfLower = etf.toLowerCase().trim();
+    // Проверяем в порядке приоритета: сначала точные совпадения, потом частичные
+    if (etfLower.contains('bitcoin') || etfLower.contains('btc')) {
+      return 'bitcoin';
+    } else if (etfLower.contains('ethereum') || etfLower.contains('eth')) {
+      return 'ethereum';
+    } else if (etfLower.contains('solana') || etfLower.contains('sol')) {
+      return 'solana';
+    }
+    return null;
+  }
+
+  /// Нормализовать время до минут (убрать секунды и миллисекунды)
+  String _normalizeTimeToMinutes(String timeStr) {
+    try {
+      final dateTime = DateTime.parse(timeStr);
+      // Округляем до минут
+      final normalized = DateTime(
+        dateTime.year,
+        dateTime.month,
+        dateTime.day,
+        dateTime.hour,
+        dateTime.minute,
+      );
+      return normalized.toIso8601String();
+    } catch (e) {
+      // Если не удалось распарсить, возвращаем как есть
       return timeStr;
     }
   }
 
-  String _formatDate(String dateStr) {
+  /// Группировать события по токену и времени
+  /// Возвращает список групп, где каждая группа - это события одного токена и времени
+  List<List<FlowEvent>> _groupEventsByTokenAndTime(List<FlowEvent> events) {
+    if (events.isEmpty) return [];
+
+    final Map<String, List<FlowEvent>> grouped = {};
+    for (final event in events) {
+      final token = _getTokenFromEtf(event.etf) ?? 'unknown';
+      // Нормализуем время до минут для группировки
+      final normalizedTime = _normalizeTimeToMinutes(event.time);
+      final key = '$token|$normalizedTime';
+      if (!grouped.containsKey(key)) {
+        grouped[key] = [];
+      }
+      grouped[key]!.add(event);
+    }
+
+    // Сортируем группы по времени (от новых к старым)
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) {
+        final timeA = a.split('|')[1];
+        final timeB = b.split('|')[1];
+        return timeB.compareTo(timeA);
+      });
+
+    return sortedKeys.map((key) => grouped[key]!).toList();
+  }
+
+  String _formatDate(String dateStr, BuildContext context) {
     try {
       final date = DateTime.parse(dateStr);
       final today = DateTime.now();
       final yesterday = today.subtract(const Duration(days: 1));
+      // Используем полную локаль из контекста для правильного форматирования даты
+      final locale = Localizations.localeOf(context);
+      final localeString = locale.toString();
       
       if (date.year == today.year && date.month == today.month && date.day == today.day) {
-        return DateFormat('EEEE, dd MMMM', 'ru').format(date);
+        return DateFormat('EEEE, dd MMMM', localeString).format(date);
       } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
-        return DateFormat('EEEE, dd MMMM', 'ru').format(date);
+        return DateFormat('EEEE, dd MMMM', localeString).format(date);
       } else {
-        return DateFormat('EEEE, dd MMMM yyyy', 'ru').format(date);
+        return DateFormat('EEEE, dd MMMM yyyy', localeString).format(date);
       }
     } catch (e) {
-      return dateStr;
+      // Если форматирование с локалью не удалось, пробуем без локали
+      try {
+        final date = DateTime.parse(dateStr);
+        final today = DateTime.now();
+        final yesterday = today.subtract(const Duration(days: 1));
+        
+        if (date.year == today.year && date.month == today.month && date.day == today.day) {
+          return DateFormat('EEEE, dd MMMM').format(date);
+        } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+          return DateFormat('EEEE, dd MMMM').format(date);
+        } else {
+          return DateFormat('EEEE, dd MMMM yyyy').format(date);
+        }
+      } catch (e2) {
+        return dateStr;
+      }
     }
   }
 
@@ -202,12 +313,12 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
       // Заголовок с датой
       items.add(
         Container(
-          margin: const EdgeInsets.only(top: 16, bottom: 8),
+          margin: const EdgeInsets.only(top: 24, bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            _formatDate(date),
+            _formatDate(date, context),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: CardStyleUtils.getTitleColor(context),
             ),
@@ -215,15 +326,13 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
         ),
       );
       
-      // События за этот день
-      for (final event in grouped[date]!) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildEventItem(event),
-          ),
-        );
-      }
+      // Таймлайн с событиями за этот день
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _buildTimelineForDate(grouped[date]!),
+        ),
+      );
     }
     
     // Индикатор загрузки в конце
@@ -244,15 +353,192 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
     );
   }
 
+  Widget _buildTimelineForDate(List<FlowEvent> events) {
+    if (events.isEmpty) return const SizedBox.shrink();
+
+    // Сортируем события по времени (от новых к старым)
+    final sortedEvents = List<FlowEvent>.from(events)
+      ..sort((a, b) => b.time.compareTo(a.time));
+
+    final tokenGroups = _groupEventsByTokenAndTime(sortedEvents);
+
+    // Собираем все элементы для отображения
+    final List<_TimelineItem> timelineItems = [];
+
+    for (final group in tokenGroups) {
+      // Если в группе больше одного события, значит они одного токена и времени
+      if (group.length > 1) {
+        // Объединенный блок для событий одного токена и времени
+        timelineItems.add(_TimelineItem(
+          type: _TimelineItemType.grouped,
+          events: group,
+          tokenLogoPath: _getTokenLogoPath(group.first.etf),
+        ));
+      } else {
+        // Отдельный блок для одного события
+        timelineItems.add(_TimelineItem(
+          type: _TimelineItemType.single,
+          events: group,
+          tokenLogoPath: _getTokenLogoPath(group.first.etf),
+        ));
+      }
+    }
+
+    // Строим timeline виджеты
+    final List<Widget> timelineWidgets = [];
+    for (int i = 0; i < timelineItems.length; i++) {
+      final item = timelineItems[i];
+      final isFirst = i == 0;
+      final isLast = i == timelineItems.length - 1;
+
+      timelineWidgets.add(
+        TimelineTile(
+          alignment: TimelineAlign.start,
+          isFirst: isFirst,
+          isLast: isLast,
+          indicatorStyle: IndicatorStyle(
+            width: 32,
+            height: 32,
+            indicator: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: CardStyleUtils.getNestedCardColor(context),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: CardStyleUtils.getDividerColor(context),
+                  width: 1.5,
+                ),
+              ),
+              child: item.tokenLogoPath != null
+                  ? Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Image.asset(
+                        item.tokenLogoPath!,
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: CardStyleUtils.getSubtitleColor(context),
+                              shape: BoxShape.circle,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: CardStyleUtils.getSubtitleColor(context),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+            ),
+          ),
+          beforeLineStyle: LineStyle(
+            color: CardStyleUtils.getDividerColor(context),
+            thickness: 2,
+          ),
+          afterLineStyle: !isLast
+              ? LineStyle(
+                  color: CardStyleUtils.getDividerColor(context),
+                  thickness: 2,
+                )
+              : null,
+          endChild: item.type == _TimelineItemType.grouped
+              ? _buildGroupedEventItem(item.events)
+              : _buildEventItem(item.events.first),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: timelineWidgets,
+    );
+  }
+
+  Widget _buildGroupedEventItem(List<FlowEvent> events) {
+    if (events.isEmpty) return const SizedBox.shrink();
+
+    final firstEvent = events.first;
+    final dateTime = _formatDateTimeFull(firstEvent.time, context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, left: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CardStyleUtils.getNestedCardColor(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CardStyleUtils.getDividerColor(context),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Список компаний с суммами
+          ...events.asMap().entries.map((entry) {
+            final index = entry.key;
+            final event = entry.value;
+            final isPositive = event.isPositive;
+            return Padding(
+              padding: EdgeInsets.only(bottom: index < events.length - 1 ? 8 : 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      event.company,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CardStyleUtils.getTitleColor(context),
+                        letterSpacing: -0.2,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    _formatFlow(event.amount),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          // Дата и время внизу
+          const SizedBox(height: 8),
+          Text(
+            dateTime,
+            style: TextStyle(
+              fontSize: 12,
+              color: CardStyleUtils.getSubtitleColor(context),
+              letterSpacing: -0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEventItem(FlowEvent event) {
     final isPositive = event.isPositive;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 12, left: 8),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: CardStyleUtils.getCardColor(context),
-        borderRadius: BorderRadius.circular(8),
+        color: CardStyleUtils.getNestedCardColor(context),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: CardStyleUtils.getDividerColor(context),
           width: 0.5,
@@ -260,61 +546,30 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
       ),
       child: Row(
         children: [
-          // Иконка
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: isPositive
-                  ? Colors.green.withOpacity(0.15)
-                  : Colors.red.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              isPositive ? Icons.trending_up : Icons.trending_down,
-              color: isPositive ? Colors.green : Colors.red,
-              size: 16,
-            ),
-          ),
-          const SizedBox(width: 12),
           // Информация
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _formatDateTime(event.time),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: CardStyleUtils.getSubtitleColor(context),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        event.company,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: CardStyleUtils.getTitleColor(context),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
                 Text(
-                  event.etf,
+                  event.company,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: CardStyleUtils.getTitleColor(context),
+                    letterSpacing: -0.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatDateTimeFull(event.time, context),
                   style: TextStyle(
                     fontSize: 12,
                     color: CardStyleUtils.getSubtitleColor(context),
+                    letterSpacing: -0.1,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -322,26 +577,15 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           // Сумма
-          IntrinsicWidth(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: CardStyleUtils.getFlowTagColor(context, isPositive),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                _formatFlow(event.amount),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
-                ),
-              ),
+          Text(
+            _formatFlow(event.amount),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: CardStyleUtils.getFlowTagTextColor(context, isPositive),
+              letterSpacing: 0.3,
             ),
           ),
         ],
