@@ -48,27 +48,48 @@ class ETFWidgetService {
             let ethereumDailyFlows = chartData?["ethereumDailyFlows"] as? [Double] ?? []
             let solanaDailyFlows = chartData?["solanaDailyFlows"] as? [Double] ?? []
             
-            // Пытаемся получить дату данных из API
-            var dataDate = Date()
-            if let bitcoinDateString = bitcoinData?["latestDate"] as? String {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                if let parsedDate = formatter.date(from: bitcoinDateString) {
-                    dataDate = parsedDate
-                }
-            } else if let ethereumDateString = ethereumData?["latestDate"] as? String {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                if let parsedDate = formatter.date(from: ethereumDateString) {
-                    dataDate = parsedDate
-                }
-            } else if let solanaDateString = solanaData?["latestDate"] as? String {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                if let parsedDate = formatter.date(from: solanaDateString) {
-                    dataDate = parsedDate
+            // Пытаемся получить время последнего обновления из API
+            var lastUpdated = Date()
+            if let lastUpdatedString = overallData?["lastUpdated"] as? String {
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let parsedDate = iso8601Formatter.date(from: lastUpdatedString) {
+                    lastUpdated = parsedDate
+                } else {
+                    // Пробуем без fractional seconds
+                    iso8601Formatter.formatOptions = [.withInternetDateTime]
+                    if let parsedDate = iso8601Formatter.date(from: lastUpdatedString) {
+                        lastUpdated = parsedDate
+                    }
                 }
             }
+            
+            // Получаем дату данных из API (latestDate из bitcoin, ethereum или solana)
+            // Это дата, когда были зафиксированы потоки ETF, а не дата получения данных
+            var dataDate: Date? = nil
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            dateFormatter.timeZone = TimeZone(identifier: "UTC")
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            // Берем самую свежую дату из всех типов ETF
+            let dates: [String?] = [
+                bitcoinData?["latestDate"] as? String,
+                ethereumData?["latestDate"] as? String,
+                solanaData?["latestDate"] as? String
+            ]
+            
+            for dateString in dates.compactMap({ $0 }) {
+                if let parsedDate = dateFormatter.date(from: dateString) {
+                    // Берем самую свежую дату
+                    if dataDate == nil || parsedDate > dataDate! {
+                        dataDate = parsedDate
+                    }
+                }
+            }
+            
+            // Если не удалось получить дату из API, используем текущую дату
+            let finalDataDate = dataDate ?? Date()
 
             // Получаем данные по фондам
             let bitcoinFundFlowsDict = bitcoinData?["fundFlows"] as? [String: Any]
@@ -104,8 +125,8 @@ class ETFWidgetService {
                 bitcoinTotalAssets: bitcoinTotalAssets, // Суммарные активы BTC
                 ethereumTotalAssets: ethereumTotalAssets, // Суммарные активы ETH
                 solanaTotalAssets: solanaTotalAssets, // Суммарные активы SOL
-                lastUpdated: Date(),
-                dataDate: dataDate,
+                lastUpdated: lastUpdated, // Время последнего обновления из API
+                dataDate: finalDataDate, // Дата данных ETF (когда были зафиксированы потоки)
                 isPositive: overallData?["isPositive"] as? Bool ?? true,
                 last7DaysTotals: combinedDailyFlows, // дневные потоки для общего графика (10 дней)
                 bitcoinDailyFlows: bitcoinDailyFlows, // дневные потоки BTC (10 дней)

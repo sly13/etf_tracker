@@ -515,42 +515,55 @@ export class UniversalETFFlowService {
           orderBy: { date: 'desc' },
         });
 
-        return flows.map((flow) => ({
-          date: flow.date.toISOString().split('T')[0],
-          blackrock: flow.blackrock || 0,
-          fidelity: flow.fidelity || 0,
-          bitwise: flow.bitwise || 0,
-          twentyOneShares: flow.twentyOneShares || 0,
-          vanEck: flow.vanEck || 0,
-          invesco: flow.invesco || 0,
-          franklin: flow.franklin || 0,
-          grayscale: flow.grayscale || 0,
-          grayscaleCrypto: flow.grayscaleEth || 0,
-          total: flow.total || 0,
-        }));
+        return flows.map((flow) => {
+          // Используем UTC методы для получения даты без учета timezone
+          const year = flow.date.getUTCFullYear();
+          const month = String(flow.date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(flow.date.getUTCDate()).padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+          
+          return {
+            date: dateString,
+            blackrock: flow.blackrock || 0,
+            fidelity: flow.fidelity || 0,
+            bitwise: flow.bitwise || 0,
+            twentyOneShares: flow.twentyOneShares || 0,
+            vanEck: flow.vanEck || 0,
+            invesco: flow.invesco || 0,
+            franklin: flow.franklin || 0,
+            grayscale: flow.grayscale || 0,
+            grayscaleCrypto: flow.grayscaleEth || 0,
+            total: flow.total || 0,
+          };
+        });
       } else if (type === 'bitcoin') {
         const flows = await this.prisma.bTCFlow.findMany({
           orderBy: { date: 'desc' },
         });
 
-        return flows.map(
-          (flow) =>
-            ({
-              date: flow.date.toISOString().split('T')[0],
-              blackrock: flow.blackrock || 0,
-              fidelity: flow.fidelity || 0,
-              bitwise: flow.bitwise || 0,
-              twentyOneShares: flow.twentyOneShares || 0,
-              invesco: flow.invesco || 0,
-              franklin: flow.franklin || 0,
-              valkyrie: flow.valkyrie || 0,
-              vanEck: flow.vanEck || 0,
-              wisdomTree: flow.wisdomTree || 0,
-              grayscale: flow.grayscale || 0,
-              grayscaleBtc: flow.grayscaleBtc || 0,
-              total: flow.total || 0,
-            }) as BTCFlowData,
-        );
+        return flows.map((flow) => {
+          // Используем UTC методы для получения даты без учета timezone
+          const year = flow.date.getUTCFullYear();
+          const month = String(flow.date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(flow.date.getUTCDate()).padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+          
+          return {
+            date: dateString,
+            blackrock: flow.blackrock || 0,
+            fidelity: flow.fidelity || 0,
+            bitwise: flow.bitwise || 0,
+            twentyOneShares: flow.twentyOneShares || 0,
+            invesco: flow.invesco || 0,
+            franklin: flow.franklin || 0,
+            valkyrie: flow.valkyrie || 0,
+            vanEck: flow.vanEck || 0,
+            wisdomTree: flow.wisdomTree || 0,
+            grayscale: flow.grayscale || 0,
+            grayscaleBtc: flow.grayscaleBtc || 0,
+            total: flow.total || 0,
+          } as BTCFlowData;
+        });
       } else {
         // Solana
         this.logger.log('Запрос данных Solana ETF из базы данных');
@@ -565,15 +578,23 @@ export class UniversalETFFlowService {
           return [];
         }
 
-        return flows.map((flow) => ({
-          date: flow.date.toISOString().split('T')[0],
-          bitwise: flow.bitwise || 0,
-          vanEck: flow.vanEck || 0,
-          fidelity: flow.fidelity || 0,
-          twentyOneShares: flow.twentyOneShares || 0,
-          grayscale: flow.grayscale || 0,
-          total: flow.total || 0,
-        }));
+        return flows.map((flow) => {
+          // Используем UTC методы для получения даты без учета timezone
+          const year = flow.date.getUTCFullYear();
+          const month = String(flow.date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(flow.date.getUTCDate()).padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+          
+          return {
+            date: dateString,
+            bitwise: flow.bitwise || 0,
+            vanEck: flow.vanEck || 0,
+            fidelity: flow.fidelity || 0,
+            twentyOneShares: flow.twentyOneShares || 0,
+            grayscale: flow.grayscale || 0,
+            total: flow.total || 0,
+          };
+        });
       }
     } catch (error) {
       this.logger.error(
@@ -589,18 +610,30 @@ export class UniversalETFFlowService {
    * Проверяет, является ли изменение новой записью
    */
   private isNewRecord(previousValue: number, currentValue: number): boolean {
-    // Если предыдущее значение было 0 или null, а текущее > 0 - это новая запись
-    if ((previousValue === 0 || previousValue === null) && currentValue > 0) {
+    // Если предыдущее значение было 0 или null, а текущее != 0 - это новая запись
+    // Учитываем как положительные (притоки), так и отрицательные (оттоки) значения
+    if ((previousValue === 0 || previousValue === null) && currentValue !== 0) {
       return true;
     }
 
     // Если изменение больше чем на 10% и больше чем на 1M - это значительное изменение
-    if (previousValue > 0 && currentValue > 0) {
-      const changePercent =
-        Math.abs(currentValue - previousValue) / previousValue;
+    // Работаем с абсолютными значениями для расчета процента изменения
+    const absPrevious = Math.abs(previousValue);
+    const absCurrent = Math.abs(currentValue);
+    
+    if (absPrevious > 0 && absCurrent > 0) {
+      const changePercent = Math.abs(currentValue - previousValue) / absPrevious;
       const changeAmount = Math.abs(currentValue - previousValue);
 
       if (changePercent > 0.1 && changeAmount > 1) {
+        return true;
+      }
+    }
+
+    // Если знак изменился (был приток, стал отток или наоборот) - это значительное изменение
+    if (previousValue !== 0 && currentValue !== 0) {
+      const signChanged = (previousValue > 0 && currentValue < 0) || (previousValue < 0 && currentValue > 0);
+      if (signChanged && Math.abs(currentValue) > 1) {
         return true;
       }
     }
@@ -651,8 +684,9 @@ export class UniversalETFFlowService {
       if (recentRecord) {
         // Проверяем, отличается ли новое значение значительно от последнего
         const difference = Math.abs(data.amount - recentRecord.amount);
-        const differencePercent = recentRecord.amount > 0 
-          ? (difference / Math.abs(recentRecord.amount)) * 100 
+        const absRecentAmount = Math.abs(recentRecord.amount);
+        const differencePercent = absRecentAmount > 0 
+          ? (difference / absRecentAmount) * 100 
           : 0;
 
         // Если разница меньше 5% или меньше 0.5M, считаем это дубликатом

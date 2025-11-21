@@ -58,11 +58,13 @@ struct FundFlows {
     }
     
     // Получить топ-3 фонда по притоку
+    // Для Solana используются только: bitwise, vanEck, fidelity, twentyOneShares, grayscale
+    // Остальные фонды (blackrock, invesco, franklin, grayscaleCrypto, valkyrie, wisdomTree) 
+    // не используются для Solana и будут иметь нулевые значения
     func topFunds(limit: Int = 3) -> [(name: String, flow: Double)] {
         var funds: [(name: String, flow: Double)] = []
         
-        // Добавляем все фонды, даже если значение равно 0 (для отладки можно убрать проверку != 0)
-        // Но лучше показывать только ненулевые значения
+        // Показываем только ненулевые значения (для Solana автоматически отфильтруются неиспользуемые фонды)
         if abs(blackrock) > 0.01 { funds.append(("BlackRock", blackrock)) }
         if abs(fidelity) > 0.01 { funds.append(("Fidelity", fidelity)) }
         if abs(bitwise) > 0.01 { funds.append(("Bitwise", bitwise)) }

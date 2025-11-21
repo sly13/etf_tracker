@@ -36,3 +36,5 @@ class FlowEvent {
   bool get isPositive => amount >= 0;
 }
 
+
+

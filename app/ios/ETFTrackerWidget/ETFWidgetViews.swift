@@ -54,7 +54,7 @@ struct SmallWidgetView: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                        Text(formatFlow(entry.etfData.bitcoinFlow))
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
                         Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
@@ -86,7 +86,7 @@ struct SmallWidgetView: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                        Text(formatFlow(entry.etfData.ethereumFlow))
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.ethereumFlow))
                         Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
@@ -118,7 +118,7 @@ struct SmallWidgetView: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
+                        Text(formatFlow(entry.etfData.solanaFlow))
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.solanaFlow))
                         Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
@@ -165,7 +165,7 @@ struct MediumWidgetView: View {
                     
                     // Значение потока и суммарные активы справа
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(String(format: "%+.1fM", entry.etfData.bitcoinFlow))
+                        Text(formatFlow(entry.etfData.bitcoinFlow))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.bitcoinFlow))
                         Text(String(format: "%.1fB", entry.etfData.bitcoinTotalAssets / 1_000))
@@ -207,7 +207,7 @@ struct MediumWidgetView: View {
                     
                     // Значение потока и суммарные активы справа
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(String(format: "%+.1fM", entry.etfData.ethereumFlow))
+                        Text(formatFlow(entry.etfData.ethereumFlow))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.ethereumFlow))
                         Text(String(format: "%.1fB", entry.etfData.ethereumTotalAssets / 1_000))
@@ -249,7 +249,7 @@ struct MediumWidgetView: View {
                     
                     // Значение потока и суммарные активы справа
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(String(format: "%+.1fM", entry.etfData.solanaFlow))
+                        Text(formatFlow(entry.etfData.solanaFlow))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(flowColor(entry.etfData.solanaFlow))
                         Text(String(format: "%.1fB", entry.etfData.solanaTotalAssets / 1_000))
@@ -349,7 +349,7 @@ struct LargeWidgetView: View {
                     
                     Spacer()
                     
-                    Text(String(format: "%+.1fM", entry.etfData.totalFlow))
+                    Text(formatFlow(entry.etfData.totalFlow))
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(flowColor(entry.etfData.totalFlow))
                 }
@@ -388,7 +388,7 @@ struct LargeWidgetView: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text(String(format: "%+.1fM", flow))
+                    Text(formatFlow(flow))
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(flowColor(flow))
                     Text(String(format: "%.1fB", totalAssets / 1_000))
@@ -409,7 +409,7 @@ struct LargeWidgetView: View {
                                 Text(fund.name)
                                     .font(.system(size: 9, weight: .medium))
                                     .foregroundColor(.secondary)
-                                Text(String(format: "%+.1fM", fund.flow))
+                                Text(formatFlow(fund.flow))
                                     .font(.system(size: 9, weight: .semibold))
                                     .foregroundColor(flowColor(fund.flow))
                             }

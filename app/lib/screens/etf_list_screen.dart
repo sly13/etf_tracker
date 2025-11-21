@@ -17,20 +17,20 @@ class _ETFListScreenState extends State<ETFListScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction, size: 64, color: Colors.orange),
-            SizedBox(height: 16),
+            const Icon(Icons.construction, size: 64, color: Colors.orange),
+            const SizedBox(height: 16),
             Text(
               'etf_portfolio.title'.tr(),
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'etf_portfolio.in_development'.tr(),
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),

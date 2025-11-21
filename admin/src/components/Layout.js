@@ -25,6 +25,7 @@ import {
 	ExpandLess,
 	ExpandMore,
 	AppRegistration as AppIcon,
+	NewReleases as NewReleasesIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -137,6 +138,17 @@ function Layout({ children }) {
 					>
 						<ListItemIcon><PeopleIcon /></ListItemIcon>
 						<ListItemText primary="Пользователи" />
+					</ListItemButton>
+				</ListItem>
+
+				{/* ETF Новые записи */}
+				<ListItem disablePadding>
+					<ListItemButton
+						selected={location.pathname === '/etf-new-records'}
+						onClick={() => navigate('/etf-new-records')}
+					>
+						<ListItemIcon><NewReleasesIcon /></ListItemIcon>
+						<ListItemText primary="ETF Новые записи" />
 					</ListItemButton>
 				</ListItem>
 			</List>

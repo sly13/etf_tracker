@@ -4,6 +4,7 @@ import { UniversalETFFlowService } from './api/etf/universal-etf-flow.service';
 import { AdminService } from './admin-panel/admin/admin.service';
 import { TelegramBotService } from './api/telegram-bot/telegram-bot.service';
 import { DataSyncService } from './api/sync/data-sync.service';
+import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,6 +27,9 @@ async function bootstrap() {
 
   // Устанавливаем глобальный префикс для API
   app.setGlobalPrefix('api');
+
+  // Подключаем глобальный interceptor для логирования запросов
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // Получаем сервисы
   const etfFlowService = app.get(UniversalETFFlowService);

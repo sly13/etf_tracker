@@ -399,6 +399,11 @@ class ETFProvider with ChangeNotifier {
       _fundHoldings = results[4] as Map<String, dynamic>;
       _cefiIndices = results[5] as AllCEFIIndices;
 
+      // Обновляем lastUpdated на текущее локальное время пользователя
+      if (_summaryData != null && _summaryData!['overall'] != null) {
+        _summaryData!['overall']['lastUpdated'] = DateTime.now().toIso8601String();
+      }
+
       // Сохраняем в кэш
       debugPrint('ETFProvider: [SERVER] Сохраняем данные в кэш');
       await Future.wait([

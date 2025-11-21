@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Applications from './pages/Applications';
 import ApplicationDetail from './pages/ApplicationDetail';
 import Users from './pages/Users';
+import ETFNewRecords from './pages/ETFNewRecords';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function ProtectedRoute({ children }) {
@@ -54,6 +55,16 @@ function AppRoutes() {
 					<ProtectedRoute>
 						<Layout>
 							<Users />
+						</Layout>
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/etf-new-records"
+				element={
+					<ProtectedRoute>
+						<Layout>
+							<ETFNewRecords />
 						</Layout>
 					</ProtectedRoute>
 				}

@@ -685,6 +685,73 @@ export class ETFFlowController {
         };
       };
 
+      // Для Solana только 5 фондов: bitwise, vanEck, fidelity, twentyOneShares, grayscale
+      const getSolFundFlows = (item: any) => {
+        if (!item) return {};
+        return {
+          bitwise: Math.round((Number(item.bitwise) || 0) * 100) / 100,
+          vanEck: Math.round((Number(item.vanEck) || 0) * 100) / 100,
+          fidelity: Math.round((Number(item.fidelity) || 0) * 100) / 100,
+          twentyOneShares:
+            Math.round((Number(item.twentyOneShares) || 0) * 100) / 100,
+          grayscale: Math.round((Number(item.grayscale) || 0) * 100) / 100,
+          // Остальные фонды не используются для Solana, но добавляем их с нулевыми значениями для совместимости
+          blackrock: 0,
+          invesco: 0,
+          franklin: 0,
+          grayscaleCrypto: 0,
+          valkyrie: 0,
+          wisdomTree: 0,
+        };
+      };
+
+      // Получаем данные из таблицы etf_notification_deliveries
+      const notificationDeliveries =
+        await this.prisma.eTFNotificationDelivery.findMany({
+          take: 100, // Берем последние 100 записей
+          orderBy: { createdAt: 'desc' },
+          include: {
+            record: {
+              select: {
+                id: true,
+                date: true,
+                assetType: true,
+                company: true,
+                amount: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                deviceId: true,
+              },
+            },
+          },
+        });
+
+      // Статистика по доставкам
+      const deliveriesStats = {
+        total: notificationDeliveries.length,
+        sent: notificationDeliveries.filter((d) => d.sent).length,
+        pending: notificationDeliveries.filter((d) => !d.sent).length,
+        withErrors: notificationDeliveries.filter((d) => d.error).length,
+        byChannel: {
+          push: notificationDeliveries.filter((d) => d.channel === 'push')
+            .length,
+          telegram: notificationDeliveries.filter(
+            (d) => d.channel === 'telegram',
+          ).length,
+          email: notificationDeliveries.filter((d) => d.channel === 'email')
+            .length,
+          other: notificationDeliveries.filter(
+            (d) =>
+              d.channel && !['push', 'telegram', 'email'].includes(d.channel),
+          ).length,
+        },
+      };
+
+      // latestDate уже является строкой в формате "yyyy-MM-dd" из getETFFlowData
+      // Используем её напрямую
       return {
         // Основные данные для отображения
         bitcoin: {
@@ -703,7 +770,7 @@ export class ETFFlowController {
           totalAssets: solanaTotalAssets,
           dailyFlow: solanaDailyFlow,
           latestDate: latestSolana?.date || null,
-          fundFlows: getFundFlows(latestSolana),
+          fundFlows: getSolFundFlows(latestSolana),
         },
         overall: {
           totalFlow: totalFlow,
@@ -717,6 +784,23 @@ export class ETFFlowController {
           bitcoinDailyFlows: bitcoinDailyFlows,
           solanaDailyFlows: solanaDailyFlows,
           combinedDailyFlows: combinedDailyFlows,
+        },
+        // Данные из таблицы etf_notification_deliveries
+        notificationDeliveries: {
+          deliveries: notificationDeliveries.map((d) => ({
+            id: d.id,
+            userId: d.userId,
+            recordId: d.recordId,
+            sent: d.sent,
+            sentAt: d.sentAt,
+            channel: d.channel,
+            error: d.error,
+            createdAt: d.createdAt,
+            updatedAt: d.updatedAt,
+            record: d.record,
+            user: d.user,
+          })),
+          stats: deliveriesStats,
         },
       };
     } catch (error) {
@@ -1253,6 +1337,58 @@ export class ETFFlowController {
       throw new HttpException(
         {
           message: 'Ошибка при получении всех событий',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('new-records')
+  async getNewRecords(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    try {
+      const pageNum = page ? parseInt(page, 10) : 1;
+      const limitNum = limit ? parseInt(limit, 10) : 50;
+      const skip = (pageNum - 1) * limitNum;
+
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { company: { contains: search, mode: 'insensitive' } },
+          { assetType: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const [records, total] = await Promise.all([
+        this.prisma.eTFNewRecord.findMany({
+          where,
+          orderBy: { detectedAt: 'desc' },
+          skip,
+          take: limitNum,
+        }),
+        this.prisma.eTFNewRecord.count({ where }),
+      ]);
+
+      return {
+        success: true,
+        records,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          hasMore: skip + limitNum < total,
+        },
+      };
+    } catch (error: any) {
+      this.logger.error('Ошибка при получении новых записей ETF:', error);
+      throw new HttpException(
+        {
+          message: 'Ошибка при получении новых записей ETF',
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,

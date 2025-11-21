@@ -44,40 +44,58 @@ class AppConfig {
   // Определяем, запущено ли приложение в режиме отладки
   static bool get isDebugMode => !kReleaseMode;
 
-  // Получаем базовый URL бэкенда
-  // В debug режиме всегда используется локальный URL
-  // В production режиме используется значение из .env или дефолтный продакшн URL
-  static String get backendBaseUrl {
-    // В debug режиме всегда используем локальный URL
-    if (isDebugMode) {
-      print(
-        '🔧 Debug режим: Используем локальный URL: $_defaultLocalBackendUrl',
-      );
-      return _defaultLocalBackendUrl;
-    }
-
-    // В production режиме проверяем переменную окружения
+  // Проверяем, нужно ли использовать продакшн бэкенд из .env
+  // Переменная USE_PRODUCTION_BACKEND=true принудительно включает продакшн URL
+  // Если не установлена, в debug режиме используется локальный URL, в release - продакшн
+  static bool get _shouldUseProductionBackend {
     try {
-      final envBackendUrl = dotenv.env['BACKEND_API_URL'];
-      if (envBackendUrl != null && envBackendUrl.isNotEmpty) {
-        // Убираем /api из конца, если есть (добавляется в getApiUrl)
-        final cleanUrl = envBackendUrl.endsWith('/api')
-            ? envBackendUrl.substring(0, envBackendUrl.length - 4)
-            : envBackendUrl;
-        print(
-          '🔧 Production режим: Используем BACKEND_API_URL из .env: $cleanUrl',
-        );
-        return cleanUrl;
+      final useProduction = dotenv.env['USE_PRODUCTION_BACKEND'];
+      if (useProduction != null && useProduction.isNotEmpty) {
+        final isProduction =
+            useProduction.toLowerCase() == 'true' ||
+            useProduction.toLowerCase() == '1';
+        return isProduction;
       }
     } catch (e) {
-      print('⚠️ Ошибка получения BACKEND_API_URL из .env: $e');
+      // Игнорируем ошибки
     }
 
-    // Если переменной окружения нет, используем продакшн URL по умолчанию
-    print(
-      '🔧 Production режим: Используем продакшн URL по умолчанию: $_defaultBackendUrl',
-    );
-    return _defaultBackendUrl;
+    // Если переменная не установлена, используем логику по умолчанию:
+    // в debug режиме - локальный, в release - продакшн
+    return !isDebugMode;
+  }
+
+  // Получаем базовый URL бэкенда
+  // Управляется через переменную USE_PRODUCTION_BACKEND в .env
+  // Если USE_PRODUCTION_BACKEND=true - используется BACKEND_API_URL
+  // Если USE_PRODUCTION_BACKEND=false - используется локальный URL
+  // Если не установлена - используется логика по умолчанию (debug=локальный, release=продакшн)
+  static String get backendBaseUrl {
+    // Проверяем, нужно ли использовать продакшн бэкенд
+    if (_shouldUseProductionBackend) {
+      // Используем продакшн URL из .env или дефолтный
+      try {
+        final envBackendUrl = dotenv.env['BACKEND_API_URL'];
+        if (envBackendUrl != null && envBackendUrl.isNotEmpty) {
+          // Убираем /api из конца, если есть (добавляется в getApiUrl)
+          final cleanUrl = envBackendUrl.endsWith('/api')
+              ? envBackendUrl.substring(0, envBackendUrl.length - 4)
+              : envBackendUrl;
+          print('🔧 Используем продакшн URL из BACKEND_API_URL: $cleanUrl');
+          return cleanUrl;
+        }
+      } catch (e) {
+        print('⚠️ Ошибка получения BACKEND_API_URL из .env: $e');
+      }
+
+      // Если переменной окружения нет, используем продакшн URL по умолчанию
+      print('🔧 Используем продакшн URL по умолчанию: $_defaultBackendUrl');
+      return _defaultBackendUrl;
+    }
+
+    // Используем локальный URL
+    print('🔧 Используем локальный URL: $_defaultLocalBackendUrl');
+    return _defaultLocalBackendUrl;
   }
 
   // Получаем полный URL для API
@@ -141,9 +159,9 @@ class AppConfig {
 
   // Получаем информацию о текущем окружении
   static String get environmentInfo {
-    if (isDebugMode) {
-      return 'Development (Local Backend: $_defaultLocalBackendUrl)';
-    }
-    return 'Production (Server Backend: $_defaultBackendUrl)';
+    final backendUrl = backendBaseUrl;
+    final buildMode = isDebugMode ? 'Debug' : 'Release';
+    final envMode = _shouldUseProductionBackend ? 'Production' : 'Development';
+    return '$buildMode | $envMode Backend: $backendUrl';
   }
 }

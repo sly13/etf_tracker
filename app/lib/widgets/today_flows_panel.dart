@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:timeline_tile/timeline_tile.dart';
@@ -32,7 +33,7 @@ class TodayFlowsPanel extends StatefulWidget {
   State<TodayFlowsPanel> createState() => TodayFlowsPanelState();
 }
 
-class TodayFlowsPanelState extends State<TodayFlowsPanel> {
+class TodayFlowsPanelState extends State<TodayFlowsPanel> with WidgetsBindingObserver {
   final ETFService _etfService = ETFService();
   final LocalStorageService _storageService = LocalStorageService();
   List<FlowEvent> _events = [];
@@ -40,14 +41,48 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> {
   bool _isRefreshing = false; // Флаг для состояния обновления
   String? _error;
   bool _isToday = true;
+  Timer? _refreshTimer;
+  DateTime? _lastRefreshTime;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Загружаем данные из кэша сразу, без установки loading
     _loadFromCacheImmediately();
     // Затем загружаем с сервера в фоне
     _loadTodayEvents();
+    // Запускаем периодическое обновление каждые 5 минут
+    _startPeriodicRefresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Обновляем данные при возврате приложения в foreground
+    if (state == AppLifecycleState.resumed) {
+      // Проверяем, прошло ли больше 1 минуты с последнего обновления
+      if (_lastRefreshTime == null || 
+          DateTime.now().difference(_lastRefreshTime!).inMinutes >= 1) {
+        _loadTodayEvents(isRefresh: true);
+      }
+    }
+  }
+
+  void _startPeriodicRefresh() {
+    // Обновляем данные каждые 5 минут
+    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      if (mounted) {
+        _loadTodayEvents(isRefresh: true);
+      }
+    });
   }
 
   // Загрузить данные из кэша немедленно
@@ -107,6 +142,7 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> {
             _isToday = data['isToday'] as bool? ?? true;
             _isLoading = false;
             _isRefreshing = false;
+            _lastRefreshTime = DateTime.now();
           });
         }
       } catch (e) {
