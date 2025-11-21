@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Владение",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "home": "Главная"
   },
   "common": {
     "loading": "Загрузка...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Русский",
     "about": "О приложении",
-    "version": "Версия"
+    "version": "Версия",
+    "onboarding_reset": "Онбординг сброшен. Перезапустите приложение."
   },
   "profile": {
     "title": "Профиль",
@@ -86,7 +88,6 @@
     "benefit_support": "Приоритетная поддержка",
     "choose_plan": "Выберите план:",
     "try_free_and_subscribe": "Попробовать бесплатно и подписаться",
-    "restore_purchases": "Восстановить покупки",
     "restore_success": "Покупки успешно восстановлены!",
     "restore_no_active": "Покупки восстановлены, но активных подписок не найдено.",
     "restore_error": "Ошибка при восстановлении покупок",
@@ -150,10 +151,12 @@
     "product_not_found": "Продукт не найден в RevenueCat",
     "status": "Статус подписки",
     "refresh_status": "Обновить статус",
-    "upgrade_to_pro": "Обновить до Pro"
+    "upgrade_to_pro": "Обновить до Pro",
+    "restore_purchases": "Восстановить покупки",
+    "link_open_error": "Не удалось открыть ссылку",
+    "link_open_error_detail": "Ошибка открытия ссылки"
   },
   "etf": {
-    "flows": "ETF Потоки",
     "ethereum": "Ethereum ETF",
     "bitcoin": "Bitcoin ETF",
     "holdings": "Владение Фондами",
@@ -204,7 +207,6 @@
     "monthly_total_net_inflow": "Ежемесячный общий чистый приток",
     "no_data_for_date": "Нет данных за",
     "today_flows": "Притоки за сегодня",
-    "flows": "Притоки",
     "latest_flows": "Последние притоки",
     "show_more": "Показать еще",
     "no_events_today": "Нет событий за сегодня",
@@ -277,7 +279,8 @@
   },
   "etf_portfolio": {
     "title": "ETF Портфель",
-    "all_asset_classes": "Все классы активов"
+    "all_asset_classes": "Все классы активов",
+    "in_development": "Функция находится в разработке"
   },
   "detailed_info": {
     "title": "Детальная информация",
@@ -509,6 +512,57 @@
     "premium_required": "Требуется премиум подписка",
     "premium_required_desc": "ETF уведомления доступны только для премиум пользователей. Оформите подписку для доступа к этой функции.",
     "requesting_permissions": "Запрашиваем разрешения...",
-    "upgrade": "Оформить подписку"
+    "upgrade": "Оформить подписку",
+    "test_check": "Проверить уведомления",
+    "test_send_etf": "Отправить тестовое уведомление ETF",
+    "test_send": "Отправить тестовое уведомление",
+    "test_sent_detail": "Тестовое уведомление отправлено. Если не видите уведомление, сверните приложение.",
+    "test_notification": "Тестовое уведомление",
+    "test_notification_body": "Это тестовое уведомление для проверки работы на симуляторе",
+    "test_send_description": "Отправить тестовое уведомление на устройство для проверки работы"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "Индекс отражает направление и интенсивность потоков капитала в спотовые криптовалютные ETF"
+    },
+    "sentiment": {
+      "extreme_greed": "Экстремальная жадность",
+      "greed": "Жадность",
+      "neutral": "Нейтрально",
+      "fear": "Страх",
+      "extreme_fear": "Экстремальный страх"
+    },
+    "index": {
+      "btc": "CEFI-BTC Индекс",
+      "eth": "CEFI-ETH Индекс",
+      "sol": "CEFI-SOL Индекс",
+      "composite": "CEFI-Composite Индекс",
+      "default": "CEFI Индекс"
+    },
+    "current_value": "Текущее значение индекса",
+    "historical_values": "Исторические значения",
+    "yesterday": "Вчера",
+    "last_week": "На прошлой неделе",
+    "last_month": "В прошлом месяце",
+    "yearly_high_low": "Годовой максимум и минимум",
+    "yearly_high": "Годовой максимум",
+    "yearly_low": "Годовой минимум",
+    "chart": "График",
+    "error": {
+      "loading": "Ошибка загрузки индекса"
+    }
+  },
+  "widget": {
+    "add": "Добавить виджет",
+    "instructions": {
+      "intro": "Для добавления виджета на рабочий стол:",
+      "step1": "1. Откройте Системные настройки",
+      "step2": "2. Перейдите в \"Рабочий стол и Dock\"",
+      "step3": "3. Нажмите \"Виджеты\"",
+      "step4": "4. Найдите \"ETF Flow Tracker\"",
+      "step5": "5. Перетащите на рабочий стол",
+      "alternative": "Или используйте Control Center → Виджеты"
+    }
   }
 }

@@ -335,13 +335,13 @@ export class CEFIIndexService {
       // 0 = средние потоки (Neutral)
       // +1 = очень положительные потоки (Extreme Greed)
       const normalizedZScore = Math.tanh(zScore * 0.5);
-      
+
       // Преобразуем нормализованный Z-score в индекс 0-100:
       // BASE_VALUE (50) + отклонение от нейтральной точки
       // normalizedZScore * 50 дает диапазон от -50 до +50
       // Итого: 50 + (-50 до +50) = 0 до 100
-      const indexValue = this.BASE_VALUE + (normalizedZScore * this.BASE_VALUE);
-      
+      const indexValue = this.BASE_VALUE + normalizedZScore * this.BASE_VALUE;
+
       // Ограничиваем значение в диапазоне 0-100 (на случай выхода за границы)
       const clampedValue = Math.max(0, Math.min(100, indexValue));
 
@@ -353,7 +353,7 @@ export class CEFIIndexService {
 
       indexData.push({
         date: flow.date,
-        value: Math.round(clampedValue * 100) / 100,
+        value: Math.round(clampedValue), // Целое число для индекса
         change: Math.round(change * 100) / 100,
         changePercent: Math.round(changePercent * 100) / 100,
       });
@@ -645,13 +645,13 @@ export class CEFIIndexService {
     if (timeRange !== 'all') {
       const now = new Date();
       const cutoffDate = new Date();
-      
+
       if (timeRange === '30d') {
         cutoffDate.setDate(now.getDate() - 30);
       } else if (timeRange === '1y') {
         cutoffDate.setFullYear(now.getFullYear() - 1);
       }
-      
+
       filteredHistory = indexResponse.history.filter(
         (item) => new Date(item.date) >= cutoffDate,
       );
@@ -671,17 +671,22 @@ export class CEFIIndexService {
 
     // Получаем даты для запроса данных актива
     const dates = filteredHistory.map((item) => item.date);
-    const minDate = new Date(Math.min(...dates.map((d) => new Date(d).getTime())));
-    const maxDate = new Date(Math.max(...dates.map((d) => new Date(d).getTime())));
+    const minDate = new Date(
+      Math.min(...dates.map((d) => new Date(d).getTime())),
+    );
+    const maxDate = new Date(
+      Math.max(...dates.map((d) => new Date(d).getTime())),
+    );
     minDate.setHours(0, 0, 0, 0);
     maxDate.setHours(23, 59, 59, 999);
 
     // Определяем символ для запроса свечей в зависимости от типа индекса
-    const symbol = indexType === 'btc' || indexType === 'composite' 
-      ? 'BTCUSDT' 
-      : indexType === 'eth' 
-        ? 'ETHUSDT' 
-        : 'SOLUSDT';
+    const symbol =
+      indexType === 'btc' || indexType === 'composite'
+        ? 'BTCUSDT'
+        : indexType === 'eth'
+          ? 'ETHUSDT'
+          : 'SOLUSDT';
 
     // Получаем дневные свечи актива за период
     const candles = await this.prisma.bTCandle.findMany({
@@ -745,7 +750,7 @@ export class CEFIIndexService {
       // Получаем данные о притоках для этой даты
       const flowData = flowsMap.get(indexItem.date);
       let flows: { total: number; funds: Record<string, number> } | undefined;
-      
+
       if (flowData) {
         const funds: Record<string, number> = {};
         if (indexType === 'btc' || indexType === 'composite') {
@@ -753,7 +758,8 @@ export class CEFIIndexService {
           if (btcFlow.blackrock) funds.blackrock = btcFlow.blackrock;
           if (btcFlow.fidelity) funds.fidelity = btcFlow.fidelity;
           if (btcFlow.bitwise) funds.bitwise = btcFlow.bitwise;
-          if (btcFlow.twentyOneShares) funds.twentyOneShares = btcFlow.twentyOneShares;
+          if (btcFlow.twentyOneShares)
+            funds.twentyOneShares = btcFlow.twentyOneShares;
           if (btcFlow.vanEck) funds.vanEck = btcFlow.vanEck;
           if (btcFlow.invesco) funds.invesco = btcFlow.invesco;
           if (btcFlow.franklin) funds.franklin = btcFlow.franklin;
@@ -766,21 +772,24 @@ export class CEFIIndexService {
           if (ethFlow.blackrock) funds.blackrock = ethFlow.blackrock;
           if (ethFlow.fidelity) funds.fidelity = ethFlow.fidelity;
           if (ethFlow.bitwise) funds.bitwise = ethFlow.bitwise;
-          if (ethFlow.twentyOneShares) funds.twentyOneShares = ethFlow.twentyOneShares;
+          if (ethFlow.twentyOneShares)
+            funds.twentyOneShares = ethFlow.twentyOneShares;
           if (ethFlow.vanEck) funds.vanEck = ethFlow.vanEck;
           if (ethFlow.invesco) funds.invesco = ethFlow.invesco;
           if (ethFlow.franklin) funds.franklin = ethFlow.franklin;
           if (ethFlow.grayscale) funds.grayscale = ethFlow.grayscale;
-          if (ethFlow.grayscaleCrypto) funds.grayscaleEth = ethFlow.grayscaleCrypto;
+          if (ethFlow.grayscaleCrypto)
+            funds.grayscaleEth = ethFlow.grayscaleCrypto;
         } else if (indexType === 'sol') {
           const solFlow = flowData as SolFlowData;
           if (solFlow.bitwise) funds.bitwise = solFlow.bitwise;
           if (solFlow.vanEck) funds.vanEck = solFlow.vanEck;
           if (solFlow.fidelity) funds.fidelity = solFlow.fidelity;
-          if (solFlow.twentyOneShares) funds.twentyOneShares = solFlow.twentyOneShares;
+          if (solFlow.twentyOneShares)
+            funds.twentyOneShares = solFlow.twentyOneShares;
           if (solFlow.grayscale) funds.grayscale = solFlow.grayscale;
         }
-        
+
         if (Object.keys(funds).length > 0) {
           flows = {
             total: flowData.total || 0,

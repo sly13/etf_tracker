@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../config/app_config.dart';
 import '../firebase_options.dart';
 import 'package:http/http.dart' as http;
@@ -484,9 +485,11 @@ class NotificationService {
 
   /// Показать тестовое локальное уведомление (для симулятора)
   static Future<void> showTestNotification({
-    String title = 'Тестовое уведомление',
-    String body = 'Это тестовое уведомление для проверки работы на симуляторе',
+    String? title,
+    String? body,
   }) async {
+    final notificationTitle = title ?? 'notifications.test_notification'.tr();
+    final notificationBody = body ?? 'notifications.test_notification_body'.tr();
     debugPrint('🔔 Начинаем показ тестового уведомления...');
     
     if (_localNotifications == null) {
@@ -519,8 +522,8 @@ class NotificationService {
       }
     }
 
-    debugPrint('🔔 Показываем тестовое уведомление: $title');
-    debugPrint('🔔 Тело уведомления: $body');
+    debugPrint('🔔 Показываем тестовое уведомление: $notificationTitle');
+    debugPrint('🔔 Тело уведомления: $notificationBody');
 
     const androidDetails = AndroidNotificationDetails(
       'etf_notifications',
@@ -555,8 +558,8 @@ class NotificationService {
       
       await _localNotifications!.show(
         notificationId,
-        title,
-        body,
+        notificationTitle,
+        notificationBody,
         notificationDetails,
         payload: json.encode({'type': 'test', 'timestamp': DateTime.now().toIso8601String()}),
       );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../utils/platform_utils.dart';
 
 class AdaptiveNavigation extends StatelessWidget {
@@ -70,31 +71,31 @@ class AdaptiveNavigation extends StatelessWidget {
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.dashboard,
-                        title: 'Главная',
+                        title: 'navigation.home'.tr(),
                         index: 0,
                       ),
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.currency_bitcoin,
-                        title: 'Bitcoin',
+                        title: 'navigation.bitcoin_etf'.tr(),
                         index: 1,
                       ),
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.currency_exchange,
-                        title: 'Ethereum',
+                        title: 'navigation.ethereum_etf'.tr(),
                         index: 2,
                       ),
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.account_balance,
-                        title: 'Фонды',
+                        title: 'navigation.holdings'.tr(),
                         index: 3,
                       ),
                       _buildMacOSNavItem(
                         context,
                         icon: Icons.settings,
-                        title: 'Настройки',
+                        title: 'navigation.settings'.tr(),
                         index: 4,
                       ),
                     ],
@@ -114,7 +115,7 @@ class AdaptiveNavigation extends StatelessWidget {
                             _showWidgetInstructions(context);
                           },
                           icon: const Icon(Icons.widgets),
-                          label: const Text('Добавить виджет'),
+                          label: Text('widget.add'.tr()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,
@@ -149,23 +150,23 @@ class AdaptiveNavigation extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
-            label: 'Главная',
+            label: 'navigation.home'.tr(),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.currency_bitcoin),
-            label: 'Bitcoin',
+            label: 'navigation.bitcoin_etf'.tr(),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.currency_exchange),
-            label: 'Ethereum',
+            label: 'navigation.ethereum_etf'.tr(),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance),
-            label: 'Фонды',
+            label: 'navigation.holdings'.tr(),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Настройки',
+            label: 'navigation.settings'.tr(),
           ),
         ],
       ),
@@ -210,26 +211,26 @@ class AdaptiveNavigation extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Добавить виджет'),
-        content: const Column(
+        title: Text('widget.add'.tr()),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Для добавления виджета на рабочий стол:'),
-            SizedBox(height: 16),
-            Text('1. Откройте Системные настройки'),
-            Text('2. Перейдите в "Рабочий стол и Dock"'),
-            Text('3. Нажмите "Виджеты"'),
-            Text('4. Найдите "ETF Flow Tracker"'),
-            Text('5. Перетащите на рабочий стол'),
-            SizedBox(height: 16),
-            Text('Или используйте Control Center → Виджеты'),
+            Text('widget.instructions.intro'.tr()),
+            const SizedBox(height: 16),
+            Text('widget.instructions.step1'.tr()),
+            Text('widget.instructions.step2'.tr()),
+            Text('widget.instructions.step3'.tr()),
+            Text('widget.instructions.step4'.tr()),
+            Text('widget.instructions.step5'.tr()),
+            const SizedBox(height: 16),
+            Text('widget.instructions.alternative'.tr()),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Понятно'),
+            child: Text('common.ok'.tr()),
           ),
         ],
       ),

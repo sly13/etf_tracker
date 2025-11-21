@@ -502,8 +502,12 @@ class _BTCFlowBarChartState extends State<BTCFlowBarChart> {
           drawVerticalLine: false,
           horizontalInterval: _getLeftInterval(),
           getDrawingHorizontalLine: (value) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             if (value == 0) {
-              return FlLine(color: Colors.white, strokeWidth: 2);
+              return FlLine(
+                color: isDark ? Colors.white : Colors.grey[800]!,
+                strokeWidth: 2,
+              );
             }
             return FlLine(color: Colors.grey[600], strokeWidth: 1);
           },

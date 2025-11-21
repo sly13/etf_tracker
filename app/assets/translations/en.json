@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Holdings",
-    "settings": "Settings"
+    "settings": "Settings",
+    "home": "Home"
   },
   "common": {
     "loading": "Loading...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Russian",
     "about": "About",
-    "version": "Version"
+    "version": "Version",
+    "onboarding_reset": "Onboarding reset. Restart the app."
   },
   "profile": {
     "title": "Profile",
@@ -67,7 +69,6 @@
     "premium": "Premium",
     "expires_on": "Expires on",
     "upgrade_to_premium": "Upgrade to Premium",
-    "restore_purchases": "Restore Purchases",
     "active_subscription": "Active Subscription",
     "no_registration_required": "No registration required",
     "notifications": "Notifications",
@@ -86,7 +87,6 @@
     "benefit_support": "Priority support",
     "choose_plan": "Choose plan:",
     "try_free_and_subscribe": "Try Free and Subscribe",
-    "restore_purchases": "Restore purchases",
     "restore_success": "Purchases restored successfully!",
     "restore_no_active": "Purchases restored, but no active subscriptions found.",
     "restore_error": "Error restoring purchases",
@@ -147,7 +147,10 @@
     "product_not_found": "Product not found in RevenueCat",
     "status": "Subscription Status",
     "refresh_status": "Refresh Status",
-    "upgrade_to_pro": "Upgrade to Pro"
+    "upgrade_to_pro": "Upgrade to Pro",
+    "restore_purchases": "Restore Purchases",
+    "link_open_error": "Failed to open link",
+    "link_open_error_detail": "Error opening link"
   },
   "premium": {
     "unlock": "Unlock",
@@ -174,7 +177,6 @@
     "unlock_pro": "Unlock Pro"
   },
   "etf": {
-    "flows": "ETF Flows",
     "ethereum": "Ethereum ETF",
     "bitcoin": "Bitcoin ETF",
     "holdings": "Fund Holdings",
@@ -225,7 +227,6 @@
     "monthly_total_net_inflow": "Monthly Total Net Inflow",
     "no_data_for_date": "No data for",
     "today_flows": "Today's Flows",
-    "flows": "Flows",
     "latest_flows": "Latest Flows",
     "show_more": "Show More",
     "no_events_today": "No events today",
@@ -298,7 +299,8 @@
   },
   "etf_portfolio": {
     "title": "ETF Portfolio",
-    "all_asset_classes": "All asset classes"
+    "all_asset_classes": "All asset classes",
+    "in_development": "Feature is under development"
   },
   "detailed_info": {
     "title": "Detailed Information",
@@ -506,6 +508,57 @@
     "premium_required": "Premium Subscription Required",
     "premium_required_desc": "ETF notifications are available only for premium users. Subscribe to access this feature.",
     "requesting_permissions": "Requesting permissions...",
-    "upgrade": "Upgrade Now"
+    "upgrade": "Upgrade Now",
+    "test_check": "Check Notifications",
+    "test_send_etf": "Send test ETF notification",
+    "test_send": "Send Test Notification",
+    "test_sent_detail": "Test notification sent. If you don't see the notification, minimize the app.",
+    "test_notification": "Test Notification",
+    "test_notification_body": "This is a test notification to check functionality on simulator",
+    "test_send_description": "Send test notification to device to check functionality"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "The index reflects the direction and intensity of capital flows into spot cryptocurrency ETFs"
+    },
+    "sentiment": {
+      "extreme_greed": "Extreme Greed",
+      "greed": "Greed",
+      "neutral": "Neutral",
+      "fear": "Fear",
+      "extreme_fear": "Extreme Fear"
+    },
+    "index": {
+      "btc": "CEFI-BTC Index",
+      "eth": "CEFI-ETH Index",
+      "sol": "CEFI-SOL Index",
+      "composite": "CEFI-Composite Index",
+      "default": "CEFI Index"
+    },
+    "current_value": "Current Index Value",
+    "historical_values": "Historical Values",
+    "yesterday": "Yesterday",
+    "last_week": "Last Week",
+    "last_month": "Last Month",
+    "yearly_high_low": "Yearly High and Low",
+    "yearly_high": "Yearly High",
+    "yearly_low": "Yearly Low",
+    "chart": "Chart",
+    "error": {
+      "loading": "Error loading index"
+    }
+  },
+  "widget": {
+    "add": "Add Widget",
+    "instructions": {
+      "intro": "To add widget to desktop:",
+      "step1": "1. Open System Settings",
+      "step2": "2. Go to \"Desktop & Dock\"",
+      "step3": "3. Click \"Widgets\"",
+      "step4": "4. Find \"ETF Flow Tracker\"",
+      "step5": "5. Drag to desktop",
+      "alternative": "Or use Control Center → Widgets"
+    }
   }
 }

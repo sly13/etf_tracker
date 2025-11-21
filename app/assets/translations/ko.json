@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "보유",
-    "settings": "설정"
+    "settings": "설정",
+    "home": "홈"
   },
   "common": {
     "loading": "로딩 중...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Русский",
     "about": "정보",
-    "version": "버전"
+    "version": "버전",
+    "onboarding_reset": "온보딩이 재설정되었습니다. 앱을 다시 시작하세요."
   },
   "profile": {
     "title": "프로필",
@@ -146,7 +148,11 @@
     "plan_not_found": "플랜을 찾을 수 없습니다",
     "product_not_found": "RevenueCat에서 제품을 찾을 수 없습니다",
     "status": "구독 상태",
-    "refresh_status": "상태 새로고침"
+    "refresh_status": "상태 새로고침",
+    "upgrade_to_pro": "프로로 업그레이드",
+    "restore_purchases": "구매 복원",
+    "link_open_error": "링크를 열 수 없습니다",
+    "link_open_error_detail": "링크 열기 오류"
   },
   "premium": {
     "unlock": "잠금 해제",
@@ -154,6 +160,10 @@
     "upgrade_message": "고급 기능에 액세스:",
     "feature_charts": "📊 상세 흐름 차트",
     "feature_analytics": "📈 고급 분석",
+    "charts": {
+      "title": "프리미엄 차트",
+      "description": "상세 ETF 흐름 차트에 액세스"
+    },
     "feature_history": "📅 전체 데이터 기록",
     "feature_export": "💾 데이터 내보내기",
     "subscribe": "구독",
@@ -205,7 +215,12 @@
     "daily_total_net_inflow": "일일 총 순 유입",
     "weekly_total_net_inflow": "주간 총 순 유입",
     "monthly_total_net_inflow": "월간 총 순 유입",
-    "no_data_for_date": "데이터 없음"
+    "no_data_for_date": "데이터 없음",
+    "today_flows": "오늘의 흐름",
+    "latest_flows": "최신 흐름",
+    "show_more": "더 보기",
+    "no_events_today": "오늘 이벤트 없음",
+    "flow_events": "흐름 이벤트"
   },
   "auth": {
     "sign_in_with_apple": "Apple로 로그인",
@@ -274,7 +289,8 @@
   },
   "etf_portfolio": {
     "title": "ETF 포트폴리오",
-    "all_asset_classes": "모든 자산 클래스"
+    "all_asset_classes": "모든 자산 클래스",
+    "in_development": "기능이 개발 중입니다"
   },
   "detailed_info": {
     "title": "상세 정보",
@@ -481,6 +497,57 @@
     "flow_amount_info": "지정된 금액을 초과할 때 알림이 전송됩니다",
     "premium_required": "프리미엄 구독 필요",
     "premium_required_desc": "ETF 알림은 프리미엄 사용자만 사용할 수 있습니다. 이 기능에 액세스하려면 구독하세요.",
-    "upgrade": "지금 업그레이드"
+    "upgrade": "지금 업그레이드",
+    "test_check": "알림 확인",
+    "test_send_etf": "테스트 ETF 알림 보내기",
+    "test_send": "테스트 알림 보내기",
+    "test_sent_detail": "테스트 알림이 전송되었습니다. 알림이 보이지 않으면 앱을 최소화하세요.",
+    "test_notification": "테스트 알림",
+    "test_notification_body": "시뮬레이터에서 기능을 확인하기 위한 테스트 알림입니다",
+    "test_send_description": "기능을 확인하기 위해 기기에 테스트 알림 보내기"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "이 지수는 현물 암호화폐 ETF로의 자본 흐름의 방향과 강도를 반영합니다"
+    },
+    "sentiment": {
+      "extreme_greed": "극도의 탐욕",
+      "greed": "탐욕",
+      "neutral": "중립",
+      "fear": "공포",
+      "extreme_fear": "극도의 공포"
+    },
+    "index": {
+      "btc": "CEFI-BTC 지수",
+      "eth": "CEFI-ETH 지수",
+      "sol": "CEFI-SOL 지수",
+      "composite": "CEFI-Composite 지수",
+      "default": "CEFI 지수"
+    },
+    "current_value": "현재 지수 값",
+    "historical_values": "과거 값",
+    "yesterday": "어제",
+    "last_week": "지난 주",
+    "last_month": "지난 달",
+    "yearly_high_low": "연간 최고 및 최저",
+    "yearly_high": "연간 최고",
+    "yearly_low": "연간 최저",
+    "chart": "차트",
+    "error": {
+      "loading": "지수 로드 오류"
+    }
+  },
+  "widget": {
+    "add": "위젯 추가",
+    "instructions": {
+      "intro": "데스크톱에 위젯을 추가하려면:",
+      "step1": "1. 시스템 설정 열기",
+      "step2": "2. \"데스크톱 및 Dock\"으로 이동",
+      "step3": "3. \"위젯\" 클릭",
+      "step4": "4. \"ETF Flow Tracker\" 찾기",
+      "step5": "5. 데스크톱으로 드래그",
+      "alternative": "또는 제어 센터 → 위젯 사용"
+    }
   }
 }

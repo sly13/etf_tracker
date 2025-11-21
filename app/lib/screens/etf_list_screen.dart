@@ -24,12 +24,12 @@ class _ETFListScreenState extends State<ETFListScreen> {
             Icon(Icons.construction, size: 64, color: Colors.orange),
             SizedBox(height: 16),
             Text(
-              'ETF Портфель',
+              'etf_portfolio.title'.tr(),
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
             Text(
-              'Функция находится в разработке',
+              'etf_portfolio.in_development'.tr(),
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],

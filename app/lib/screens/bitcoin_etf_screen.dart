@@ -9,6 +9,7 @@ import '../components/flow_calendar.dart';
 import '../utils/haptic_feedback.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../widgets/premium_chart_overlay.dart';
+import '../widgets/single_cefi_index_widget.dart';
 
 class BitcoinETFScreen extends StatefulWidget {
   const BitcoinETFScreen({super.key});
@@ -109,7 +110,6 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                     left: AdaptiveTextUtils.getContentPadding(context).left,
                     right: AdaptiveTextUtils.getContentPadding(context).right,
                     top: 28, // Уменьшенный верхний отступ после табов
-                    bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,6 +123,15 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                       ),
                       const SizedBox(height: 20),
 
+                      // CEFI-BTC индекс перед графиком
+                      SingleCEFIIndexWidget(
+                        indexType: 'btc',
+                        title: 'CEFI-BTC',
+                        icon: Icons.currency_bitcoin,
+                        iconColor: Colors.orange,
+                      ),
+                      const SizedBox(height: 20),
+
                       // График потоков
                       _buildChartSection(etfProvider.bitcoinData),
                       const SizedBox(height: 20),
@@ -132,9 +141,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                         flowData: etfProvider.bitcoinData,
                         title: 'etf.flow_history'.tr(),
                       ),
-
-                      // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 16), // Небольшой отступ снизу
                     ],
                   ),
                 ),
@@ -198,7 +205,6 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
               left: AdaptiveTextUtils.getContentPadding(context).left,
               right: AdaptiveTextUtils.getContentPadding(context).right,
               top: 28, // Уменьшенный верхний отступ после табов
-              bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,6 +218,15 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                 ),
                 const SizedBox(height: 20),
 
+                // CEFI-BTC индекс перед графиком
+                SingleCEFIIndexWidget(
+                  indexType: 'btc',
+                  title: 'CEFI-BTC',
+                  icon: Icons.currency_bitcoin,
+                  iconColor: Colors.orange,
+                ),
+                const SizedBox(height: 20),
+
                 // График потоков
                 _buildChartSection(etfProvider.bitcoinData),
                 const SizedBox(height: 20),
@@ -221,9 +236,7 @@ class _BitcoinETFScreenState extends State<BitcoinETFScreen> {
                   flowData: etfProvider.bitcoinData,
                   title: 'etf.flow_history'.tr(),
                 ),
-
-                // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                const SizedBox(height: 100),
+                const SizedBox(height: 16), // Небольшой отступ снизу
               ],
             ),
           ),

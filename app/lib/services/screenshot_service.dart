@@ -280,12 +280,12 @@ class ScreenshotService {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ошибка'),
+        title: Text('common.error'.tr()),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: Text('common.ok'.tr()),
           ),
         ],
       ),

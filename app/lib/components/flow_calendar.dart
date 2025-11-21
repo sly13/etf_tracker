@@ -237,6 +237,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
               },
               eventLoader: (day) => _getEventsForDay(day),
               startingDayOfWeek: StartingDayOfWeek.monday,
+              locale: Localizations.localeOf(context).toString(),
               calendarBuilders: CalendarBuilders(
                 defaultBuilder: (context, day, focusedDay) {
                     final total = _getTotalForDay(day);
@@ -299,6 +300,8 @@ class _FlowCalendarState extends State<FlowCalendar> {
 
                 if (!hasData) return null;
 
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+
                 return Container(
                   margin: const EdgeInsets.all(1.0),
                   padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
@@ -313,7 +316,7 @@ class _FlowCalendarState extends State<FlowCalendar> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : Colors.blue[700]!,
                         ),
                       ),
                       const SizedBox(height: 1),

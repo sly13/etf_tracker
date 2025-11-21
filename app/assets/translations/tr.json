@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Sahip Olunan",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "home": "Ana Sayfa"
   },
   "common": {
     "loading": "Yükleniyor...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Русский",
     "about": "Hakkında",
-    "version": "Sürüm"
+    "version": "Sürüm",
+    "onboarding_reset": "Onboarding sıfırlandı. Uygulamayı yeniden başlatın."
   },
   "profile": {
     "title": "Profil",
@@ -86,7 +88,6 @@
     "benefit_support": "Öncelikli destek",
     "choose_plan": "Plan seç:",
     "try_free_and_subscribe": "Ücretsiz dene ve abone ol",
-    "restore_purchases": "Satın alımları geri yükle",
     "restore_success": "Satın alımlar başarıyla geri yüklendi!",
     "restore_no_active": "Satın alımlar geri yüklendi, ancak aktif abonelik bulunamadı.",
     "restore_error": "Satın alımları geri yükleme hatası",
@@ -146,7 +147,11 @@
     "plan_not_found": "Plan bulunamadı",
     "product_not_found": "RevenueCat'te ürün bulunamadı",
     "status": "Abonelik Durumu",
-    "refresh_status": "Durumu Yenile"
+    "refresh_status": "Durumu Yenile",
+    "upgrade_to_pro": "Pro'ya Yükselt",
+    "restore_purchases": "Satın Alımları Geri Yükle",
+    "link_open_error": "Bağlantı açılamadı",
+    "link_open_error_detail": "Bağlantı açma hatası"
   },
   "premium": {
     "unlock": "Aç",
@@ -154,6 +159,10 @@
     "upgrade_message": "Gelişmiş özelliklere erişim sağla:",
     "feature_charts": "📊 Detaylı akış grafikleri",
     "feature_analytics": "📈 Gelişmiş analizler",
+    "charts": {
+      "title": "Premium Grafikler",
+      "description": "Detaylı ETF akış grafiklerine erişim sağla"
+    },
     "feature_history": "📅 Tam veri geçmişi",
     "feature_export": "💾 Veri dışa aktarma",
     "subscribe": "Abone Ol",
@@ -205,7 +214,12 @@
     "daily_total_net_inflow": "Günlük Toplam Net Giriş",
     "weekly_total_net_inflow": "Haftalık Toplam Net Giriş",
     "monthly_total_net_inflow": "Aylık Toplam Net Giriş",
-    "no_data_for_date": "Veri yok"
+    "no_data_for_date": "Veri yok",
+    "today_flows": "Bugünün Akışları",
+    "latest_flows": "Son Akışlar",
+    "show_more": "Daha Fazla Göster",
+    "no_events_today": "Bugün olay yok",
+    "flow_events": "Akış Olayları"
   },
   "auth": {
     "sign_in_with_apple": "Apple ile Giriş Yap",
@@ -274,7 +288,8 @@
   },
   "etf_portfolio": {
     "title": "ETF Portföyü",
-    "all_asset_classes": "Tüm varlık sınıfları"
+    "all_asset_classes": "Tüm varlık sınıfları",
+    "in_development": "Özellik geliştirme aşamasında"
   },
   "detailed_info": {
     "title": "Detaylı Bilgi",
@@ -481,6 +496,57 @@
     "flow_amount_info": "Belirtilen miktar aşıldığında bildirimler gönderilecek",
     "premium_required": "Premium Abonelik Gerekli",
     "premium_required_desc": "ETF bildirimleri yalnızca premium kullanıcılar için mevcuttur. Bu özelliğe erişmek için abone olun.",
-    "upgrade": "Şimdi Yükselt"
+    "upgrade": "Şimdi Yükselt",
+    "test_check": "Bildirimleri Kontrol Et",
+    "test_send_etf": "Test ETF bildirimi gönder",
+    "test_send": "Test Bildirimi Gönder",
+    "test_sent_detail": "Test bildirimi gönderildi. Bildirimi görmüyorsanız, uygulamayı küçültün.",
+    "test_notification": "Test Bildirimi",
+    "test_notification_body": "Bu, simülatörde işlevselliği kontrol etmek için bir test bildirimidir",
+    "test_send_description": "İşlevselliği kontrol etmek için cihaza test bildirimi gönder"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "Endeks, spot kripto para ETF'lerine sermaye akışlarının yönünü ve yoğunluğunu yansıtır"
+    },
+    "sentiment": {
+      "extreme_greed": "Aşırı Açgözlülük",
+      "greed": "Açgözlülük",
+      "neutral": "Nötr",
+      "fear": "Korku",
+      "extreme_fear": "Aşırı Korku"
+    },
+    "index": {
+      "btc": "CEFI-BTC Endeksi",
+      "eth": "CEFI-ETH Endeksi",
+      "sol": "CEFI-SOL Endeksi",
+      "composite": "CEFI-Composite Endeksi",
+      "default": "CEFI Endeksi"
+    },
+    "current_value": "Mevcut Endeks Değeri",
+    "historical_values": "Geçmiş Değerler",
+    "yesterday": "Dün",
+    "last_week": "Geçen Hafta",
+    "last_month": "Geçen Ay",
+    "yearly_high_low": "Yıllık Yüksek ve Düşük",
+    "yearly_high": "Yıllık Yüksek",
+    "yearly_low": "Yıllık Düşük",
+    "chart": "Grafik",
+    "error": {
+      "loading": "Endeks yükleme hatası"
+    }
+  },
+  "widget": {
+    "add": "Widget Ekle",
+    "instructions": {
+      "intro": "Masaüstüne widget eklemek için:",
+      "step1": "1. Sistem Ayarları'nı açın",
+      "step2": "2. \"Masaüstü ve Dock\"a gidin",
+      "step3": "3. \"Widgets\"a tıklayın",
+      "step4": "4. \"ETF Flow Tracker\"ı bulun",
+      "step5": "5. Masaüstüne sürükleyin",
+      "alternative": "Veya Kontrol Merkezi → Widgets kullanın"
+    }
   }
 }

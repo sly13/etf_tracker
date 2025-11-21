@@ -256,11 +256,25 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
   Map<String, List<FlowEvent>> _groupEventsByDate(List<FlowEvent> events) {
     final Map<String, List<FlowEvent>> grouped = {};
     for (final event in events) {
-      final dateKey = event.date;
-      if (!grouped.containsKey(dateKey)) {
-        grouped[dateKey] = [];
+      // Извлекаем дату из поля time, чтобы она соответствовала реальной дате события
+      try {
+        final dateTime = DateTime.parse(event.time);
+        // Нормализуем дату до дня (без времени) для правильной группировки
+        final normalizedDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+        final dateKey = normalizedDate.toIso8601String().split('T')[0];
+        
+        if (!grouped.containsKey(dateKey)) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey]!.add(event);
+      } catch (e) {
+        // Если не удалось распарсить time, используем date как fallback
+        final dateKey = event.date;
+        if (!grouped.containsKey(dateKey)) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey]!.add(event);
       }
-      grouped[dateKey]!.add(event);
     }
     return grouped;
   }

@@ -799,8 +799,8 @@ class _SubscriptionSelectionScreenState
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Не удалось открыть ссылку'),
+            SnackBar(
+              content: Text('subscription.link_open_error'.tr()),
               backgroundColor: Colors.red,
             ),
           );
@@ -810,7 +810,7 @@ class _SubscriptionSelectionScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка открытия ссылки: $e'),
+            content: Text('${'subscription.link_open_error_detail'.tr()}: $e'),
             backgroundColor: Colors.red,
           ),
         );

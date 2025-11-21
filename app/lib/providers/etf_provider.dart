@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/etf_flow_data.dart';
+import '../models/cefi_index.dart';
 import '../services/etf_service.dart';
 import '../services/local_storage_service.dart';
 import '../services/analytics_service.dart';
@@ -22,6 +23,8 @@ class ETFProvider with ChangeNotifier {
   bool _isSolanaLoaded = false;
   bool _isSummaryLoaded = false;
   bool _isFundHoldingsLoaded = false;
+  bool _isCEFIIndicesLoaded = false;
+  AllCEFIIndices? _cefiIndices;
   String? _error;
   String _currentTab = 'ethereum'; // 'ethereum' или 'bitcoin'
   int _navigationTabIndex = 0; // Индекс текущего таба в навигации
@@ -50,6 +53,8 @@ class ETFProvider with ChangeNotifier {
   bool get isSolanaLoaded => _isSolanaLoaded;
   bool get isSummaryLoaded => _isSummaryLoaded;
   bool get isFundHoldingsLoaded => _isFundHoldingsLoaded;
+  bool get isCEFIIndicesLoaded => _isCEFIIndicesLoaded;
+  AllCEFIIndices? get cefiIndices => _cefiIndices;
   String? get error => _error;
   String get currentTab => _currentTab;
   int get navigationTabIndex => _navigationTabIndex;
@@ -110,6 +115,7 @@ class ETFProvider with ChangeNotifier {
         _storageService.getSummaryData(),
         _storageService.getFundHoldings(),
         _storageService.getETFFlowData(),
+        _storageService.getCEFIIndices(),
         _storageService.getLastUpdateTime(),
       ]);
 
@@ -119,7 +125,8 @@ class ETFProvider with ChangeNotifier {
       _summaryData = results[3] as Map<String, dynamic>?;
       _fundHoldings = results[4] as Map<String, dynamic>?;
       _etfFlowData = results[5] as List<ETFFlowData>;
-      _lastDataUpdate = results[6] as DateTime?;
+      _cefiIndices = results[6] as AllCEFIIndices?;
+      _lastDataUpdate = results[7] as DateTime?;
 
       // Устанавливаем флаги загрузки
       _isEthereumLoaded = _ethereumData.isNotEmpty;
@@ -127,13 +134,18 @@ class ETFProvider with ChangeNotifier {
       _isSolanaLoaded = _solanaData.isNotEmpty;
       _isSummaryLoaded = _summaryData != null;
       _isFundHoldingsLoaded = _fundHoldings != null;
+      _isCEFIIndicesLoaded = _cefiIndices != null;
 
       debugPrint('ETFProvider: [CACHE] Данные из кэша загружены');
       debugPrint('ETFProvider: [CACHE] Ethereum: ${_ethereumData.length}, Bitcoin: ${_bitcoinData.length}, Solana: ${_solanaData.length}');
-      debugPrint('ETFProvider: [CACHE] Summary: $_isSummaryLoaded, данные: ${_summaryData != null ? "есть (${_summaryData!.keys})" : "нет"}');
+      debugPrint('ETFProvider: [CACHE] Summary: $_isSummaryLoaded, CEFI: $_isCEFIIndicesLoaded');
+      debugPrint('ETFProvider: [CACHE] Summary данные: ${_summaryData != null ? "есть (${_summaryData!.keys})" : "нет"}');
       if (_summaryData != null) {
         debugPrint('ETFProvider: [CACHE] Summary bitcoin: ${_summaryData!['bitcoin']?['totalAssets'] ?? "null"}');
         debugPrint('ETFProvider: [CACHE] Summary ethereum: ${_summaryData!['ethereum']?['totalAssets'] ?? "null"}');
+      }
+      if (_cefiIndices != null) {
+        debugPrint('ETFProvider: [CACHE] CEFI Composite value: ${_cefiIndices!.composite.current.value}');
       }
 
       notifyListeners();
@@ -159,6 +171,7 @@ class ETFProvider with ChangeNotifier {
         _storageService.getSummaryData(),
         _storageService.getFundHoldings(),
         _storageService.getETFFlowData(),
+        _storageService.getCEFIIndices(),
         _storageService.getLastUpdateTime(),
       ]);
 
@@ -168,7 +181,8 @@ class ETFProvider with ChangeNotifier {
       _summaryData = results[3] as Map<String, dynamic>?;
       _fundHoldings = results[4] as Map<String, dynamic>?;
       _etfFlowData = results[5] as List<ETFFlowData>;
-      _lastDataUpdate = results[6] as DateTime?;
+      _cefiIndices = results[6] as AllCEFIIndices?;
+      _lastDataUpdate = results[7] as DateTime?;
 
       // Устанавливаем флаги загрузки
       _isEthereumLoaded = _ethereumData.isNotEmpty;
@@ -176,8 +190,9 @@ class ETFProvider with ChangeNotifier {
       _isSolanaLoaded = _solanaData.isNotEmpty;
       _isSummaryLoaded = _summaryData != null;
       _isFundHoldingsLoaded = _fundHoldings != null;
+      _isCEFIIndicesLoaded = _cefiIndices != null;
 
-      debugPrint('ETFProvider: Данные из кэша загружены. Summary: $_isSummaryLoaded');
+      debugPrint('ETFProvider: Данные из кэша загружены. Summary: $_isSummaryLoaded, CEFI: $_isCEFIIndicesLoaded');
 
       notifyListeners();
     } catch (e) {
@@ -367,6 +382,7 @@ class ETFProvider with ChangeNotifier {
         _etfService.getSolanaData(),
         _etfService.getSummaryData(),
         _etfService.getFundHoldings(),
+        _etfService.getAllCEFIIndices(limit: 30),
       ]);
 
       debugPrint('ETFProvider: Данные получены с сервера');
@@ -381,6 +397,7 @@ class ETFProvider with ChangeNotifier {
       _solanaData = results[2] as List<ETFFlowData>;
       _summaryData = results[3] as Map<String, dynamic>;
       _fundHoldings = results[4] as Map<String, dynamic>;
+      _cefiIndices = results[5] as AllCEFIIndices;
 
       // Сохраняем в кэш
       debugPrint('ETFProvider: [SERVER] Сохраняем данные в кэш');
@@ -390,6 +407,7 @@ class ETFProvider with ChangeNotifier {
         _storageService.saveSolanaData(_solanaData),
         _storageService.saveSummaryData(_summaryData!),
         _storageService.saveFundHoldings(_fundHoldings!),
+        _storageService.saveCEFIIndices(_cefiIndices!),
       ]);
       debugPrint('ETFProvider: [SERVER] Данные сохранены в кэш');
 
@@ -399,6 +417,7 @@ class ETFProvider with ChangeNotifier {
       _isSolanaLoaded = _solanaData.isNotEmpty;
       _isSummaryLoaded = _summaryData != null;
       _isFundHoldingsLoaded = _fundHoldings != null;
+      _isCEFIIndicesLoaded = _cefiIndices != null;
 
       // Обновляем время последнего обновления данных для триггера анимации
       _lastDataUpdate = DateTime.now();
@@ -477,12 +496,34 @@ class ETFProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Загрузить данные CEFI индексов
+  Future<void> loadCEFIIndices() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      debugPrint('ETFProvider: Загружаем CEFI индексы');
+      _cefiIndices = await _etfService.getAllCEFIIndices(limit: 30);
+      await _storageService.saveCEFIIndices(_cefiIndices!);
+      _isCEFIIndicesLoaded = true;
+
+      debugPrint('ETFProvider: CEFI индексы загружены');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ETFProvider: Ошибка загрузки CEFI индексов: $e');
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Сбросить состояние загрузки (для повторной инициализации)
   void resetLoadingState() {
     _isEthereumLoaded = false;
     _isBitcoinLoaded = false;
     _isSummaryLoaded = false;
     _isFundHoldingsLoaded = false;
+    _isCEFIIndicesLoaded = false;
     _isInitializing = false;
     _isLoading = false;
     _error = null;

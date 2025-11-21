@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 import '../providers/crypto_price_provider.dart';
+import '../utils/card_style_utils.dart';
 
 class BitcoinFlowCard extends StatelessWidget {
   final BTCFlowData flowData;
@@ -20,25 +21,12 @@ class BitcoinFlowCard extends StatelessWidget {
     // Парсим дату
     final date = _parseDate(flowData.date);
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [const Color(0xFF1A1A1A), const Color(0xFF0A0A0A)]
-                  : [Colors.orange.shade50, Colors.orange.shade100],
-            ),
-          ),
-          padding: const EdgeInsets.all(16),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: CardStyleUtils.getCardDecoration(context),
+        padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -46,23 +34,25 @@ class BitcoinFlowCard extends StatelessWidget {
                 children: [
                   // Иконка Bitcoin
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.orange.shade400
-                          : Colors.orange.shade600,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.3),
+                        width: 1,
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         child: Image.asset(
                           'assets/bitcoin.png',
-                          width: 32,
-                          height: 32,
-                          color: Colors.white,
+                          fit: BoxFit.fitHeight,
+                          alignment: Alignment.center,
                         ),
                       ),
                     ),
@@ -211,7 +201,6 @@ class BitcoinFlowCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
+import '../models/cefi_index.dart';
 import '../config/app_config.dart';
 
 class ETFService {
@@ -250,6 +251,105 @@ class ETFService {
       } else {
         throw Exception(
           'Ошибка загрузки событий: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
+  // Получить все CEFI индексы
+  Future<AllCEFIIndices> getAllCEFIIndices({int? limit}) async {
+    try {
+      final queryParam = limit != null ? '?limit=$limit' : '';
+      final url = AppConfig.getApiUrl('/cefi/all$queryParam');
+      print('🔧 ETFService: CEFI indices request to URL: $url');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        return AllCEFIIndices.fromJson(jsonData);
+      } else {
+        throw Exception(
+          'Ошибка загрузки CEFI индексов: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
+  // Получить данные индекса по типу
+  Future<CEFIIndexResponse> getCEFIIndex(String indexType) async {
+    try {
+      final url = AppConfig.getApiUrl('/cefi/$indexType');
+      print('🔧 ETFService: CEFI index request to URL: $url');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        return CEFIIndexResponse.fromJson(jsonData);
+      } else {
+        throw Exception(
+          'Ошибка загрузки CEFI индекса: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
+  // Получить данные графика индекса
+  Future<IndexChartResponse> getIndexChart(
+    String indexType, {
+    String timeRange = 'all',
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl(
+        '/cefi/chart/$indexType?timeRange=$timeRange',
+      );
+      print('🔧 ETFService: Index chart request to URL: $url');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        return IndexChartResponse.fromJson(jsonData);
+      } else {
+        throw Exception(
+          'Ошибка загрузки графика индекса: ${response.statusCode}',
         );
       }
     } catch (e) {

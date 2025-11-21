@@ -94,14 +94,14 @@ class _NotificationSectionState extends State<NotificationSection> {
                 color: isDark ? Colors.blue : Colors.blue,
               ),
               title: Text(
-                'Проверить уведомления',
+                'notifications.test_check'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               subtitle: Text(
-                'Отправить тестовое уведомление ETF',
+                'notifications.test_send_etf'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: isDark
@@ -161,7 +161,7 @@ class _NotificationSectionState extends State<NotificationSection> {
                   const Icon(Icons.check_circle, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(result['message'] ?? 'Уведомление отправлено'),
+                    child: Text(result['message'] ?? 'notifications.test_sent'.tr()),
                   ),
                 ],
               ),
@@ -179,7 +179,7 @@ class _NotificationSectionState extends State<NotificationSection> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      result?['error'] ?? 'Ошибка отправки уведомления',
+                      result?['error'] ?? 'notifications.test_error'.tr(),
                     ),
                   ),
                 ],
@@ -195,7 +195,7 @@ class _NotificationSectionState extends State<NotificationSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка: $e'),
+            content: Text('${'common.error'.tr()}: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),

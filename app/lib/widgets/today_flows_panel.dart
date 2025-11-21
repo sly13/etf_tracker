@@ -92,7 +92,8 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> {
     try {
       // Обновляем данные с сервера в фоне
       try {
-        final data = await _etfService.getTodayEvents(limit: 5);
+        // Загружаем больше событий, чтобы после группировки было достаточно для отображения 5 элементов
+        final data = await _etfService.getTodayEvents(limit: 20);
         final eventsList = (data['events'] as List)
             .map((e) => FlowEvent.fromJson(e))
             .toList();
@@ -406,12 +407,18 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> {
       }
     }
     
+    // Ограничиваем количество отображаемых элементов до 5 последних
+    const int maxItemsToShow = 5;
+    final itemsToDisplay = timelineItems.length > maxItemsToShow
+        ? timelineItems.take(maxItemsToShow).toList()
+        : timelineItems;
+    
     // Строим timeline виджеты
     final List<Widget> timelineWidgets = [];
-    for (int i = 0; i < timelineItems.length; i++) {
-      final item = timelineItems[i];
+    for (int i = 0; i < itemsToDisplay.length; i++) {
+      final item = itemsToDisplay[i];
       final isFirst = i == 0;
-      final isLast = i == timelineItems.length - 1;
+      final isLast = i == itemsToDisplay.length - 1;
       
       timelineWidgets.add(
         TimelineTile(

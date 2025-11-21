@@ -76,7 +76,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Тестовое уведомление',
+                            'notifications.test_notification'.tr(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -87,7 +87,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Отправить тестовое уведомление на устройство для проверки работы',
+                            'notifications.test_send_description'.tr(),
                             style: TextStyle(
                               fontSize: 13,
                               color: Theme.of(context).brightness == Brightness.dark
@@ -102,18 +102,15 @@ class NotificationSettingsScreen extends StatelessWidget {
                               onPressed: () async {
                                 print('🔔 NotificationSettingsScreen: Кнопка нажата, отправляем тестовое уведомление...');
                                 try {
-                                  await NotificationService.showTestNotification(
-                                    title: 'Тестовое уведомление',
-                                    body: 'Это тестовое уведомление для проверки работы на симуляторе',
-                                  );
+                                  await NotificationService.showTestNotification();
                                   print('🔔 NotificationSettingsScreen: Метод showTestNotification завершен');
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: const Text('Тестовое уведомление отправлено. Если не видите уведомление, сверните приложение.'),
+                                        content: Text('notifications.test_sent_detail'.tr()),
                                         duration: const Duration(seconds: 4),
                                         action: SnackBarAction(
-                                          label: 'OK',
+                                          label: 'common.ok'.tr(),
                                           onPressed: () {},
                                         ),
                                       ),
@@ -125,7 +122,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Ошибка: $e'),
+                                        content: Text('${'common.error'.tr()}: $e'),
                                         backgroundColor: Colors.red,
                                         duration: const Duration(seconds: 3),
                                       ),
@@ -134,7 +131,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                                 }
                               },
                               icon: const Icon(Icons.notifications_active),
-                              label: const Text('Отправить тестовое уведомление'),
+                              label: Text('notifications.test_send'.tr()),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,

@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "持仓",
-    "settings": "设置"
+    "settings": "设置",
+    "home": "首页"
   },
   "common": {
     "loading": "加载中...",
@@ -48,6 +49,7 @@
   },
   "settings": {
     "title": "设置",
+    "onboarding_reset": "引导已重置。请重启应用。",
     "appearance": "外观",
     "language": "语言",
     "theme": "应用主题",
@@ -146,7 +148,11 @@
     "plan_not_found": "未找到计划",
     "product_not_found": "在RevenueCat中未找到产品",
     "status": "订阅状态",
-    "refresh_status": "刷新状态"
+    "refresh_status": "刷新状态",
+    "upgrade_to_pro": "升级到专业版",
+    "restore_purchases": "恢复购买",
+    "link_open_error": "无法打开链接",
+    "link_open_error_detail": "打开链接错误"
   },
   "premium": {
     "unlock": "解锁",
@@ -166,7 +172,11 @@
     "premium_badge": "高级版",
     "upgrade_to_pro": "升级到专业版",
     "pro_features": "专业版功能",
-    "unlock_pro": "解锁专业版"
+    "unlock_pro": "解锁专业版",
+    "charts": {
+      "title": "高级图表",
+      "description": "获得详细的ETF资金流图表"
+    }
   },
   "etf": {
     "flows": "ETF资金流",
@@ -205,7 +215,13 @@
     "daily_total_net_inflow": "日总净流入",
     "weekly_total_net_inflow": "周总净流入",
     "monthly_total_net_inflow": "月总净流入",
-    "no_data_for_date": "无数据"
+    "no_data_for_date": "无数据",
+    "today_flows": "今日资金流",
+    "flows": "资金流",
+    "latest_flows": "最新资金流",
+    "show_more": "显示更多",
+    "no_events_today": "今日无事件",
+    "flow_events": "资金流事件"
   },
   "auth": {
     "sign_in_with_apple": "使用Apple登录",
@@ -481,6 +497,60 @@
     "flow_amount_info": "当超过指定金额时将发送通知",
     "premium_required": "需要高级订阅",
     "premium_required_desc": "ETF通知仅适用于高级用户。订阅以访问此功能。",
-    "upgrade": "立即升级"
+    "upgrade": "立即升级",
+    "test_check": "检查通知",
+    "test_send_etf": "发送测试ETF通知",
+    "test_send": "发送测试通知",
+    "test_sent_detail": "测试通知已发送。如果看不到通知，请最小化应用。",
+    "test_notification": "测试通知",
+    "test_notification_body": "这是用于在模拟器上检查功能的测试通知",
+    "test_send_description": "向设备发送测试通知以检查功能"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "该指数反映了资金流向现货加密货币ETF的方向和强度"
+    },
+    "sentiment": {
+      "extreme_greed": "极度贪婪",
+      "greed": "贪婪",
+      "neutral": "中性",
+      "fear": "恐惧",
+      "extreme_fear": "极度恐惧"
+    },
+    "index": {
+      "btc": "CEFI-BTC指数",
+      "eth": "CEFI-ETH指数",
+      "sol": "CEFI-SOL指数",
+      "composite": "CEFI-Composite指数",
+      "default": "CEFI指数"
+    },
+    "current_value": "当前指数值",
+    "historical_values": "历史值",
+    "yesterday": "昨天",
+    "last_week": "上周",
+    "last_month": "上个月",
+    "yearly_high_low": "年度最高和最低",
+    "yearly_high": "年度最高",
+    "yearly_low": "年度最低",
+    "chart": "图表",
+    "error": {
+      "loading": "加载指数错误"
+    }
+  },
+  "widget": {
+    "add": "添加小组件",
+    "instructions": {
+      "intro": "要将小组件添加到桌面：",
+      "step1": "1. 打开系统设置",
+      "step2": "2. 转到\"桌面与程序坞\"",
+      "step3": "3. 点击\"小组件\"",
+      "step4": "4. 找到\"ETF Flow Tracker\"",
+      "step5": "5. 拖到桌面",
+      "alternative": "或使用控制中心 → 小组件"
+    }
+  },
+  "etf_portfolio": {
+    "in_development": "功能正在开发中"
   }
 }

@@ -140,8 +140,8 @@ class _AboutSectionState extends State<AboutSection> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Онбординг сброшен. Перезапустите приложение.'),
+          SnackBar(
+            content: Text('settings.onboarding_reset'.tr()),
             backgroundColor: Colors.green,
           ),
         );

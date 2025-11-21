@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/etf_flow_data.dart';
+import '../models/cefi_index.dart';
 
 class LocalStorageService {
   static const String _ethereumDataKey = 'ethereum_data';
@@ -14,6 +15,7 @@ class LocalStorageService {
   static const String _todayEventsKey = 'today_events';
   static const String _cryptoETFTabIndexKey = 'crypto_etf_tab_index';
   static const String _navigationTabIndexKey = 'navigation_tab_index';
+  static const String _cefiIndicesKey = 'cefi_indices';
 
   // Время кэширования в миллисекундах (30 минут)
   static const int _cacheDuration = 30 * 60 * 1000;
@@ -204,6 +206,7 @@ class LocalStorageService {
     await prefs.remove(_fundHoldingsKey);
     await prefs.remove(_etfFlowDataKey);
     await prefs.remove(_todayEventsKey);
+    await prefs.remove(_cefiIndicesKey);
     await prefs.remove(_lastUpdateKey);
     // Не очищаем индексы табов при очистке кэша данных
   }
@@ -247,5 +250,48 @@ class LocalStorageService {
   Future<int> getNavigationTabIndex() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_navigationTabIndexKey) ?? 0; // По умолчанию первый таб (ETF Summary)
+  }
+
+  // Сохранить данные CEFI индексов
+  Future<void> saveCEFIIndices(AllCEFIIndices data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode({
+        'btc': data.btc.toJson(),
+        'eth': data.eth.toJson(),
+        'sol': data.sol.toJson(),
+        'composite': data.composite.toJson(),
+        'bpf': {
+          'bitcoin': data.bpf['bitcoin']?.map((item) => item.toJson()).toList() ?? [],
+          'ethereum': data.bpf['ethereum']?.map((item) => item.toJson()).toList() ?? [],
+        },
+      });
+      await prefs.setString(_cefiIndicesKey, jsonString);
+      await _updateLastUpdateTime();
+      debugPrint('LocalStorageService: [SAVE] CEFI индексы сохранены');
+    } catch (e) {
+      debugPrint('LocalStorageService: [SAVE] Ошибка сохранения CEFI индексов: $e');
+      rethrow;
+    }
+  }
+
+  // Получить данные CEFI индексов
+  Future<AllCEFIIndices?> getCEFIIndices() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_cefiIndicesKey);
+
+      if (jsonString == null) {
+        debugPrint('LocalStorageService: [GET] CEFI индексы не найдены в кэше');
+        return null;
+      }
+
+      debugPrint('LocalStorageService: [GET] CEFI индексы найдены в кэше');
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+      return AllCEFIIndices.fromJson(data);
+    } catch (e) {
+      debugPrint('LocalStorageService: [GET] Ошибка загрузки CEFI индексов: $e');
+      return null;
+    }
   }
 }

@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Participações",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "home": "Início"
   },
   "common": {
     "loading": "Carregando...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Русский",
     "about": "Sobre",
-    "version": "Versão"
+    "version": "Versão",
+    "onboarding_reset": "Onboarding redefinido. Reinicie o aplicativo."
   },
   "profile": {
     "title": "Perfil",
@@ -146,7 +148,11 @@
     "plan_not_found": "Plano não encontrado",
     "product_not_found": "Produto não encontrado no RevenueCat",
     "status": "Status da Assinatura",
-    "refresh_status": "Atualizar Status"
+    "refresh_status": "Atualizar Status",
+    "upgrade_to_pro": "Atualizar para Pro",
+    "restore_purchases": "Restaurar Compras",
+    "link_open_error": "Falha ao abrir link",
+    "link_open_error_detail": "Erro ao abrir link"
   },
   "premium": {
     "unlock": "Desbloquear",
@@ -154,6 +160,10 @@
     "upgrade_message": "Obtenha acesso a recursos avançados:",
     "feature_charts": "📊 Gráficos detalhados de fluxos",
     "feature_analytics": "📈 Análises avançadas",
+    "charts": {
+      "title": "Gráficos Premium",
+      "description": "Obtenha acesso a gráficos detalhados de fluxos ETF"
+    },
     "feature_history": "📅 Histórico completo de dados",
     "feature_export": "💾 Exportação de dados",
     "subscribe": "Assinar",
@@ -169,7 +179,6 @@
     "unlock_pro": "Desbloquear Pro"
   },
   "etf": {
-    "flows": "Fluxos ETF",
     "ethereum": "Ethereum ETF",
     "bitcoin": "Bitcoin ETF",
     "holdings": "Participações de Fundos",
@@ -205,7 +214,12 @@
     "daily_total_net_inflow": "Entrada Líquida Diária Total",
     "weekly_total_net_inflow": "Entrada Líquida Semanal Total",
     "monthly_total_net_inflow": "Entrada Líquida Mensal Total",
-    "no_data_for_date": "Nenhum dado para"
+    "no_data_for_date": "Nenhum dado para",
+    "today_flows": "Fluxos de Hoje",
+    "latest_flows": "Últimos Fluxos",
+    "show_more": "Mostrar Mais",
+    "no_events_today": "Nenhum evento hoje",
+    "flow_events": "Eventos de Fluxo"
   },
   "auth": {
     "sign_in_with_apple": "Entrar com Apple",
@@ -274,7 +288,8 @@
   },
   "etf_portfolio": {
     "title": "Portfólio ETF",
-    "all_asset_classes": "Todas as classes de ativos"
+    "all_asset_classes": "Todas as classes de ativos",
+    "in_development": "Recurso está em desenvolvimento"
   },
   "detailed_info": {
     "title": "Informações Detalhadas",
@@ -481,6 +496,57 @@
     "flow_amount_info": "Notificações serão enviadas quando o valor especificado for excedido",
     "premium_required": "Assinatura Premium Necessária",
     "premium_required_desc": "Notificações ETF estão disponíveis apenas para usuários premium. Assine para acessar este recurso.",
-    "upgrade": "Atualizar Agora"
+    "upgrade": "Atualizar Agora",
+    "test_check": "Verificar Notificações",
+    "test_send_etf": "Enviar notificação de teste ETF",
+    "test_send": "Enviar Notificação de Teste",
+    "test_sent_detail": "Notificação de teste enviada. Se você não vir a notificação, minimize o aplicativo.",
+    "test_notification": "Notificação de Teste",
+    "test_notification_body": "Esta é uma notificação de teste para verificar a funcionalidade no simulador",
+    "test_send_description": "Enviar notificação de teste para o dispositivo para verificar a funcionalidade"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "O índice reflete a direção e a intensidade dos fluxos de capital para ETFs de criptomoedas à vista"
+    },
+    "sentiment": {
+      "extreme_greed": "Ganância Extrema",
+      "greed": "Ganância",
+      "neutral": "Neutro",
+      "fear": "Medo",
+      "extreme_fear": "Medo Extremo"
+    },
+    "index": {
+      "btc": "Índice CEFI-BTC",
+      "eth": "Índice CEFI-ETH",
+      "sol": "Índice CEFI-SOL",
+      "composite": "Índice CEFI-Composite",
+      "default": "Índice CEFI"
+    },
+    "current_value": "Valor Atual do Índice",
+    "historical_values": "Valores Históricos",
+    "yesterday": "Ontem",
+    "last_week": "Semana Passada",
+    "last_month": "Mês Passado",
+    "yearly_high_low": "Máximo e Mínimo Anual",
+    "yearly_high": "Máximo Anual",
+    "yearly_low": "Mínimo Anual",
+    "chart": "Gráfico",
+    "error": {
+      "loading": "Erro ao carregar índice"
+    }
+  },
+  "widget": {
+    "add": "Adicionar Widget",
+    "instructions": {
+      "intro": "Para adicionar widget à área de trabalho:",
+      "step1": "1. Abra as Configurações do Sistema",
+      "step2": "2. Vá para \"Área de Trabalho e Dock\"",
+      "step3": "3. Clique em \"Widgets\"",
+      "step4": "4. Encontre \"ETF Flow Tracker\"",
+      "step5": "5. Arraste para a área de trabalho",
+      "alternative": "Ou use Centro de Controle → Widgets"
+    }
   }
 }

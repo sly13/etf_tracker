@@ -8,6 +8,7 @@ import '../widgets/solana_flow_card.dart';
 import '../components/flow_calendar.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../widgets/premium_chart_overlay.dart';
+import '../widgets/single_cefi_index_widget.dart';
 
 class SolanaETFScreen extends StatefulWidget {
   const SolanaETFScreen({super.key});
@@ -42,7 +43,6 @@ class _SolanaETFScreenState extends State<SolanaETFScreen> {
                     left: AdaptiveTextUtils.getContentPadding(context).left,
                     right: AdaptiveTextUtils.getContentPadding(context).right,
                     top: 28, // Уменьшенный верхний отступ после табов
-                    bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,13 +59,21 @@ class _SolanaETFScreenState extends State<SolanaETFScreen> {
                           },
                         ),
                       const SizedBox(height: 20),
+                      // CEFI-SOL индекс перед графиком
+                      SingleCEFIIndexWidget(
+                        indexType: 'sol',
+                        title: 'CEFI-SOL',
+                        icon: Icons.radio_button_checked,
+                        iconColor: Colors.teal,
+                      ),
+                      const SizedBox(height: 20),
                       _buildChartSection(etfProvider.solanaData),
                       const SizedBox(height: 20),
                       FlowCalendar(
                         flowData: etfProvider.solanaData,
                         title: 'etf.flow_history'.tr(),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 16), // Небольшой отступ снизу
                     ],
                   ),
                 ),

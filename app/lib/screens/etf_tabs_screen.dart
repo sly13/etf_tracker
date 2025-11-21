@@ -11,6 +11,7 @@ import '../utils/adaptive_text_utils.dart';
 import '../services/screenshot_service.dart';
 import '../utils/card_style_utils.dart';
 import '../widgets/today_flows_panel.dart';
+import '../widgets/cefi_index_widget.dart';
 
 class ETFTabsScreen extends StatefulWidget {
   const ETFTabsScreen({super.key});
@@ -54,7 +55,11 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       key: const ValueKey('main_scroll_view'),
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: AdaptiveTextUtils.getContentPadding(context),
+      padding: EdgeInsets.only(
+        left: AdaptiveTextUtils.getContentPadding(context).left,
+        right: AdaptiveTextUtils.getContentPadding(context).right,
+        top: AdaptiveTextUtils.getContentPadding(context).top,
+      ),
       child: Column(
         key: const ValueKey('main_content_column'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,6 +70,15 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             child: KeyedSubtree(
               key: const ValueKey('summary_card'),
               child: _buildSummaryCard(etfProvider),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // CEFI Индексы
+          RepaintBoundary(
+            key: const ValueKey('cefi_index_widget_repaint'),
+            child: KeyedSubtree(
+              key: const ValueKey('cefi_index_widget'),
+              child: const CEFIIndexWidget(),
             ),
           ),
           const SizedBox(height: 24),
@@ -85,8 +99,7 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               child: _buildCombinedCalendar(etfProvider),
             ),
           ),
-          // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-          const SizedBox(height: 100),
+          const SizedBox(height: 16), // Небольшой отступ снизу
         ],
       ),
     );
@@ -240,7 +253,12 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
 
   // Карточка с общей сводкой
   Widget _buildSummaryCard(ETFProvider etfProvider) {
-    // Ранее здесь отображалась сумма притоков; теперь не используется
+    // Используем данные из переданного провайдера
+    final isSummaryLoaded = etfProvider.isSummaryLoaded;
+    final summaryData = etfProvider.summaryData;
+    // Показываем скелетоны при обновлении (когда isLoading и данные уже загружены)
+    final isLoading = etfProvider.isLoading && etfProvider.isDataReady;
+    final shouldShowSkeleton = !isSummaryLoaded || isLoading;
 
     return Container(
       key: const ValueKey('summary_card_container'),
@@ -276,7 +294,9 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     ),
                     child: Icon(
                       Icons.camera_alt,
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.grey[800]!,
                       size: 16,
                     ),
                   ),
@@ -284,17 +304,31 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              '${etfProvider.summaryData != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(etfProvider.summaryData!['overall']['lastUpdated'])) : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
-              style: TextStyle(
-                color: CardStyleUtils.getSubtitleColor(context),
-                fontSize: 12,
-                height: 1.3,
-              ),
-            ),
+            // Дата - показываем скелетон если данные не загружены или идет обновление
+            !shouldShowSkeleton && summaryData != null
+                ? Text(
+                    DateFormat('yyyy-MM-dd HH:mm').format(
+                      DateTime.parse(summaryData['overall']['lastUpdated']),
+                    ),
+                    style: TextStyle(
+                      color: CardStyleUtils.getSubtitleColor(context),
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
+                  )
+                : Container(
+                    width: 120,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: CardStyleUtils.getSubtitleColor(
+                        context,
+                      ).withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
             SizedBox(height: CardStyleUtils.getSpacing(context) + 4),
 
-            // Сводка по Bitcoin (показываем всегда)
+            // Сводка по Bitcoin
             Builder(
               key: const ValueKey('bitcoin_summary_row'),
               builder: (context) {
@@ -306,26 +340,25 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     : 'etf.total_assets'.tr();
                 return _buildSummaryRow(
                   'etf.bitcoin'.tr(),
-                  (etfProvider.summaryData != null
-                          ? (etfProvider.summaryData!['bitcoin']?['totalAssets']
-                                    ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['bitcoin']?['totalAssets']?.toDouble() ??
                                 0.0)
-                          : 0.0)
-                      .toDouble(),
+                            .toDouble()
+                      : 0.0,
                   'assets/bitcoin.png',
                   Colors.orange,
                   subtitle,
-                  (etfProvider.summaryData != null
-                      ? (etfProvider.summaryData!['bitcoin']?['currentFlow']
-                                ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['bitcoin']?['currentFlow']?.toDouble() ??
                             0.0)
-                      : 0.0),
+                      : 0.0,
+                  isLoading: shouldShowSkeleton,
                 );
               },
             ),
             const SizedBox(height: 8),
 
-            // Сводка по Ethereum (показываем всегда)
+            // Сводка по Ethereum
             Builder(
               key: const ValueKey('ethereum_summary_row'),
               builder: (context) {
@@ -337,27 +370,25 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     : 'etf.total_assets'.tr();
                 return _buildSummaryRow(
                   'etf.ethereum'.tr(),
-                  (etfProvider.summaryData != null
-                          ? (etfProvider
-                                    .summaryData!['ethereum']?['totalAssets']
-                                    ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['ethereum']?['totalAssets']?.toDouble() ??
                                 0.0)
-                          : 0.0)
-                      .toDouble(),
+                            .toDouble()
+                      : 0.0,
                   'assets/ethereum.png',
                   Colors.blue,
                   subtitle,
-                  (etfProvider.summaryData != null
-                      ? (etfProvider.summaryData!['ethereum']?['currentFlow']
-                                ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['ethereum']?['currentFlow']?.toDouble() ??
                             0.0)
-                      : 0.0),
+                      : 0.0,
+                  isLoading: shouldShowSkeleton,
                 );
               },
             ),
             const SizedBox(height: 8),
 
-            // Сводка по Solana (показываем всегда, даже если пока 0)
+            // Сводка по Solana
             Builder(
               key: const ValueKey('solana_summary_row'),
               builder: (context) {
@@ -369,20 +400,19 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
                     : 'etf.total_assets'.tr();
                 return _buildSummaryRow(
                   'Solana ETF',
-                  (etfProvider.summaryData != null
-                          ? (etfProvider.summaryData!['solana']?['totalAssets']
-                                    ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['solana']?['totalAssets']?.toDouble() ??
                                 0.0)
-                          : 0.0)
-                      .toDouble(),
+                            .toDouble()
+                      : 0.0,
                   'assets/solana.png',
                   Colors.teal,
                   subtitle,
-                  (etfProvider.summaryData != null
-                      ? (etfProvider.summaryData!['solana']?['currentFlow']
-                                ?.toDouble() ??
+                  !shouldShowSkeleton && summaryData != null
+                      ? (summaryData['solana']?['currentFlow']?.toDouble() ??
                             0.0)
-                      : 0.0),
+                      : 0.0,
+                  isLoading: shouldShowSkeleton,
                 );
               },
             ),
@@ -427,16 +457,10 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
     String imageAsset,
     Color color,
     String subtitle,
-    double currentFlow,
-  ) {
+    double currentFlow, {
+    bool isLoading = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Делаем Ethereum темнее
-    final adjustedColor = title.contains('Ethereum')
-        ? (isDark ? Colors.blue.shade700 : Colors.blue.shade600)
-        : color;
-
-    final iconColor = CardStyleUtils.getIconColor(context, adjustedColor);
 
     // Улучшенные цвета для положительных/отрицательных изменений
     final flowColor = currentFlow >= 0
@@ -447,24 +471,25 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 48,
-          height: 48,
-          decoration: CardStyleUtils.getIconContainerDecoration(
-            context,
-            adjustedColor,
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: CardStyleUtils.getDividerColor(context),
+              width: 1,
+            ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(6),
               child: Image.asset(
                 imageAsset,
-                width: 24,
-                height: 24,
-                color: iconColor,
-                fit: BoxFit.contain,
-                cacheWidth: 48, // Кэшируем в двойном разрешении для четкости
-                cacheHeight: 48,
+                fit: BoxFit.fitHeight,
+                alignment: Alignment.center,
+                cacheWidth: 56,
+                cacheHeight: 56,
               ),
             ),
           ),
@@ -496,36 +521,55 @@ class _ETFTabsScreenState extends State<ETFTabsScreen> {
             ],
           ),
         ),
-        // Блок с ценой
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                _formatLargeNumber(value),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: CardStyleUtils.getTitleColor(context),
-                  height: 1.2,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _formatFlow(currentFlow),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: flowColor,
-                  height: 1.2,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
-          ),
+        // Блок с ценой - показываем скелетоны для чисел если загрузка
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            isLoading
+                ? Container(
+                    width: 70,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: CardStyleUtils.getSubtitleColor(
+                        context,
+                      ).withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  )
+                : Text(
+                    _formatLargeNumber(value),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: CardStyleUtils.getTitleColor(context),
+                      height: 1.2,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+            const SizedBox(height: 6),
+            isLoading
+                ? Container(
+                    width: 60,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: CardStyleUtils.getSubtitleColor(
+                        context,
+                      ).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  )
+                : Text(
+                    _formatFlow(currentFlow),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: flowColor,
+                      height: 1.2,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+          ],
         ),
       ],
     );

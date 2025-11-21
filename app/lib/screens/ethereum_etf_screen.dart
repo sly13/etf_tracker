@@ -8,6 +8,7 @@ import '../widgets/dark_flow_chart.dart';
 import '../components/flow_calendar.dart';
 import '../utils/adaptive_text_utils.dart';
 import '../widgets/premium_chart_overlay.dart';
+import '../widgets/single_cefi_index_widget.dart';
 
 class EthereumETFScreen extends StatefulWidget {
   const EthereumETFScreen({super.key});
@@ -44,7 +45,6 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                     left: AdaptiveTextUtils.getContentPadding(context).left,
                     right: AdaptiveTextUtils.getContentPadding(context).right,
                     top: 28, // Уменьшенный верхний отступ после табов
-                    bottom: AdaptiveTextUtils.getContentPadding(context).bottom,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,6 +64,15 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
 
                       const SizedBox(height: 20),
 
+                      // CEFI-ETH индекс перед графиком
+                      SingleCEFIIndexWidget(
+                        indexType: 'eth',
+                        title: 'CEFI-ETH',
+                        icon: Icons.hexagon,
+                        iconColor: Colors.blue,
+                      ),
+                      const SizedBox(height: 20),
+
                       // График потоков
                       _buildChartSection(etfProvider.ethereumData),
                       const SizedBox(height: 20),
@@ -73,9 +82,7 @@ class _EthereumETFScreenState extends State<EthereumETFScreen> {
                         flowData: etfProvider.ethereumData,
                         title: 'etf.flow_history'.tr(),
                       ),
-
-                      // Добавляем дополнительное пространство для лучшего UX при pull-to-refresh
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 16), // Небольшой отступ снизу
                     ],
                   ),
                 ),

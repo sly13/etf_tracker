@@ -8,7 +8,8 @@
     "ethereum_etf": "ETH ETF",
     "bitcoin_etf": "BTC ETF",
     "holdings": "Nắm giữ",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "home": "Trang Chủ"
   },
   "common": {
     "loading": "Đang tải...",
@@ -56,7 +57,8 @@
     "english": "English",
     "russian": "Русский",
     "about": "Giới thiệu",
-    "version": "Phiên bản"
+    "version": "Phiên bản",
+    "onboarding_reset": "Onboarding đã được đặt lại. Khởi động lại ứng dụng."
   },
   "profile": {
     "title": "Hồ sơ",
@@ -146,7 +148,11 @@
     "plan_not_found": "Không tìm thấy gói",
     "product_not_found": "Không tìm thấy sản phẩm trong RevenueCat",
     "status": "Trạng thái đăng ký",
-    "refresh_status": "Làm mới trạng thái"
+    "refresh_status": "Làm mới trạng thái",
+    "upgrade_to_pro": "Nâng cấp lên Pro",
+    "restore_purchases": "Khôi phục mua hàng",
+    "link_open_error": "Không thể mở liên kết",
+    "link_open_error_detail": "Lỗi mở liên kết"
   },
   "premium": {
     "unlock": "Mở khóa",
@@ -154,6 +160,10 @@
     "upgrade_message": "Truy cập tính năng nâng cao:",
     "feature_charts": "📊 Biểu đồ dòng chảy chi tiết",
     "feature_analytics": "📈 Phân tích nâng cao",
+    "charts": {
+      "title": "Biểu đồ Cao cấp",
+      "description": "Truy cập biểu đồ dòng chảy ETF chi tiết"
+    },
     "feature_history": "📅 Lịch sử dữ liệu đầy đủ",
     "feature_export": "💾 Xuất dữ liệu",
     "subscribe": "Đăng ký",
@@ -205,7 +215,12 @@
     "daily_total_net_inflow": "Tổng dòng vào ròng hàng ngày",
     "weekly_total_net_inflow": "Tổng dòng vào ròng hàng tuần",
     "monthly_total_net_inflow": "Tổng dòng vào ròng hàng tháng",
-    "no_data_for_date": "Không có dữ liệu cho"
+    "no_data_for_date": "Không có dữ liệu cho",
+    "today_flows": "Dòng chảy hôm nay",
+    "latest_flows": "Dòng chảy mới nhất",
+    "show_more": "Hiển thị thêm",
+    "no_events_today": "Không có sự kiện hôm nay",
+    "flow_events": "Sự kiện dòng chảy"
   },
   "auth": {
     "sign_in_with_apple": "Đăng nhập bằng Apple",
@@ -481,6 +496,57 @@
     "flow_amount_info": "Thông báo sẽ được gửi khi vượt quá số lượng được chỉ định",
     "premium_required": "Yêu cầu đăng ký cao cấp",
     "premium_required_desc": "Thông báo ETF chỉ khả dụng cho người dùng cao cấp. Đăng ký để truy cập tính năng này.",
-    "upgrade": "Nâng cấp ngay"
+    "upgrade": "Nâng cấp ngay",
+    "test_check": "Kiểm tra Thông báo",
+    "test_send_etf": "Gửi thông báo ETF thử nghiệm",
+    "test_send": "Gửi Thông báo Thử nghiệm",
+    "test_sent_detail": "Thông báo thử nghiệm đã được gửi. Nếu bạn không thấy thông báo, hãy thu nhỏ ứng dụng.",
+    "test_notification": "Thông báo Thử nghiệm",
+    "test_notification_body": "Đây là thông báo thử nghiệm để kiểm tra chức năng trên trình giả lập",
+    "test_send_description": "Gửi thông báo thử nghiệm đến thiết bị để kiểm tra chức năng"
+  },
+  "cefi": {
+    "dialog": {
+      "title": "CryptoETF Flows Index (CEFI)",
+      "description": "Chỉ số phản ánh hướng và cường độ của dòng vốn vào các ETF tiền điện tử giao ngay"
+    },
+    "sentiment": {
+      "extreme_greed": "Tham Lam Cực Độ",
+      "greed": "Tham Lam",
+      "neutral": "Trung Lập",
+      "fear": "Sợ Hãi",
+      "extreme_fear": "Sợ Hãi Cực Độ"
+    },
+    "index": {
+      "btc": "Chỉ số CEFI-BTC",
+      "eth": "Chỉ số CEFI-ETH",
+      "sol": "Chỉ số CEFI-SOL",
+      "composite": "Chỉ số CEFI-Composite",
+      "default": "Chỉ số CEFI"
+    },
+    "current_value": "Giá Trị Chỉ Số Hiện Tại",
+    "historical_values": "Giá Trị Lịch Sử",
+    "yesterday": "Hôm Qua",
+    "last_week": "Tuần Trước",
+    "last_month": "Tháng Trước",
+    "yearly_high_low": "Cao và Thấp Hàng Năm",
+    "yearly_high": "Cao Hàng Năm",
+    "yearly_low": "Thấp Hàng Năm",
+    "chart": "Biểu Đồ",
+    "error": {
+      "loading": "Lỗi tải chỉ số"
+    }
+  },
+  "widget": {
+    "add": "Thêm Widget",
+    "instructions": {
+      "intro": "Để thêm widget vào màn hình nền:",
+      "step1": "1. Mở Cài Đặt Hệ Thống",
+      "step2": "2. Đi tới \"Màn Hình Nền và Dock\"",
+      "step3": "3. Nhấp vào \"Widgets\"",
+      "step4": "4. Tìm \"ETF Flow Tracker\"",
+      "step5": "5. Kéo vào màn hình nền",
+      "alternative": "Hoặc sử dụng Trung Tâm Điều Khiển → Widgets"
+    }
   }
 }
