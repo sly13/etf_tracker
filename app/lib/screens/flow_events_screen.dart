@@ -317,8 +317,27 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
     );
   }
 
+  /// Удалить дубликаты событий
+  /// События считаются дубликатами, если у них одинаковые time, company, etf и amount
+  List<FlowEvent> _removeDuplicates(List<FlowEvent> events) {
+    final Map<String, FlowEvent> uniqueEvents = {};
+    for (final event in events) {
+      // Создаем уникальный ключ из time, company, etf и amount
+      final key = '${event.time}|${event.company}|${event.etf}|${event.amount}';
+      // Если такого события еще нет, или это событие новее (по time), сохраняем его
+      if (!uniqueEvents.containsKey(key) || 
+          event.time.compareTo(uniqueEvents[key]!.time) > 0) {
+        uniqueEvents[key] = event;
+      }
+    }
+    return uniqueEvents.values.toList();
+  }
+
   Widget _buildGroupedEventsList() {
-    final grouped = _groupEventsByDate(_events);
+    // Удаляем дубликаты перед группировкой
+    final uniqueEvents = _removeDuplicates(_events);
+    
+    final grouped = _groupEventsByDate(uniqueEvents);
     final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
     
     final List<Widget> items = [];
@@ -374,28 +393,16 @@ class _FlowEventsScreenState extends State<FlowEventsScreen> {
     final sortedEvents = List<FlowEvent>.from(events)
       ..sort((a, b) => b.time.compareTo(a.time));
 
-    final tokenGroups = _groupEventsByTokenAndTime(sortedEvents);
-
-    // Собираем все элементы для отображения
+    // Не группируем события - показываем каждое отдельно
     final List<_TimelineItem> timelineItems = [];
 
-    for (final group in tokenGroups) {
-      // Если в группе больше одного события, значит они одного токена и времени
-      if (group.length > 1) {
-        // Объединенный блок для событий одного токена и времени
-        timelineItems.add(_TimelineItem(
-          type: _TimelineItemType.grouped,
-          events: group,
-          tokenLogoPath: _getTokenLogoPath(group.first.etf),
-        ));
-      } else {
-        // Отдельный блок для одного события
-        timelineItems.add(_TimelineItem(
-          type: _TimelineItemType.single,
-          events: group,
-          tokenLogoPath: _getTokenLogoPath(group.first.etf),
-        ));
-      }
+    for (final event in sortedEvents) {
+      // Отдельный блок для каждого события
+      timelineItems.add(_TimelineItem(
+        type: _TimelineItemType.single,
+        events: [event],
+        tokenLogoPath: _getTokenLogoPath(event.etf),
+      ));
     }
 
     // Строим timeline виджеты

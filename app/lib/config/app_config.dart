@@ -22,7 +22,8 @@ class AppConfig {
     if (Platform.isIOS) {
       // По умолчанию для iOS используем IP адрес Mac
       // Можно указать LOCAL_BACKEND_HOST=192.168.10.244 в .env
-      return 'http://192.168.10.244:3066';
+      return 'https://api-etf.vadimsemenko.ru';
+      // return 'http://192.168.10.244:3066';
     }
 
     // Для Android и других платформ используем localhost

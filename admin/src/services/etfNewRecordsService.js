@@ -19,6 +19,15 @@ const etfNewRecordsService = {
 			throw error;
 		}
 	},
+	deleteRecord: async (id) => {
+		try {
+			const response = await api.delete(`/etf-flow/new-records/${id}`);
+			return response.data;
+		} catch (error) {
+			console.error('Error deleting ETF new record:', error);
+			throw error;
+		}
+	},
 };
 
 export default etfNewRecordsService;

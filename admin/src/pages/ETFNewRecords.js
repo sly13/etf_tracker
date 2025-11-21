@@ -9,9 +9,17 @@ import {
 	Chip,
 	Snackbar,
 	Alert,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
+	Button,
+	IconButton,
 } from '@mui/material';
 import {
 	Search as SearchIcon,
+	Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import etfNewRecordsService from '../services/etfNewRecordsService';
@@ -118,9 +126,35 @@ function ETFNewRecords() {
 			minWidth: 150,
 			valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString('ru-RU') : '-'
 		},
+		{
+			field: 'actions',
+			headerName: 'Действия',
+			flex: 0.8,
+			minWidth: 100,
+			sortable: false,
+			renderCell: (params) => {
+				return (
+					<IconButton
+						color="error"
+						size="small"
+						onClick={(e) => {
+							e.stopPropagation();
+							setDeleteDialog({
+								open: true,
+								recordId: params.row.id,
+								record: params.row,
+							});
+						}}
+					>
+						<DeleteIcon />
+					</IconButton>
+				);
+			},
+		},
 	];
 
 	const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+	const [deleteDialog, setDeleteDialog] = useState({ open: false, recordId: null, record: null });
 
 	const showSnackbar = useCallback((message, severity = 'success') => {
 		setSnackbar({ open: true, message, severity });
@@ -162,6 +196,25 @@ function ETFNewRecords() {
 
 	const handlePageSizeChange = (newPageSize) => {
 		setPagination({ ...pagination, limit: newPageSize, page: 1 });
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!deleteDialog.recordId) return;
+
+		try {
+			await etfNewRecordsService.deleteRecord(deleteDialog.recordId);
+			showSnackbar('Запись успешно удалена', 'success');
+			setDeleteDialog({ open: false, recordId: null, record: null });
+			// Обновляем список записей
+			fetchRecords(pagination.page, pagination.limit, searchTerm);
+		} catch (error) {
+			console.error('Ошибка удаления записи:', error);
+			showSnackbar('Ошибка удаления записи', 'error');
+		}
+	};
+
+	const handleDeleteCancel = () => {
+		setDeleteDialog({ open: false, recordId: null, record: null });
 	};
 
 	return (
@@ -240,6 +293,46 @@ function ETFNewRecords() {
 					{snackbar.message}
 				</Alert>
 			</Snackbar>
+
+			<Dialog
+				open={deleteDialog.open}
+				onClose={handleDeleteCancel}
+				aria-labelledby="delete-dialog-title"
+				aria-describedby="delete-dialog-description"
+			>
+				<DialogTitle id="delete-dialog-title">
+					Подтверждение удаления
+				</DialogTitle>
+				<DialogContent>
+					<DialogContentText id="delete-dialog-description">
+						Вы уверены, что хотите удалить эту запись?
+						{deleteDialog.record && (
+							<Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+								<Typography variant="body2">
+									<strong>Тип актива:</strong> {deleteDialog.record.assetType}
+								</Typography>
+								<Typography variant="body2">
+									<strong>Компания:</strong> {deleteDialog.record.company}
+								</Typography>
+								<Typography variant="body2">
+									<strong>Сумма:</strong> {deleteDialog.record.amount?.toFixed(2)} млн
+								</Typography>
+								<Typography variant="body2">
+									<strong>Дата:</strong> {deleteDialog.record.date ? new Date(deleteDialog.record.date).toLocaleDateString('ru-RU') : '-'}
+								</Typography>
+							</Box>
+						)}
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleDeleteCancel} color="primary">
+						Отмена
+					</Button>
+					<Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
+						Удалить
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</Box>
 	);
 }

@@ -229,11 +229,30 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> with WidgetsBindingObs
   Map<String, List<FlowEvent>> _groupEventsByDate(List<FlowEvent> events) {
     final Map<String, List<FlowEvent>> grouped = {};
     for (final event in events) {
-      final dateKey = event.date;
-      if (!grouped.containsKey(dateKey)) {
-        grouped[dateKey] = [];
+      // Извлекаем дату из поля time, чтобы она соответствовала реальной дате события
+      try {
+        final dateTime = DateTime.parse(event.time);
+        // Нормализуем дату до дня (без времени) для правильной группировки
+        // Учитываем локальный часовой пояс
+        final normalizedDate = DateTime(
+          dateTime.year,
+          dateTime.month,
+          dateTime.day,
+        );
+        final dateKey = normalizedDate.toIso8601String().split('T')[0];
+        
+        if (!grouped.containsKey(dateKey)) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey]!.add(event);
+      } catch (e) {
+        // Если не удалось распарсить time, используем date как fallback
+        final dateKey = event.date;
+        if (!grouped.containsKey(dateKey)) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey]!.add(event);
       }
-      grouped[dateKey]!.add(event);
     }
     // Сортируем события внутри каждого дня по времени
     for (final dateKey in grouped.keys) {
@@ -406,40 +425,50 @@ class TodayFlowsPanelState extends State<TodayFlowsPanel> with WidgetsBindingObs
     );
   }
 
+  /// Удалить дубликаты событий
+  /// События считаются дубликатами, если у них одинаковые time, company, etf и amount
+  List<FlowEvent> _removeDuplicates(List<FlowEvent> events) {
+    final Map<String, FlowEvent> uniqueEvents = {};
+    for (final event in events) {
+      // Создаем уникальный ключ из time, company, etf и amount
+      final key = '${event.time}|${event.company}|${event.etf}|${event.amount}';
+      // Если такого события еще нет, или это событие новее (по time), сохраняем его
+      if (!uniqueEvents.containsKey(key) || 
+          event.time.compareTo(uniqueEvents[key]!.time) > 0) {
+        uniqueEvents[key] = event;
+      }
+    }
+    return uniqueEvents.values.toList();
+  }
+
   Widget _buildTimeline() {
     // События всегда есть, если вызывается этот метод
     if (_events.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final grouped = _groupEventsByDate(_events);
+    // Удаляем дубликаты перед группировкой
+    final uniqueEvents = _removeDuplicates(_events);
+    
+    final grouped = _groupEventsByDate(uniqueEvents);
     final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
-    // Собираем все элементы для отображения
+    // Собираем все элементы для отображения без группировки
     final List<_TimelineItem> timelineItems = [];
     
     for (final date in sortedDates) {
       final dateEvents = grouped[date]!;
-      final tokenGroups = _groupEventsByTokenAndTime(dateEvents);
+      // Сортируем события по времени (от новых к старым)
+      final sortedEvents = List<FlowEvent>.from(dateEvents)
+        ..sort((a, b) => b.time.compareTo(a.time));
       
-      for (final group in tokenGroups) {
-        // Если в группе больше одного события, значит они одного токена и времени
-        // (группировка уже произошла по ключу token|time)
-        if (group.length > 1) {
-          // Объединенный блок для событий одного токена и времени
-          timelineItems.add(_TimelineItem(
-            type: _TimelineItemType.grouped,
-            events: group,
-            tokenLogoPath: _getTokenLogoPath(group.first.etf),
-          ));
-        } else {
-          // Отдельный блок для одного события
-          timelineItems.add(_TimelineItem(
-            type: _TimelineItemType.single,
-            events: group,
-            tokenLogoPath: _getTokenLogoPath(group.first.etf),
-          ));
-        }
+      // Не группируем события - показываем каждое отдельно
+      for (final event in sortedEvents) {
+        timelineItems.add(_TimelineItem(
+          type: _TimelineItemType.single,
+          events: [event],
+          tokenLogoPath: _getTokenLogoPath(event.etf),
+        ));
       }
     }
     

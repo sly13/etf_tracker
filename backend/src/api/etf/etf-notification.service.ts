@@ -120,7 +120,8 @@ export class ETFNotificationService {
     try {
       this.logger.log(`🔍 Ищу пользователей для ETF уведомлений (appName: ${appName})`);
       
-      // Получаем всех активных пользователей приложения с подписками
+      // Получаем всех активных пользователей приложения
+      // ВАЖНО: Не загружаем подписки, так как проверка подписки отключена
       const allUsers = await this.prisma.user.findMany({
         where: {
           application: { name: appName },
@@ -131,17 +132,15 @@ export class ETFNotificationService {
           deviceToken: true,
           telegramChatId: true,
           settings: true,
-          subscriptions: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 1, // Берем только последнюю подписку
-          },
+          // subscriptions не загружаем, так как проверка подписки отключена
         },
       });
 
       this.logger.log(`   Найдено ${allUsers.length} активных пользователей приложения`);
 
+      // ВАЖНО: Проверка подписки отключена - уведомления приходят всем пользователям
+      // Чтобы включить проверку подписки, раскомментируйте код ниже
+      /*
       // Фильтруем пользователей с активной подпиской
       const usersWithActiveSubscription = allUsers.filter((user) => {
         const latestSubscription = user.subscriptions?.[0];
@@ -172,30 +171,43 @@ export class ETFNotificationService {
       this.logger.log(
         `   Пользователей с активной подпиской: ${usersWithActiveSubscription.length}`,
       );
+      */
+      
+      // Используем всех пользователей (проверка подписки отключена)
+      const usersWithActiveSubscription = allUsers;
+      this.logger.log(
+        `   Используем всех пользователей (проверка подписки отключена): ${usersWithActiveSubscription.length}`,
+      );
 
       // Фильтруем пользователей с настройками
       // Поддерживаем оба формата: settings.notifications.enableETFUpdates и settings.etfNotifications.enabled
+      // ВАЖНО: По умолчанию уведомления включены (если не установлено явно false)
       const usersWithSettings = usersWithActiveSubscription.filter((user) => {
         const settings = user.settings as any;
         
         // Проверяем новый формат (etfNotifications.enabled)
-        const newFormatEnabled = settings?.etfNotifications?.enabled === true;
+        const newFormatValue = settings?.etfNotifications?.enabled;
         
         // Проверяем старый формат (notifications.enableETFUpdates)
-        const oldFormatEnabled = settings?.notifications?.enableETFUpdates === true;
+        const oldFormatValue = settings?.notifications?.enableETFUpdates;
         
-        // Уведомления включены, если включены в любом из форматов
-        const hasEnabled = newFormatEnabled || oldFormatEnabled;
+        // Уведомления включены, если:
+        // 1. Явно установлено true в любом из форматов, ИЛИ
+        // 2. Не установлено явно false в обоих форматах (по умолчанию включено)
+        const hasEnabled = 
+          newFormatValue === true || 
+          oldFormatValue === true ||
+          (newFormatValue !== false && oldFormatValue !== false);
         
         if (!hasEnabled) {
           this.logger.log(
-            `   Пользователь ${user.id}: уведомления отключены`,
+            `   Пользователь ${user.id}: уведомления отключены явно`,
           );
           this.logger.log(
-            `      settings.etfNotifications.enabled = ${settings?.etfNotifications?.enabled}`,
+            `      settings.etfNotifications.enabled = ${newFormatValue}`,
           );
           this.logger.log(
-            `      settings.notifications.enableETFUpdates = ${settings?.notifications?.enableETFUpdates}`,
+            `      settings.notifications.enableETFUpdates = ${oldFormatValue}`,
           );
         }
         

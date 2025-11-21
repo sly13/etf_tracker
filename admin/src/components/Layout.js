@@ -26,6 +26,7 @@ import {
 	ExpandMore,
 	AppRegistration as AppIcon,
 	NewReleases as NewReleasesIcon,
+	Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -149,6 +150,17 @@ function Layout({ children }) {
 					>
 						<ListItemIcon><NewReleasesIcon /></ListItemIcon>
 						<ListItemText primary="ETF Новые записи" />
+					</ListItemButton>
+				</ListItem>
+
+				{/* Доставка Уведомлений */}
+				<ListItem disablePadding>
+					<ListItemButton
+						selected={location.pathname === '/notification-deliveries'}
+						onClick={() => navigate('/notification-deliveries')}
+					>
+						<ListItemIcon><NotificationsIcon /></ListItemIcon>
+						<ListItemText primary="Доставка Уведомлений" />
 					</ListItemButton>
 				</ListItem>
 			</List>

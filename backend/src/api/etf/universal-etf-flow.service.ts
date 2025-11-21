@@ -253,7 +253,7 @@ export class UniversalETFFlowService {
             const previousValue = existingRecord?.[company.name] || 0;
             const currentValue = company.value || 0;
 
-            // Проверяем, появилась ли новая запись или значительно изменилась
+            // Проверяем, изменилось ли значение (фиксируем все изменения)
             const isNewRecord = this.isNewRecord(previousValue, currentValue);
 
             if (isNewRecord) {
@@ -375,7 +375,7 @@ export class UniversalETFFlowService {
             const previousValue = existingRecord?.[company.name] || 0;
             const currentValue = company.value || 0;
 
-            // Проверяем, появилась ли новая запись или значительно изменилась
+            // Проверяем, изменилось ли значение (фиксируем все изменения)
             const isNewRecord = this.isNewRecord(previousValue, currentValue);
 
             if (isNewRecord) {
@@ -608,34 +608,18 @@ export class UniversalETFFlowService {
 
   /**
    * Проверяет, является ли изменение новой записью
+   * Теперь фиксирует ВСЕ изменения значений, а не только значительные
    */
   private isNewRecord(previousValue: number, currentValue: number): boolean {
-    // Если предыдущее значение было 0 или null, а текущее != 0 - это новая запись
-    // Учитываем как положительные (притоки), так и отрицательные (оттоки) значения
-    if ((previousValue === 0 || previousValue === null) && currentValue !== 0) {
+    // Нормализуем значения (null/undefined -> 0)
+    const prev = previousValue ?? 0;
+    const curr = currentValue ?? 0;
+
+    // Если значения отличаются - это новая запись
+    // Используем небольшую погрешность для сравнения чисел с плавающей точкой
+    const epsilon = 0.0001;
+    if (Math.abs(prev - curr) > epsilon) {
       return true;
-    }
-
-    // Если изменение больше чем на 10% и больше чем на 1M - это значительное изменение
-    // Работаем с абсолютными значениями для расчета процента изменения
-    const absPrevious = Math.abs(previousValue);
-    const absCurrent = Math.abs(currentValue);
-    
-    if (absPrevious > 0 && absCurrent > 0) {
-      const changePercent = Math.abs(currentValue - previousValue) / absPrevious;
-      const changeAmount = Math.abs(currentValue - previousValue);
-
-      if (changePercent > 0.1 && changeAmount > 1) {
-        return true;
-      }
-    }
-
-    // Если знак изменился (был приток, стал отток или наоборот) - это значительное изменение
-    if (previousValue !== 0 && currentValue !== 0) {
-      const signChanged = (previousValue > 0 && currentValue < 0) || (previousValue < 0 && currentValue > 0);
-      if (signChanged && Math.abs(currentValue) > 1) {
-        return true;
-      }
     }
 
     return false;
@@ -664,16 +648,17 @@ export class UniversalETFFlowService {
         return null;
       }
 
-      // Дополнительная проверка: не создавалась ли запись для этой даты/компании/актива за последние 30 минут
-      // Это предотвращает создание дубликатов при быстрых обновлениях данных
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      // Дополнительная проверка: не создавалась ли запись с точно таким же значением за последние 5 минут
+      // Это предотвращает создание дубликатов при быстрых повторных обновлениях с теми же данными
+      // Используем небольшую погрешность для сравнения чисел с плавающей точкой
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const recentRecord = await this.prisma.eTFNewRecord.findFirst({
         where: {
           date: data.date,
           assetType: data.assetType,
           company: data.company,
           detectedAt: {
-            gte: thirtyMinutesAgo,
+            gte: fiveMinutesAgo,
           },
         },
         orderBy: {
@@ -682,17 +667,14 @@ export class UniversalETFFlowService {
       });
 
       if (recentRecord) {
-        // Проверяем, отличается ли новое значение значительно от последнего
+        // Проверяем, отличается ли новое значение от последнего (с учетом погрешности округления)
+        const epsilon = 0.0001;
         const difference = Math.abs(data.amount - recentRecord.amount);
-        const absRecentAmount = Math.abs(recentRecord.amount);
-        const differencePercent = absRecentAmount > 0 
-          ? (difference / absRecentAmount) * 100 
-          : 0;
-
-        // Если разница меньше 5% или меньше 0.5M, считаем это дубликатом
-        if (differencePercent < 5 && difference < 0.5) {
+        
+        // Если значения практически одинаковые (разница меньше погрешности), считаем это дубликатом
+        if (difference < epsilon) {
           this.logger.log(
-            `Пропускаем создание записи - похожая запись уже существует за последние 30 минут: ${recentRecord.id} (разница: ${difference.toFixed(2)}M, ${differencePercent.toFixed(2)}%)`,
+            `Пропускаем создание записи - точно такое же значение уже было за последние 5 минут: ${recentRecord.id}`,
           );
           return null;
         }
