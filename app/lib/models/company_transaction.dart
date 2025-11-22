@@ -1,11 +1,11 @@
-class FlowEvent {
+class CompanyTransaction {
   final String time;
   final String company;
   final String etf;
   final double amount;
   final String date;
 
-  FlowEvent({
+  CompanyTransaction({
     required this.time,
     required this.company,
     required this.etf,
@@ -13,8 +13,8 @@ class FlowEvent {
     required this.date,
   });
 
-  factory FlowEvent.fromJson(Map<String, dynamic> json) {
-    return FlowEvent(
+  factory CompanyTransaction.fromJson(Map<String, dynamic> json) {
+    return CompanyTransaction(
       time: json['time'] ?? '',
       company: json['company'] ?? '',
       etf: json['etf'] ?? '',
@@ -32,10 +32,5 @@ class FlowEvent {
       'date': date,
     };
   }
-
-  bool get isPositive => amount >= 0;
 }
-
-
-
 

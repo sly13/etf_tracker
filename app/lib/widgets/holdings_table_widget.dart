@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../models/etf_flow_data.dart';
 // import '../services/fund_logo_service.dart';
 import '../utils/card_style_utils.dart';
+import '../screens/company_details_screen.dart';
 
 class HoldingsTableWidget extends StatefulWidget {
   final List<ETFFlowData> ethereumData;
@@ -246,8 +247,23 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
     final valueFontSize = isSmallScreen ? 11.0 : 12.0;
     final changeFontSize = isSmallScreen ? 10.0 : 11.0;
 
-    return IntrinsicHeight(
-      child: Row(
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CompanyDetailsScreen(
+              companyName: company,
+              btcValue: btcValue,
+              ethValue: ethValue,
+              solValue: solValue,
+              separateFlowChanges: widget.separateFlowChanges[company] ?? {},
+            ),
+          ),
+        );
+      },
+      child: IntrinsicHeight(
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Колонка с названием компании
@@ -374,6 +390,7 @@ class _HoldingsTableWidgetState extends State<HoldingsTableWidget> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

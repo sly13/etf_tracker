@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
 	AppBar,
 	Box,
@@ -22,11 +22,10 @@ import {
 	Apps as AppsIcon,
 	People as PeopleIcon,
 	Logout as LogoutIcon,
-	ExpandLess,
-	ExpandMore,
 	AppRegistration as AppIcon,
 	NewReleases as NewReleasesIcon,
 	Notifications as NotificationsIcon,
+	AccountBalance as AccountBalanceIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -139,6 +138,17 @@ function Layout({ children }) {
 					>
 						<ListItemIcon><PeopleIcon /></ListItemIcon>
 						<ListItemText primary="Пользователи" />
+					</ListItemButton>
+				</ListItem>
+
+				{/* Фонды */}
+				<ListItem disablePadding>
+					<ListItemButton
+						selected={location.pathname === '/funds'}
+						onClick={() => navigate('/funds')}
+					>
+						<ListItemIcon><AccountBalanceIcon /></ListItemIcon>
+						<ListItemText primary="Фонды" />
 					</ListItemButton>
 				</ListItem>
 

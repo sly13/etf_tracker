@@ -3,7 +3,10 @@ import { API_CONFIG } from "../config/api";
 
 // Используем API_CONFIG.BASE_URL, который уже содержит /api префикс
 // Или fallback на localhost:3066/api для разработки
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || API_CONFIG.BASE_URL || "http://localhost:3066/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  API_CONFIG.BASE_URL ||
+  "http://localhost:3066/api";
 
 export interface FundDetail {
   id: number;
@@ -21,6 +24,7 @@ export interface FundDetail {
   totalAssets: string | bigint;
   createdAt: string;
   updatedAt: string;
+  availableLanguages?: string[];
 }
 
 export const fundService = {

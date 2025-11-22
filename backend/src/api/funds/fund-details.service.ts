@@ -6,11 +6,24 @@ export class FundDetailsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.fundDetail.findMany({
+    const funds = await this.prisma.fundDetail.findMany({
       orderBy: {
         name: 'asc',
       },
+      include: {
+        translations: {
+          select: {
+            language: true,
+          },
+        },
+      },
     });
+
+    // Добавляем информацию о доступных языках для каждого фонда
+    return funds.map((fund) => ({
+      ...fund,
+      availableLanguages: fund.translations.map((t) => t.language),
+    }));
   }
 
   async findByFundKey(fundKey: string, language?: string) {
@@ -18,10 +31,31 @@ export class FundDetailsService {
       where: {
         fundKey,
       },
+      include: {
+        translations: true,
+      },
     });
 
     if (!fund) {
       throw new NotFoundException(`Fund with key ${fundKey} not found`);
+    }
+
+    // Если указан язык, пытаемся найти перевод
+    let translatedName = fund.name;
+    let translatedDescription = fund.description;
+
+    if (language) {
+      const translation = fund.translations.find(
+        (t) => t.language === language,
+      );
+      if (translation) {
+        if (translation.name) {
+          translatedName = translation.name;
+        }
+        if (translation.description) {
+          translatedDescription = translation.description;
+        }
+      }
     }
 
     // Получаем данные о владениях
@@ -31,9 +65,12 @@ export class FundDetailsService {
     // Преобразуем BigInt в строки для JSON сериализации
     return {
       ...fund,
+      name: translatedName,
+      description: translatedDescription,
       btcHoldings: holdings.btcHoldings.toString(),
       ethHoldings: holdings.ethHoldings.toString(),
       totalAssets: holdings.totalAssets.toString(),
+      availableLanguages: fund.translations.map((t) => t.language),
     };
   }
 
@@ -128,6 +165,72 @@ export class FundDetailsService {
     return this.prisma.fundDetail.delete({
       where: {
         fundKey,
+      },
+    });
+  }
+
+  // Методы для работы с переводами
+  async getTranslations(fundKey: string) {
+    const fund = await this.prisma.fundDetail.findUnique({
+      where: { fundKey },
+      include: { translations: true },
+    });
+
+    if (!fund) {
+      throw new NotFoundException(`Fund with key ${fundKey} not found`);
+    }
+
+    return fund.translations;
+  }
+
+  async createOrUpdateTranslation(
+    fundKey: string,
+    language: string,
+    data: { name?: string; description?: string },
+  ) {
+    const fund = await this.prisma.fundDetail.findUnique({
+      where: { fundKey },
+    });
+
+    if (!fund) {
+      throw new NotFoundException(`Fund with key ${fundKey} not found`);
+    }
+
+    return this.prisma.fundTranslation.upsert({
+      where: {
+        fundId_language: {
+          fundId: fund.id,
+          language,
+        },
+      },
+      update: {
+        name: data.name,
+        description: data.description,
+      },
+      create: {
+        fundId: fund.id,
+        language,
+        name: data.name,
+        description: data.description,
+      },
+    });
+  }
+
+  async deleteTranslation(fundKey: string, language: string) {
+    const fund = await this.prisma.fundDetail.findUnique({
+      where: { fundKey },
+    });
+
+    if (!fund) {
+      throw new NotFoundException(`Fund with key ${fundKey} not found`);
+    }
+
+    return this.prisma.fundTranslation.delete({
+      where: {
+        fundId_language: {
+          fundId: fund.id,
+          language,
+        },
       },
     });
   }

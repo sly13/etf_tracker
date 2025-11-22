@@ -261,6 +261,69 @@ class ETFService {
     }
   }
 
+  // Получить транзакции для конкретной компании
+  Future<List<Map<String, dynamic>>> getCompanyTransactions(
+    String companyName, {
+    int limit = 50,
+  }) async {
+    try {
+      // Получаем все события и фильтруем по компании на клиенте
+      // В будущем можно добавить фильтрацию на бэкенде
+      final allEvents = await getAllEvents(limit: limit);
+      final events = allEvents['events'] as List<dynamic>? ?? [];
+      
+      // Фильтруем события по названию компании
+      final companyTransactions = events
+          .where((event) {
+            final eventCompany = event['company'] as String? ?? '';
+            return eventCompany == companyName;
+          })
+          .map((event) => event as Map<String, dynamic>)
+          .toList();
+
+      return companyTransactions;
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
+  // Получить детали фонда по ключу
+  Future<Map<String, dynamic>> getFundDetails(
+    String fundKey, {
+    String? language,
+  }) async {
+    try {
+      final langParam = language != null ? '?lang=$language' : '';
+      final url = AppConfig.getApiUrl('/funds/$fundKey$langParam');
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              throw TimeoutException('errors.timeout'.tr());
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data;
+      } else {
+        throw Exception(
+          'Ошибка загрузки данных фонда: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw Exception('errors.server_unavailable'.tr());
+      }
+      throw Exception('${'errors.network_error'.tr()}: $e');
+    }
+  }
+
   // Получить все CEFI индексы
   Future<AllCEFIIndices> getAllCEFIIndices({int? limit}) async {
     try {

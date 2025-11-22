@@ -9,6 +9,7 @@ import ApplicationDetail from './pages/ApplicationDetail';
 import Users from './pages/Users';
 import ETFNewRecords from './pages/ETFNewRecords';
 import NotificationDeliveries from './pages/NotificationDeliveries';
+import Funds from './pages/Funds';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function ProtectedRoute({ children }) {
@@ -76,6 +77,16 @@ function AppRoutes() {
 					<ProtectedRoute>
 						<Layout>
 							<NotificationDeliveries />
+						</Layout>
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/funds"
+				element={
+					<ProtectedRoute>
+						<Layout>
+							<Funds />
 						</Layout>
 					</ProtectedRoute>
 				}
