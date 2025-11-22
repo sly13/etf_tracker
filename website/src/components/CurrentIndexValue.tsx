@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import apiClient from "../services/api";
 import { CEFIIndexResponse, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
@@ -13,6 +14,9 @@ interface CurrentIndexValueProps {
 export default function CurrentIndexValue({
   indexType,
 }: CurrentIndexValueProps) {
+  const t = useTranslations('indices');
+  const tSentiment = useTranslations('sentiment');
+  const tErrors = useTranslations('errors');
   const [data, setData] = useState<CEFIIndexResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +49,7 @@ export default function CurrentIndexValue({
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке данных";
+            t('errorLoading');
         }
 
         setError(errorMessage);
@@ -59,11 +63,11 @@ export default function CurrentIndexValue({
   }, [indexType]);
 
   const getSentimentLabel = (value: number): string => {
-    if (value >= 80) return "Extreme Greed";
-    if (value >= 60) return "Greed";
-    if (value >= 40) return "Neutral";
-    if (value >= 20) return "Fear";
-    return "Extreme Fear";
+    if (value >= 80) return tSentiment('extremeGreed');
+    if (value >= 60) return tSentiment('greed');
+    if (value >= 40) return tSentiment('neutral');
+    if (value >= 20) return tSentiment('fear');
+    return tSentiment('extremeFear');
   };
 
   const getSentimentColor = (value: number): string => {
@@ -124,7 +128,7 @@ export default function CurrentIndexValue({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
       <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 text-center">
-        Текущее значение индекса
+        {t('currentValue')}
       </h3>
       <div className="max-w-md mx-auto">
         <IndexGauge

@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "back": "Geri",
+    "readMore": "Devamını oku",
+    "subscribe": "Abone ol",
+    "contactUs": "Bize ulaşın",
+    "allRightsReserved": "Tüm hakları saklıdır",
+    "dataUpdatesRealtime": "Veriler gerçek zamanlı olarak güncellenir"
+  },
+  "nav": {
+    "home": "Ana Sayfa",
+    "funds": "Fonlar",
+    "app": "Uygulama",
+    "blog": "Blog"
+  },
+  "home": {
+    "title": "ETF Fonları Takibi",
+    "subtitle": "gerçek zamanlı",
+    "description": "Kripto para ETF'lerindeki sermaye akışlarını analiz etmek için profesyonel platform",
+    "whyChoose": "Neden Crypto ETFs'yi seçmelisiniz?",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "Gerçek Zamanlı Analiz",
+        "description": "Bir dakikadan az gecikmeyle ETF fonları ve dinamikleri hakkında güncel veriler alın."
+      },
+      "portfolioManagement": {
+        "title": "Portföy Yönetimi",
+        "description": "Detaylı analizlerle yatırım portföylerinizi oluşturun ve takip edin."
+      },
+      "security": {
+        "title": "Güvenilirlik ve Güvenlik",
+        "description": "Verileriniz modern şifreleme ve güvenli depolama yöntemleriyle korunmaktadır."
+      }
+    },
+    "cta": {
+      "title": "Yatırıma başlamaya hazır mısınız?",
+      "description": "Portföylerini yönetmek için zaten ETF Tracker kullanan binlerce yatırımcıya katılın."
+    },
+    "footer": {
+      "description": "ETF fonları takibi ve yatırım yönetimi için profesyonel platform."
+    }
+  },
+  "funds": {
+    "title": "Tüm ETF Fonları",
+    "description": "Her ETF fonu hakkında, varlıkları, performansı ve geçmiş verileri dahil olmak üzere detaylı bilgileri keşfedin.",
+    "ticker": "Ticker",
+    "tickerLabel": "Ticker:",
+    "etfFund": "Kripto para varlıklarına odaklanan ETF fonu",
+    "statistics": {
+      "title": "Genel İstatistikler",
+      "totalFunds": "Toplam Fon",
+      "totalBTCAssets": "Toplam BTC Varlıkları",
+      "totalETHAssets": "Toplam ETH Varlıkları",
+      "totalAssets": "Toplam Varlıklar"
+    },
+    "holdings": {
+      "title": "Fon Varlıkları",
+      "company": "Şirket",
+      "btcHoldings": "BTC Varlıkları",
+      "ethHoldings": "ETH Varlıkları",
+      "solHoldings": "SOL Varlıkları",
+      "sortBy": "Sırala:",
+      "companyAsc": "Şirket ↑",
+      "companyDesc": "Şirket ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "Fon",
+      "fundNotFound": "Fon bulunamadı",
+      "errorLoading": "Fon verileri yüklenirken hata",
+      "backToList": "Fon listesine dön",
+      "loading": "Yükleniyor...",
+      "etfFund": "ETF Fonu",
+      "btcHoldings": "BTC Varlıkları",
+      "ethHoldings": "ETH Varlıkları",
+      "totalAssets": "Toplam Varlıklar",
+      "totalAssetsInBitcoin": "Bitcoin'deki toplam varlıklar",
+      "totalAssetsInEthereum": "Ethereum'daki toplam varlıklar",
+      "totalHoldings": "Toplam varlıklar",
+      "detailedInfo": "Detaylı Bilgi",
+      "mainIndicators": "Ana Göstergeler",
+      "ticker": "Ticker:",
+      "fundType": "Fon Türü:",
+      "category": "Kategori:",
+      "cryptocurrency": "Kripto para",
+      "fee": "Ücret:",
+      "historicalData": "Geçmiş Veriler",
+      "launchDate": "Başlatma Tarihi:",
+      "daysCount": "Gün Sayısı:",
+      "lastUpdate": "Son Güncelleme:",
+      "status": "Durum:",
+      "active": "Aktif",
+      "performanceChart": "Performans Grafiği",
+      "chartPlaceholder": "Grafik gelecek güncellemelerde eklenecek"
+    }
+  },
+  "summary": {
+    "title": "ETF Fonları Özet Verileri",
+    "overall": {
+      "label": "Genel Toplam",
+      "totalAssets": "Toplam Varlıklar:",
+      "totalFlow": "Toplam Akış:",
+      "lastUpdate": "Son Güncelleme:"
+    },
+    "bitcoin": {
+      "label": "Bitcoin ETF",
+      "totalAssets": "Toplam Varlıklar:",
+      "currentFlow": "Mevcut Akış:",
+      "daysCount": "Gün Sayısı:",
+      "lastUpdate": "Son Güncelleme:"
+    },
+    "ethereum": {
+      "label": "Ethereum ETF",
+      "totalAssets": "Toplam Varlıklar:",
+      "currentFlow": "Mevcut Akış:",
+      "daysCount": "Gün Sayısı:",
+      "lastUpdate": "Son Güncelleme:"
+    },
+    "solana": {
+      "label": "Solana ETF",
+      "totalAssets": "Toplam Varlıklar:",
+      "currentFlow": "Mevcut Akış:",
+      "daysCount": "Gün Sayısı:",
+      "lastUpdate": "Son Güncelleme:"
+    },
+    "noData": "Veri yok"
+  },
+  "news": {
+    "title": "Son Haberler",
+    "bitcoinUpdate": "Bitcoin ETF Akış Güncellemesi",
+    "ethereumUpdate": "Ethereum ETF Akış Güncellemesi",
+    "solanaUpdate": "Solana ETF Akış Güncellemesi",
+    "errorLoading": "Haberler yüklenirken bir hata oluştu"
+  },
+  "cefi": {
+    "title": "CryptoETF Akış Endeksi (CEFI)",
+    "description": "Endeks, spot kripto para ETF'lerine sermaye akışlarının yönünü ve yoğunluğunu yansıtır",
+    "composite": "CEFI-Composite Endeksi",
+    "btc": "CEFI-BTC Endeksi",
+    "eth": "CEFI-ETH Endeksi",
+    "sol": "CEFI-SOL Endeksi",
+    "bpf": {
+      "title": "BPF (Pozitif Akışların Genişliği)",
+      "description": "Pozitif sermaye girişi olan fonların yüzdesi",
+      "funds": "fon",
+      "from": "içinden"
+    },
+    "clickForDetails": "Detaylı bir grafik görüntülemek için bir endeks kartına tıklayın",
+    "updatesDaily": "Endeksler ETF akış verilerine dayalı olarak günlük güncellenir",
+    "errorLoading": "CEFI endeksleri yüklenirken bir hata oluştu"
+  },
+  "indices": {
+    "invalidType": "Geçersiz endeks türü",
+    "backToHome": "Ana sayfaya dön",
+    "currentValue": "Mevcut Endeks Değeri",
+    "historicalValues": "Geçmiş Değerler",
+    "yesterday": "Dün",
+    "lastWeek": "Geçen Hafta",
+    "lastMonth": "Geçen Ay",
+    "yearlyHigh": "Yıllık Yüksek ve Düşük",
+    "yearlyHighLabel": "Yıllık Yüksek",
+    "yearlyLowLabel": "Yıllık Düşük",
+    "errorLoading": "Veriler yüklenirken bir hata oluştu",
+    "errorLoadingHistorical": "Geçmiş veriler yüklenirken bir hata oluştu"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "Aşırı Açgözlülük",
+    "greed": "Açgözlülük",
+    "neutral": "Nötr",
+    "fear": "Korku",
+    "extremeFear": "Aşırı Korku"
+  },
+  "app": {
+    "title": "Crypto ETFs Mobil Uygulama",
+    "description": "iOS ve Android için uygulamamızı indirin ve her zaman, her yerde ETF fonlarını takip edin. Önemli değişiklikler hakkında bildirimler alın ve hareket halindeyken piyasayı analiz edin.",
+    "features": {
+      "realtimeTracking": {
+        "title": "Gerçek Zamanlı Takip",
+        "description": "ETF fon akışları ve piyasa değişiklikleri hakkında güncel veriler alın"
+      },
+      "notifications": {
+        "title": "Bildirimler",
+        "description": "Önemli olaylar ve değişiklikler hakkında kişiselleştirilmiş bildirimler ayarlayın"
+      },
+      "analytics": {
+        "title": "Analitik",
+        "description": "Karar verme için detaylı portföy analizi ve grafikler"
+      }
+    },
+    "download": {
+      "title": "Uygulamayı İndir",
+      "description": "iOS ve Android cihazlar için mevcut",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Crypto ETFs Blog",
+    "description": "ETF fonları için uzman makaleler, analizler ve yatırım tavsiyeleri. En son piyasa trendlerinden haberdar olun.",
+    "categories": {
+      "all": "Tümü",
+      "analysis": "Analiz",
+      "forecasts": "Tahminler",
+      "education": "Eğitim",
+      "comparison": "Karşılaştırma"
+    },
+    "readTime": "dakika",
+    "loadMore": "Daha fazla makale yükle",
+    "newsletter": {
+      "title": "Bültene abone ol",
+      "description": "Yeni makaleler ve analizleri doğrudan e-postanıza alın",
+      "emailPlaceholder": "E-posta adresiniz"
+    }
+  },
+  "faq": {
+    "title": "{indexName} Endeksi Hakkında Sık Sorulan Sorular",
+    "questions": {
+      "whatIs": "{indexName} endeksi nedir ve nasıl hesaplanır?",
+      "howInterpret": "{indexName} endeks değeri nasıl yorumlanır?",
+      "howOften": "{indexName} endeksi ne sıklıkla güncellenir?",
+      "difference": "{indexName} endeksi Bitcoin Korku ve Açgözlülük Endeksi'nden nasıl farklıdır?",
+      "howUse": "Yatırım kararları için {indexName} endeksi nasıl kullanılır?",
+      "whichFunds": "{indexName} endeksi hesaplanırken hangi ETF fonları dikkate alınır?",
+      "composite": "CEFI-Composite endeksi ne anlama gelir?",
+      "forecast": "{indexName} endeksi {assetName} fiyatını tahmin etmek için kullanılabilir mi?"
+    },
+    "answers": {
+      "whatIs": "{indexName} endeksi (CryptoETF Akış Endeksi), {assetName} yatırım yapan spot kripto para ETF fonlarına sermaye akışlarının yönünü ve yoğunluğunu yansıtan bir göstergedir. Endeks, BlackRock, Fidelity, Bitwise ve diğerleri gibi büyük ETF fonlarından giriş ve çıkış verilerine dayalı olarak hesaplanır. Endeks değeri 0 ile 100 arasında değişir; daha yüksek değerler güçlü sermaye girişini (açgözlülük) gösterirken, daha düşük değerler çıkışı (korku) gösterir.",
+      "howInterpret": "{indexName} endeks değeri şu şekilde yorumlanır: 0-20 - Aşırı Korku, 20-40 - Korku, 40-60 - Nötr, 60-80 - Açgözlülük, 80-100 - Aşırı Açgözlülük. Yüksek değerler genellikle yatırımcı iyimserliğini ve ETF fonlarına aktif sermaye girişini gösterirken, düşük değerler karamsarlık ve sermaye çıkışını işaret edebilir.",
+      "howOften": "{indexName} endeksi mevcut ETF akış verilerine dayalı olarak günlük güncellenir. Veriler kamu kaynaklarından toplanır ve gerçek zamanlı olarak işlenir, bu da yatırımcıların kripto para ETF'lerindeki piyasa duyarlılığı ve sermaye hareket yönleri hakkında en son bilgileri almasını sağlar.",
+      "difference": "Volatilite, işlem hacimleri ve sosyal sinyallere dayalı geleneksel Bitcoin Korku ve Açgözlülük Endeksi'nin aksine, {indexName} endeksi yalnızca kurumsal ETF fonlarına gerçek sermaye akışlarına odaklanır. Bu, {assetName} fiyatını önemli ölçüde etkileyen büyük yatırımcı duyarlılığı ve kurumsal sermayenin daha doğru bir göstergesi yapar.",
+      "howUse": "{indexName} endeksi piyasa analizi için ek bir araç olarak hizmet edebilir. Aşırı değerler (Aşırı Korku veya Aşırı Açgözlülük) potansiyel piyasa geri dönüş noktalarını gösterebilir. Ancak, endeksin gelecekteki fiyat hareketlerinin garantisi olmadığını ve diğer teknik ve temel analiz yöntemleriyle birlikte kullanılması gerektiğini hatırlamak önemlidir. Yatırım kararları vermeden önce her zaman kendi araştırmanızı yapın.",
+      "whichFunds": "{indexName} endeksi hesaplanırken, BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) ve diğerleri dahil olmak üzere en büyük spot kripto para ETF fonlarının verileri dikkate alınır. Endeks, tüm bu fonlardan sermaye akışlarını toplar ve {assetName} piyasasındaki kurumsal duyarlılığın kapsamlı bir resmini sağlar.",
+      "composite": "CEFI-Composite endeksi, Bitcoin, Ethereum ve Solana için ETF fonlarına sermaye akışları verilerini birleştiren toplu bir göstergedir. Bu endeks, genel olarak kripto para piyasasındaki yatırımcı duyarlılığının genel bir görünümünü sağlar ve farklı kripto para varlıkları arasındaki kurumsal sermaye hareketinin genel yönünü gösterir.",
+      "forecast": "{indexName} endeksi mevcut yatırımcı duyarlılığını ve sermaye akışlarını yansıtır, ancak doğrudan bir fiyat tahmin aracı değildir. ETF fonlarına güçlü sermaye girişi {assetName} artan ilgiyi gösterebilir ve bu potansiyel olarak fiyatı destekleyebilir, ancak fiyat dinamiklerini etkileyen birçok başka faktör de vardır. Endeksi, tek tahmin aracı olarak değil, mevcut piyasa duyarlılığının bir göstergesi olarak kullanmak daha iyidir."
+    }
+  },
+  "errors": {
+    "generic": "Bir hata oluştu",
+    "loadingData": "Veriler yüklenirken bir hata oluştu",
+    "loadingHoldings": "Fon varlık verileri yüklenirken bir hata oluştu"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - ETF Fonları Takibi ve Yatırımlar",
+    "description": "ETF fonları takibi, yatırım analizi ve portföy yönetimi için profesyonel platform. Güncel piyasa bilgilerini alın ve bilinçli yatırım kararları verin.",
+    "keywords": "ETF, fonlar, yatırımlar, takip, portföy, analiz, finans"
+  }
+}
+

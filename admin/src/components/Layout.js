@@ -26,6 +26,7 @@ import {
 	NewReleases as NewReleasesIcon,
 	Notifications as NotificationsIcon,
 	AccountBalance as AccountBalanceIcon,
+	Language as LanguageIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -149,6 +150,17 @@ function Layout({ children }) {
 					>
 						<ListItemIcon><AccountBalanceIcon /></ListItemIcon>
 						<ListItemText primary="Фонды" />
+					</ListItemButton>
+				</ListItem>
+
+				{/* Языки */}
+				<ListItem disablePadding>
+					<ListItemButton
+						selected={location.pathname === '/languages'}
+						onClick={() => navigate('/languages')}
+					>
+						<ListItemIcon><LanguageIcon /></ListItemIcon>
+						<ListItemText primary="Языки" />
 					</ListItemButton>
 				</ListItem>
 

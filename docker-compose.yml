@@ -34,7 +34,8 @@ services:
       - etf_network
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      # - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=postgresql://etf_user:etf_password@postgres:5432/etf_tracker?schema=public
       - JWT_SECRET=dev_jwt_secret_change_in_production
@@ -46,7 +47,8 @@ services:
       context: ./admin
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=https://api-etf.vadimsemenko.ru/api
+        # - REACT_APP_API_URL=https://api-etf.vadimsemenko.ru/api
+        - REACT_APP_API_URL=http://localhost:3066/api
         - NODE_ENV=development
     container_name: etf_admin
     ports:

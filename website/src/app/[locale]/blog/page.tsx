@@ -2,6 +2,7 @@
 
 export const runtime = 'edge';
 
+import { useTranslations } from 'next-intl';
 import Navigation from "../../../components/Navigation";
 
 const articles = [
@@ -68,9 +69,19 @@ const articles = [
   },
 ];
 
-const categories = ["Все", "Анализ", "Прогнозы", "Обучение", "Сравнение"];
-
 export default function BlogPage() {
+  const t = useTranslations('blog');
+  const tCommon = useTranslations('common');
+  const tBrand = useTranslations('brand');
+  
+  const categories = [
+    t('categories.all'),
+    t('categories.analysis'),
+    t('categories.forecasts'),
+    t('categories.education'),
+    t('categories.comparison')
+  ];
+  
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Navigation */}
@@ -81,11 +92,10 @@ export default function BlogPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-            Блог Crypto ETFs
+            {t('title')}
           </h1>
           <p className="text-xl text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
-            Экспертные статьи, аналитика и советы по инвестированию в ETF фонды.
-            Будьте в курсе последних тенденций рынка.
+            {t('description')}
           </p>
         </div>
 
@@ -95,7 +105,7 @@ export default function BlogPage() {
             <button
               key={category}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
-                category === "Все"
+                category === t('categories.all')
                   ? "bg-blue-600 text-white"
                   : "bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
               }`}
@@ -124,7 +134,7 @@ export default function BlogPage() {
                     {article.category}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-slate-400">
-                    {article.readTime}
+                    {article.readTime} {t('readTime')}
                   </span>
                 </div>
 
@@ -139,7 +149,7 @@ export default function BlogPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500 dark:text-slate-400">{article.date}</span>
                   <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm">
-                    Читать далее →
+                    {tCommon('readMore')} →
                   </button>
                 </div>
               </div>
@@ -150,26 +160,26 @@ export default function BlogPage() {
         {/* Load More */}
         <div className="text-center mt-12">
           <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            Загрузить еще статьи
+            {t('loadMore')}
           </button>
         </div>
 
         {/* Newsletter */}
         <div className="mt-20 bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-            Подпишитесь на рассылку
+            {t('newsletter.title')}
           </h2>
           <p className="text-gray-600 dark:text-slate-400 mb-6">
-            Получайте новые статьи и аналитику прямо на почту
+            {t('newsletter.description')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Ваш email"
+              placeholder={t('newsletter.emailPlaceholder')}
               className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-              Подписаться
+              {tCommon('subscribe')}
             </button>
           </div>
         </div>
@@ -179,13 +189,12 @@ export default function BlogPage() {
       <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Crypto ETFs</h3>
+            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">{tBrand('name')}</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Профессиональная платформа для отслеживания ETF фондов и
-              управления инвестициями.
+              Профессиональная платформа для отслеживания ETF фондов и управления инвестициями.
             </p>
             <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-500 dark:text-slate-400">
-              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
+              <p>&copy; 2024 {tBrand('name')}. {tCommon('allRightsReserved')}.</p>
             </div>
           </div>
         </div>

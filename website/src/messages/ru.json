@@ -46,6 +46,7 @@
     "title": "Все ETF Фонды",
     "description": "Изучите детальную информацию о каждом ETF фонде, включая их владения, производительность и исторические данные.",
     "ticker": "Тикер",
+    "tickerLabel": "Тикер:",
     "etfFund": "ETF фонд с фокусом на криптовалютные активы",
     "statistics": {
       "title": "Общая статистика",
@@ -60,10 +61,23 @@
       "btcHoldings": "BTC владения",
       "ethHoldings": "ETH владения",
       "solHoldings": "SOL владения",
-      "sortBy": "Сортировка:"
+      "sortBy": "Сортировка:",
+      "companyAsc": "Компания ↑",
+      "companyDesc": "Компания ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
     },
     "detail": {
       "fund": "Фонд",
+      "fundNotFound": "Фонд не найден",
+      "errorLoading": "Ошибка при загрузке данных фонда",
+      "backToList": "Вернуться к списку фондов",
+      "loading": "Загрузка...",
+      "etfFund": "ETF Фонд",
       "btcHoldings": "BTC Владения",
       "ethHoldings": "ETH Владения",
       "totalAssets": "Общие Активы",
@@ -146,15 +160,22 @@
     "invalidType": "Неверный тип индекса",
     "backToHome": "Вернуться на главную",
     "currentValue": "Текущее значение индекса",
-    "historicalValues": "Historical Values",
-    "yesterday": "Yesterday",
-    "lastWeek": "Last Week",
-    "lastMonth": "Last Month",
-    "yearlyHigh": "Yearly High and Low",
-    "yearlyHighLabel": "Yearly High",
-    "yearlyLowLabel": "Yearly Low",
+    "historicalValues": "Исторические значения",
+    "yesterday": "Вчера",
+    "lastWeek": "Неделю назад",
+    "lastMonth": "Месяц назад",
+    "yearlyHigh": "Годовые максимум и минимум",
+    "yearlyHighLabel": "Годовой максимум",
+    "yearlyLowLabel": "Годовой минимум",
     "errorLoading": "Произошла ошибка при загрузке данных",
     "errorLoadingHistorical": "Произошла ошибка при загрузке исторических данных"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
   },
   "sentiment": {
     "extremeGreed": "Extreme Greed",

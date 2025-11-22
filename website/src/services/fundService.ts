@@ -43,7 +43,9 @@ export const fundService = {
     language?: string
   ): Promise<FundDetail> {
     try {
-      const params = language ? { lang: language } : {};
+      // По умолчанию используем английский язык, если язык не указан
+      const lang = language || "en";
+      const params = { lang };
       const response = await axios.get(`${API_BASE_URL}/funds/${fundKey}`, {
         params,
       });

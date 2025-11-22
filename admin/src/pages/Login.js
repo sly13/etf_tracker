@@ -59,7 +59,7 @@ function Login() {
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
-				backgroundColor: '#e3f2fd', // Изменил цвет фона для проверки
+				backgroundColor: 'background.default',
 				p: 2,
 				position: 'relative',
 				width: '100%',
@@ -70,9 +70,10 @@ function Login() {
 					maxWidth: 500,
 					width: '100%',
 					mx: 'auto',
-					boxShadow: 6, // Увеличил тень
-					borderRadius: 3, // Увеличил радиус
-					border: '2px solid #1976d2', // Добавил синюю рамку
+					boxShadow: 6,
+					borderRadius: 3,
+					border: '2px solid',
+					borderColor: 'primary.main',
 				}}
 			>
 				<CardContent sx={{

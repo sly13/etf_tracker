@@ -40,21 +40,22 @@ export class FundDetailsService {
       throw new NotFoundException(`Fund with key ${fundKey} not found`);
     }
 
-    // Если указан язык, пытаемся найти перевод
+    // Определяем язык для использования (по умолчанию английский)
+    const targetLanguage = language || 'en';
+
+    // Пытаемся найти перевод для указанного языка
     let translatedName = fund.name;
     let translatedDescription = fund.description;
 
-    if (language) {
-      const translation = fund.translations.find(
-        (t) => t.language === language,
-      );
-      if (translation) {
-        if (translation.name) {
-          translatedName = translation.name;
-        }
-        if (translation.description) {
-          translatedDescription = translation.description;
-        }
+    const translation = fund.translations.find(
+      (t) => t.language === targetLanguage,
+    );
+    if (translation) {
+      if (translation.name) {
+        translatedName = translation.name;
+      }
+      if (translation.description) {
+        translatedDescription = translation.description;
       }
     }
 

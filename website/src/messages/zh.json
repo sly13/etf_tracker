@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "back": "返回",
+    "readMore": "阅读更多",
+    "subscribe": "订阅",
+    "contactUs": "联系我们",
+    "allRightsReserved": "保留所有权利",
+    "dataUpdatesRealtime": "数据实时更新"
+  },
+  "nav": {
+    "home": "首页",
+    "funds": "基金",
+    "app": "应用",
+    "blog": "博客"
+  },
+  "home": {
+    "title": "ETF基金追踪",
+    "subtitle": "实时",
+    "description": "分析加密货币ETF资本流动的专业平台",
+    "whyChoose": "为什么选择Crypto ETFs？",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "实时分析",
+        "description": "获取ETF基金及其动态的最新数据，延迟不到一分钟。"
+      },
+      "portfolioManagement": {
+        "title": "投资组合管理",
+        "description": "创建并跟踪您的投资组合，提供详细分析。"
+      },
+      "security": {
+        "title": "可靠性和安全性",
+        "description": "您的数据受到现代加密和安全存储方法的保护。"
+      }
+    },
+    "cta": {
+      "title": "准备好开始投资了吗？",
+      "description": "加入数千名已经使用ETF Tracker管理投资组合的投资者。"
+    },
+    "footer": {
+      "description": "追踪ETF基金和投资管理的专业平台。"
+    }
+  },
+  "funds": {
+    "title": "所有ETF基金",
+    "description": "探索每个ETF基金的详细信息，包括其持仓、表现和历史数据。",
+    "ticker": "代码",
+    "tickerLabel": "代码:",
+    "etfFund": "专注于加密货币资产的ETF基金",
+    "statistics": {
+      "title": "总体统计",
+      "totalFunds": "基金总数",
+      "totalBTCAssets": "BTC资产总额",
+      "totalETHAssets": "ETH资产总额",
+      "totalAssets": "资产总额"
+    },
+    "holdings": {
+      "title": "基金持仓",
+      "company": "公司",
+      "btcHoldings": "BTC持仓",
+      "ethHoldings": "ETH持仓",
+      "solHoldings": "SOL持仓",
+      "sortBy": "排序方式:",
+      "companyAsc": "公司 ↑",
+      "companyDesc": "公司 ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "基金",
+      "fundNotFound": "未找到基金",
+      "errorLoading": "加载基金数据时出错",
+      "backToList": "返回基金列表",
+      "loading": "加载中...",
+      "etfFund": "ETF基金",
+      "btcHoldings": "BTC持仓",
+      "ethHoldings": "ETH持仓",
+      "totalAssets": "资产总额",
+      "totalAssetsInBitcoin": "Bitcoin资产总额",
+      "totalAssetsInEthereum": "Ethereum资产总额",
+      "totalHoldings": "总持仓",
+      "detailedInfo": "详细信息",
+      "mainIndicators": "主要指标",
+      "ticker": "代码:",
+      "fundType": "基金类型:",
+      "category": "类别:",
+      "cryptocurrency": "加密货币",
+      "fee": "费用:",
+      "historicalData": "历史数据",
+      "launchDate": "启动日期:",
+      "daysCount": "天数:",
+      "lastUpdate": "最后更新:",
+      "status": "状态:",
+      "active": "活跃",
+      "performanceChart": "表现图表",
+      "chartPlaceholder": "图表将在未来更新中添加"
+    }
+  },
+  "summary": {
+    "title": "ETF基金汇总数据",
+    "overall": {
+      "label": "总计",
+      "totalAssets": "资产总额:",
+      "totalFlow": "总流量:",
+      "lastUpdate": "最后更新:"
+    },
+    "bitcoin": {
+      "label": "Bitcoin ETF",
+      "totalAssets": "资产总额:",
+      "currentFlow": "当前流量:",
+      "daysCount": "天数:",
+      "lastUpdate": "最后更新:"
+    },
+    "ethereum": {
+      "label": "Ethereum ETF",
+      "totalAssets": "资产总额:",
+      "currentFlow": "当前流量:",
+      "daysCount": "天数:",
+      "lastUpdate": "最后更新:"
+    },
+    "solana": {
+      "label": "Solana ETF",
+      "totalAssets": "资产总额:",
+      "currentFlow": "当前流量:",
+      "daysCount": "天数:",
+      "lastUpdate": "最后更新:"
+    },
+    "noData": "无数据"
+  },
+  "news": {
+    "title": "最新新闻",
+    "bitcoinUpdate": "Bitcoin ETF流量更新",
+    "ethereumUpdate": "Ethereum ETF流量更新",
+    "solanaUpdate": "Solana ETF流量更新",
+    "errorLoading": "加载新闻时出错"
+  },
+  "cefi": {
+    "title": "CryptoETF流量指数（CEFI）",
+    "description": "该指数反映了流入现货加密货币ETF的资本流动方向和强度",
+    "composite": "CEFI-Composite指数",
+    "btc": "CEFI-BTC指数",
+    "eth": "CEFI-ETH指数",
+    "sol": "CEFI-SOL指数",
+    "bpf": {
+      "title": "BPF（正向流量广度）",
+      "description": "具有正向资本流入的基金百分比",
+      "funds": "基金",
+      "from": "的"
+    },
+    "clickForDetails": "点击指数卡片查看详细图表",
+    "updatesDaily": "指数根据ETF流量数据每日更新",
+    "errorLoading": "加载CEFI指数时出错"
+  },
+  "indices": {
+    "invalidType": "无效的指数类型",
+    "backToHome": "返回首页",
+    "currentValue": "当前指数值",
+    "historicalValues": "历史值",
+    "yesterday": "昨天",
+    "lastWeek": "上周",
+    "lastMonth": "上月",
+    "yearlyHigh": "年度最高和最低",
+    "yearlyHighLabel": "年度最高",
+    "yearlyLowLabel": "年度最低",
+    "errorLoading": "加载数据时出错",
+    "errorLoadingHistorical": "加载历史数据时出错"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "极度贪婪",
+    "greed": "贪婪",
+    "neutral": "中性",
+    "fear": "恐惧",
+    "extremeFear": "极度恐惧"
+  },
+  "app": {
+    "title": "Crypto ETFs移动应用",
+    "description": "下载我们的iOS和Android应用，随时随地追踪ETF基金。接收重要变更通知，随时分析市场。",
+    "features": {
+      "realtimeTracking": {
+        "title": "实时追踪",
+        "description": "获取ETF基金流量和市场变化的最新数据"
+      },
+      "notifications": {
+        "title": "通知",
+        "description": "设置关于重要事件和变更的个性化通知"
+      },
+      "analytics": {
+        "title": "分析",
+        "description": "详细的投资组合分析和决策图表"
+      }
+    },
+    "download": {
+      "title": "下载应用",
+      "description": "适用于iOS和Android设备",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Crypto ETFs博客",
+    "description": "ETF基金的专业文章、分析和投资建议。随时了解最新市场趋势。",
+    "categories": {
+      "all": "全部",
+      "analysis": "分析",
+      "forecasts": "预测",
+      "education": "教育",
+      "comparison": "比较"
+    },
+    "readTime": "分钟",
+    "loadMore": "加载更多文章",
+    "newsletter": {
+      "title": "订阅新闻通讯",
+      "description": "直接通过电子邮件接收新文章和分析",
+      "emailPlaceholder": "您的电子邮件"
+    }
+  },
+  "faq": {
+    "title": "关于{indexName}指数的常见问题",
+    "questions": {
+      "whatIs": "{indexName}指数是什么，如何计算？",
+      "howInterpret": "如何解释{indexName}指数值？",
+      "howOften": "{indexName}指数多久更新一次？",
+      "difference": "{indexName}指数与Bitcoin恐惧贪婪指数有何不同？",
+      "howUse": "如何使用{indexName}指数进行投资决策？",
+      "whichFunds": "计算{indexName}指数时考虑哪些ETF基金？",
+      "composite": "CEFI-Composite指数是什么意思？",
+      "forecast": "可以使用{indexName}指数预测{assetName}价格吗？"
+    },
+    "answers": {
+      "whatIs": "{indexName}指数（CryptoETF流量指数）是一个反映投资于{assetName}的现货加密货币ETF基金资本流动方向和强度的指标。该指数基于BlackRock、Fidelity、Bitwise等主要ETF基金的流入和流出数据计算。指数值范围从0到100，值越高表示资本流入强劲（贪婪），值越低表示流出（恐惧）。",
+      "howInterpret": "{indexName}指数值的解释如下：0-20 - 极度恐惧，20-40 - 恐惧，40-60 - 中性，60-80 - 贪婪，80-100 - 极度贪婪。高值通常表示投资者乐观和资本积极流入ETF基金，而低值可能表示悲观和资本流出。",
+      "howOften": "{indexName}指数根据当前ETF流量数据每日更新。数据从公开来源收集并实时处理，使投资者能够获得有关加密货币ETF市场情绪和资本流动方向的最新信息。",
+      "difference": "与基于波动性、交易量和社会信号的传统Bitcoin恐惧贪婪指数不同，{indexName}指数仅关注流入机构ETF基金的实际资本流动。这使其成为大型投资者情绪和机构资本的更准确指标，这对{assetName}价格有重大影响。",
+      "howUse": "{indexName}指数可以作为市场分析的补充工具。极端值（极度恐惧或极度贪婪）可能表示潜在的市场反转点。但是，重要的是要记住，该指数不能保证未来的价格走势，应与其他技术和基本面分析方法结合使用。在做出投资决策之前，请始终进行自己的研究。",
+      "whichFunds": "计算{indexName}指数时，会考虑最大现货加密货币ETF基金的数据，包括BlackRock（IBIT）、Fidelity（FBTC）、Bitwise（BITB）、ARK 21Shares（ARKB）、VanEck（HODL）、Invesco（BTCO）、Grayscale（GBTC）等。该指数汇总了所有这些基金的资本流动，提供了{assetName}市场机构情绪的全面图景。",
+      "composite": "CEFI-Composite指数是一个综合指标，结合了Bitcoin、Ethereum和Solana的ETF基金资本流动数据。该指数提供了整个加密货币市场投资者情绪的总体概览，显示了不同加密货币资产之间机构资本流动的总体方向。",
+      "forecast": "{indexName}指数反映了当前投资者情绪和资本流动，但不是直接的价格预测工具。ETF基金的强劲资本流入可能表明对{assetName}的兴趣增长，这可能支持价格，但许多其他因素也会影响价格动态。最好将指数用作当前市场情绪的指标，而不是唯一的预测工具。"
+    }
+  },
+  "errors": {
+    "generic": "发生错误",
+    "loadingData": "加载数据时出错",
+    "loadingHoldings": "加载基金持仓数据时出错"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - ETF基金追踪和投资",
+    "description": "追踪ETF基金、投资分析和投资组合管理的专业平台。获取最新市场信息并做出明智的投资决策。",
+    "keywords": "ETF，基金，投资，追踪，投资组合，分析，金融"
+  }
+}
+

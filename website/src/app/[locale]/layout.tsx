@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "../globals.css";
 import ThemeProviderWrapper from "../../components/ThemeProviderWrapper";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { routing } from '../../i18n/routing';
+import LanguagesProvider from "../../components/LanguagesProvider";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { routing } from "../../i18n/routing";
 
-export const runtime = 'edge';
+export const runtime = "edge";
 
 const ibmPlexMono = localFont({
   src: [
@@ -63,11 +64,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
-  
-  // Ensure that the incoming `locale` is valid
-  if (!routing.locales.includes(locale as any)) {
-    notFound();
-  }
+
+  // Проверяем валидность локали
+  // Разрешаем любую локаль, так как config.ts обработает её корректно
+  // (либо использует, либо заменит на defaultLocale)
+  // Это позволяет динамически добавлять новые языки без изменения routing
 
   // Providing all messages to the client
   // side is the easiest way to get started
@@ -81,14 +82,14 @@ export default async function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('theme');
+                  const theme = localStorage.getItem('theme') || 'light';
+                  const root = document.documentElement;
                   if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  } else if (theme === 'light') {
-                    document.documentElement.classList.remove('dark');
+                    root.classList.add('dark');
+                    root.style.colorScheme = 'dark';
                   } else {
-                    // Если тема не сохранена, используем светлую по умолчанию
-                    document.documentElement.classList.remove('dark');
+                    root.classList.remove('dark');
+                    root.style.colorScheme = 'light';
                   }
                 } catch (e) {}
               })();
@@ -101,12 +102,11 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
-          <ThemeProviderWrapper>
-            {children}
-          </ThemeProviderWrapper>
+          <LanguagesProvider>
+            <ThemeProviderWrapper>{children}</ThemeProviderWrapper>
+          </LanguagesProvider>
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
-

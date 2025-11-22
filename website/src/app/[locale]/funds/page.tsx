@@ -1,8 +1,9 @@
 "use client";
 
-export const runtime = 'edge';
+export const runtime = "edge";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Container,
   Typography,
@@ -70,6 +71,11 @@ const getFundCryptos = (
 };
 
 export default function FundsPage() {
+  const t = useTranslations("funds");
+  const tCommon = useTranslations("common");
+  const tBrand = useTranslations("brand");
+  const tHome = useTranslations("home");
+  const tErrors = useTranslations("errors");
   const [holdingsData, setHoldingsData] = useState<FundHoldingsData | null>(
     null
   );
@@ -97,7 +103,7 @@ export default function FundsPage() {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке данных";
+            tErrors("loadingData");
         }
 
         setError(errorMessage);
@@ -108,6 +114,7 @@ export default function FundsPage() {
     };
 
     fetchHoldings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const funds = Object.keys(FUND_NAMES).map(key => ({
@@ -140,15 +147,14 @@ export default function FundsPage() {
             component="h1"
             sx={{ mb: 2, fontWeight: 700 }}
           >
-            Все ETF Фонды
+            {t("title")}
           </Typography>
           <Typography
             variant="h6"
             color="text.secondary"
             sx={{ maxWidth: "800px", mx: "auto" }}
           >
-            Изучите детальную информацию о каждом ETF фонде, включая их
-            владения, производительность и исторические данные.
+            {t("description")}
           </Typography>
         </Box>
 
@@ -232,7 +238,7 @@ export default function FundsPage() {
                         color="text.secondary"
                         sx={{ mb: 2 }}
                       >
-                        ETF фонд с фокусом на криптовалютные активы
+                        {t("etfFund")}
                       </Typography>
 
                       <Box
@@ -245,7 +251,7 @@ export default function FundsPage() {
                         }}
                       >
                         <Typography variant="caption" color="text.secondary">
-                          Тикер: {fund.key.toUpperCase()}
+                          {t("tickerLabel")} {fund.key.toUpperCase()}
                         </Typography>
                         <Box
                           sx={{
@@ -288,7 +294,7 @@ export default function FundsPage() {
             component="h2"
             sx={{ mb: 4, textAlign: "center", fontWeight: 700 }}
           >
-            Общая статистика
+            {t("statistics.title")}
           </Typography>
 
           <Grid container spacing={3}>
@@ -301,7 +307,7 @@ export default function FundsPage() {
                   {funds.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Всего фондов
+                  {t("statistics.totalFunds")}
                 </Typography>
               </Box>
             </Grid>
@@ -315,7 +321,7 @@ export default function FundsPage() {
                   $601.7B
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Общие BTC активы
+                  {t("statistics.totalBTCAssets")}
                 </Typography>
               </Box>
             </Grid>
@@ -329,7 +335,7 @@ export default function FundsPage() {
                   $252.9B
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Общие ETH активы
+                  {t("statistics.totalETHAssets")}
                 </Typography>
               </Box>
             </Grid>
@@ -343,7 +349,7 @@ export default function FundsPage() {
                   $854.6B
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Суммарные активы
+                  {t("statistics.totalAssets")}
                 </Typography>
               </Box>
             </Grid>
@@ -367,11 +373,10 @@ export default function FundsPage() {
         <Container maxWidth="xl">
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Crypto ETFs
+              {tBrand("name")}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Профессиональная платформа для отслеживания ETF фондов и
-              управления инвестициями.
+              {tHome("footer.description")}
             </Typography>
             <Box
               sx={{
@@ -383,7 +388,7 @@ export default function FundsPage() {
               }}
             >
               <Typography variant="caption" color="text.secondary">
-                &copy; 2024 Crypto ETFs. Все права защищены.
+                &copy; 2024 {tBrand("name")}. {tCommon("allRightsReserved")}.
               </Typography>
             </Box>
           </Box>
@@ -392,4 +397,3 @@ export default function FundsPage() {
     </Box>
   );
 }
-

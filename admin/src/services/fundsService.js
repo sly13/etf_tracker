@@ -137,6 +137,47 @@ const fundsService = {
 				error: error.response?.data?.message || 'Ошибка удаления перевода'
 			};
 		}
+	},
+
+	// Загрузить логотип
+	uploadLogo: async (file) => {
+		try {
+			const formData = new FormData();
+			formData.append('logo', file);
+
+			const response = await api.post('/funds/logos/upload', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			});
+			return {
+				success: true,
+				url: response.data.url,
+				filename: response.data.filename,
+			};
+		} catch (error) {
+			console.error('Ошибка загрузки логотипа:', error);
+			return {
+				success: false,
+				error: error.response?.data?.message || 'Ошибка загрузки логотипа'
+			};
+		}
+	},
+
+	// Удалить логотип
+	deleteLogo: async (filename) => {
+		try {
+			await api.delete(`/funds/logos/${filename}`);
+			return {
+				success: true
+			};
+		} catch (error) {
+			console.error(`Ошибка удаления логотипа ${filename}:`, error);
+			return {
+				success: false,
+				error: error.response?.data?.message || 'Ошибка удаления логотипа'
+			};
+		}
 	}
 };
 

@@ -16,3 +16,6 @@ dist/
 etf-flow-firebase.json
 # Data files
 data/
+
+# Uploaded files
+uploads/

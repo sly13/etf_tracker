@@ -8,7 +8,7 @@ const fundDetailsData = [
     name: 'BlackRock',
     description:
       'BlackRock — крупнейший в мире управляющий активами с более чем $10 трлн под управлением. Компания предлагает широкий спектр инвестиционных продуктов, включая ETF фонды.',
-    logoUrl: '/images/fund_logos/blackrock.jpg',
+    logoUrl: '/uploads/fund_logos/blackrock.jpg',
     ticker: 'BLACKROCK',
     fundType: 'ETF',
     feePercentage: 0.25,
@@ -34,7 +34,7 @@ const fundDetailsData = [
     name: 'Fidelity',
     description:
       'Fidelity Investments — одна из крупнейших инвестиционных компаний США с богатой историей управления активами и предоставления финансовых услуг.',
-    logoUrl: '/images/fund_logos/fidelity.jpg',
+    logoUrl: '/uploads/fund_logos/fidelity.jpg',
     ticker: 'FIDELITY',
     fundType: 'ETF',
     feePercentage: 0.25,
@@ -60,7 +60,7 @@ const fundDetailsData = [
     name: 'Bitwise',
     description:
       'Bitwise Asset Management — специализируется на криптовалютных инвестициях и управлении цифровыми активами для институциональных инвесторов.',
-    logoUrl: '/images/fund_logos/bitwise.jpg',
+    logoUrl: '/uploads/fund_logos/bitwise.jpg',
     ticker: 'BITWISE',
     fundType: 'ETF',
     feePercentage: 0.2,

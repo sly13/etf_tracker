@@ -54,5 +54,6 @@ export const API_CONFIG = {
     CEFI_BPF: "/cefi/bpf",
     CEFI_ALL: "/cefi/all",
     CEFI_CHART: "/cefi/chart", // Endpoint для получения данных графика
+    LANGUAGES_PUBLIC: "/languages/public", // Публичный endpoint для получения активных языков
   },
 };

@@ -186,17 +186,33 @@ model FundDetail {
   @@map("fund_details")
 }
 
+model Language {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // 'en', 'ru', 'es', etc. (ISO 639-1)
+  name        String   // English, Russian, Spanish, etc.
+  nativeName  String   @map("native_name") // English, Русский, Español, etc.
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  translations FundTranslation[]
+
+  @@map("languages")
+}
+
 model FundTranslation {
   id          Int      @id @default(autoincrement())
   fundId      Int      @map("fund_id")
-  language    String   // 'en', 'ru', 'es', etc.
+  language    String   // 'en', 'ru', 'es', etc. (для обратной совместимости)
+  languageId  Int?     @map("language_id") // Связь с таблицей languages
   name        String?
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   fund        FundDetail @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  languageRef  Language? @relation(fields: [languageId], references: [id], onDelete: SetNull)
 
   @@unique([fundId, language])
+  @@index([languageId])
   @@map("fund_translations")
 }
 

@@ -1,16 +1,19 @@
 "use client";
 
-import { useLocale } from 'next-intl';
-import { useRouter, usePathname } from 'next/navigation';
-import { Button, Menu, MenuItem } from '@mui/material';
-import { useState } from 'react';
-import { Language as LanguageIcon } from '@mui/icons-material';
-import { useRouter as useIntlRouter } from '../i18n/routing';
+import { useLocale, useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
+import { Button, Menu, MenuItem } from "@mui/material";
+import { useState } from "react";
+import { Language as LanguageIcon } from "@mui/icons-material";
+import { useRouter as useIntlRouter } from "../i18n/routing";
+import { useLanguagesStore } from "../stores/languagesStore";
 
 export default function LanguageToggle() {
   const locale = useLocale();
   const router = useIntlRouter();
   const pathname = usePathname();
+  const tCommon = useTranslations("common");
+  const { loading, getActiveLanguages } = useLanguagesStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -24,19 +27,19 @@ export default function LanguageToggle() {
 
   const switchLanguage = (newLocale: string) => {
     handleClose();
-    
+
     // Получаем путь без префикса локали
     let pathWithoutLocale = pathname;
-    
+
     // Удаляем префикс локали, если он есть
     if (pathWithoutLocale.startsWith(`/${locale}/`)) {
-      pathWithoutLocale = pathWithoutLocale.replace(`/${locale}/`, '/');
+      pathWithoutLocale = pathWithoutLocale.replace(`/${locale}/`, "/");
     } else if (pathWithoutLocale === `/${locale}`) {
-      pathWithoutLocale = '/';
+      pathWithoutLocale = "/";
     } else if (pathWithoutLocale.startsWith(`/${locale}`)) {
-      pathWithoutLocale = pathWithoutLocale.replace(`/${locale}`, '');
+      pathWithoutLocale = pathWithoutLocale.replace(`/${locale}`, "");
     }
-    
+
     // Используем next-intl router для переключения языка
     router.replace(pathWithoutLocale, { locale: newLocale });
   };
@@ -46,12 +49,12 @@ export default function LanguageToggle() {
       <Button
         onClick={handleClick}
         sx={{
-          minWidth: 'auto',
+          minWidth: "auto",
           px: 1.5,
-          color: 'text.secondary',
-          textTransform: 'none',
-          '&:hover': {
-            color: 'text.primary',
+          color: "text.secondary",
+          textTransform: "none",
+          "&:hover": {
+            color: "text.primary",
           },
         }}
       >
@@ -63,28 +66,28 @@ export default function LanguageToggle() {
         open={open}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
       >
-        <MenuItem
-          onClick={() => switchLanguage('en')}
-          selected={locale === 'en'}
-        >
-          English
-        </MenuItem>
-        <MenuItem
-          onClick={() => switchLanguage('ru')}
-          selected={locale === 'ru'}
-        >
-          Русский
-        </MenuItem>
+        {loading ? (
+          <MenuItem disabled>{tCommon("loading")}</MenuItem>
+        ) : (
+          getActiveLanguages().map(lang => (
+            <MenuItem
+              key={lang.code}
+              onClick={() => switchLanguage(lang.code)}
+              selected={locale === lang.code}
+            >
+              {lang.nativeName}
+            </MenuItem>
+          ))
+        )}
       </Menu>
     </>
   );
 }
-

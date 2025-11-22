@@ -5,9 +5,11 @@ import { AdminService } from './admin-panel/admin/admin.service';
 import { TelegramBotService } from './api/telegram-bot/telegram-bot.service';
 import { DataSyncService } from './api/sync/data-sync.service';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Настройка CORS - принимаем запросы отовсюду
   app.enableCors({
@@ -27,6 +29,11 @@ async function bootstrap() {
 
   // Устанавливаем глобальный префикс для API
   app.setGlobalPrefix('api');
+
+  // Настраиваем статические файлы для отдачи загруженных изображений
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
 
   // Подключаем глобальный interceptor для логирования запросов
   app.useGlobalInterceptors(new LoggingInterceptor());

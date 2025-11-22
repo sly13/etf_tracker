@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import apiClient from "../services/api";
 import { CEFIIndexResponse, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
@@ -12,6 +13,9 @@ interface HistoricalValuesProps {
 
 export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
   const { theme } = useTheme();
+  const t = useTranslations('indices');
+  const tSentiment = useTranslations('sentiment');
+  const tErrors = useTranslations('errors');
   const [data, setData] = useState<CEFIIndexResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +76,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке исторических данных";
+            t('errorLoadingHistorical');
         }
 
         setError(errorMessage);
@@ -86,11 +90,11 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
   }, [indexType]);
 
   const getSentimentLabel = (value: number): string => {
-    if (value >= 80) return "Extreme Greed";
-    if (value >= 60) return "Greed";
-    if (value >= 40) return "Neutral";
-    if (value >= 20) return "Fear";
-    return "Extreme Fear";
+    if (value >= 80) return tSentiment('extremeGreed');
+    if (value >= 60) return tSentiment('greed');
+    if (value >= 40) return tSentiment('neutral');
+    if (value >= 20) return tSentiment('fear');
+    return tSentiment('extremeFear');
   };
 
   const getSentimentColor = (value: number): string => {
@@ -225,11 +229,11 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
     <>
       {/* Historical Values */}
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Historical Values</h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">{t('historicalValues')}</h3>
         <div className="space-y-4">
           {/* Yesterday */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-slate-400 text-sm">Yesterday</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">{t('yesterday')}</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
@@ -243,7 +247,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
           {/* Last Week */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-slate-400 text-sm">Last Week</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">{t('lastWeek')}</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
@@ -257,7 +261,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
           {/* Last Month */}
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-slate-400 text-sm">Last Month</span>
+            <span className="text-gray-600 dark:text-slate-400 text-sm">{t('lastMonth')}</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
@@ -273,12 +277,12 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
 
       {/* Yearly High and Low */}
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Yearly High and Low</h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">{t('yearlyHigh')}</h3>
         <div className="space-y-4">
           {/* Yearly High */}
           <div className="flex items-center justify-between">
             <span className="text-gray-600 dark:text-slate-400 text-sm">
-              Yearly High ({formatDateShort(yearlyHigh.date)})
+              {t('yearlyHighLabel')} ({formatDateShort(yearlyHigh.date)})
             </span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
@@ -294,7 +298,7 @@ export default function HistoricalValues({ indexType }: HistoricalValuesProps) {
           {/* Yearly Low */}
           <div className="flex items-center justify-between">
             <span className="text-gray-600 dark:text-slate-400 text-sm">
-              Yearly Low ({formatDateShort(yearlyLow.date)})
+              {t('yearlyLowLabel')} ({formatDateShort(yearlyLow.date)})
             </span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"

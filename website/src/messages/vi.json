@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "back": "Quay lại",
+    "readMore": "Đọc thêm",
+    "subscribe": "Đăng ký",
+    "contactUs": "Liên hệ chúng tôi",
+    "allRightsReserved": "Bảo lưu mọi quyền",
+    "dataUpdatesRealtime": "Dữ liệu được cập nhật theo thời gian thực"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "funds": "Quỹ",
+    "app": "Ứng dụng",
+    "blog": "Blog"
+  },
+  "home": {
+    "title": "Theo dõi Quỹ ETF",
+    "subtitle": "theo thời gian thực",
+    "description": "Nền tảng chuyên nghiệp để phân tích dòng vốn trong ETF tiền điện tử",
+    "whyChoose": "Tại sao chọn Crypto ETFs?",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "Phân tích Thời gian Thực",
+        "description": "Nhận dữ liệu cập nhật về quỹ ETF và động lực của chúng với độ trễ dưới một phút."
+      },
+      "portfolioManagement": {
+        "title": "Quản lý Danh mục",
+        "description": "Tạo và theo dõi danh mục đầu tư của bạn với phân tích chi tiết."
+      },
+      "security": {
+        "title": "Độ tin cậy và Bảo mật",
+        "description": "Dữ liệu của bạn được bảo vệ bằng mã hóa hiện đại và phương pháp lưu trữ an toàn."
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng bắt đầu đầu tư?",
+      "description": "Tham gia cùng hàng nghìn nhà đầu tư đã sử dụng ETF Tracker để quản lý danh mục của họ."
+    },
+    "footer": {
+      "description": "Nền tảng chuyên nghiệp để theo dõi quỹ ETF và quản lý đầu tư."
+    }
+  },
+  "funds": {
+    "title": "Tất cả Quỹ ETF",
+    "description": "Khám phá thông tin chi tiết về từng quỹ ETF, bao gồm tài sản nắm giữ, hiệu suất và dữ liệu lịch sử.",
+    "ticker": "Mã",
+    "tickerLabel": "Mã:",
+    "etfFund": "Quỹ ETF tập trung vào tài sản tiền điện tử",
+    "statistics": {
+      "title": "Thống kê Tổng thể",
+      "totalFunds": "Tổng số Quỹ",
+      "totalBTCAssets": "Tổng Tài sản BTC",
+      "totalETHAssets": "Tổng Tài sản ETH",
+      "totalAssets": "Tổng Tài sản"
+    },
+    "holdings": {
+      "title": "Tài sản Nắm giữ của Quỹ",
+      "company": "Công ty",
+      "btcHoldings": "Tài sản BTC",
+      "ethHoldings": "Tài sản ETH",
+      "solHoldings": "Tài sản SOL",
+      "sortBy": "Sắp xếp theo:",
+      "companyAsc": "Công ty ↑",
+      "companyDesc": "Công ty ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "Quỹ",
+      "fundNotFound": "Không tìm thấy quỹ",
+      "errorLoading": "Lỗi khi tải dữ liệu quỹ",
+      "backToList": "Quay lại danh sách quỹ",
+      "loading": "Đang tải...",
+      "etfFund": "Quỹ ETF",
+      "btcHoldings": "Tài sản BTC",
+      "ethHoldings": "Tài sản ETH",
+      "totalAssets": "Tổng Tài sản",
+      "totalAssetsInBitcoin": "Tổng tài sản trong Bitcoin",
+      "totalAssetsInEthereum": "Tổng tài sản trong Ethereum",
+      "totalHoldings": "Tổng tài sản nắm giữ",
+      "detailedInfo": "Thông tin Chi tiết",
+      "mainIndicators": "Chỉ số Chính",
+      "ticker": "Mã:",
+      "fundType": "Loại Quỹ:",
+      "category": "Danh mục:",
+      "cryptocurrency": "Tiền điện tử",
+      "fee": "Phí:",
+      "historicalData": "Dữ liệu Lịch sử",
+      "launchDate": "Ngày Ra mắt:",
+      "daysCount": "Số Ngày:",
+      "lastUpdate": "Cập nhật Cuối:",
+      "status": "Trạng thái:",
+      "active": "Hoạt động",
+      "performanceChart": "Biểu đồ Hiệu suất",
+      "chartPlaceholder": "Biểu đồ sẽ được thêm trong các bản cập nhật tương lai"
+    }
+  },
+  "summary": {
+    "title": "Dữ liệu Tóm tắt Quỹ ETF",
+    "overall": {
+      "label": "Tổng Cộng",
+      "totalAssets": "Tổng Tài sản:",
+      "totalFlow": "Tổng Dòng chảy:",
+      "lastUpdate": "Cập nhật Cuối:"
+    },
+    "bitcoin": {
+      "label": "ETF Bitcoin",
+      "totalAssets": "Tổng Tài sản:",
+      "currentFlow": "Dòng chảy Hiện tại:",
+      "daysCount": "Số Ngày:",
+      "lastUpdate": "Cập nhật Cuối:"
+    },
+    "ethereum": {
+      "label": "ETF Ethereum",
+      "totalAssets": "Tổng Tài sản:",
+      "currentFlow": "Dòng chảy Hiện tại:",
+      "daysCount": "Số Ngày:",
+      "lastUpdate": "Cập nhật Cuối:"
+    },
+    "solana": {
+      "label": "ETF Solana",
+      "totalAssets": "Tổng Tài sản:",
+      "currentFlow": "Dòng chảy Hiện tại:",
+      "daysCount": "Số Ngày:",
+      "lastUpdate": "Cập nhật Cuối:"
+    },
+    "noData": "Không có dữ liệu"
+  },
+  "news": {
+    "title": "Tin tức Mới nhất",
+    "bitcoinUpdate": "Cập nhật Dòng chảy Bitcoin ETF",
+    "ethereumUpdate": "Cập nhật Dòng chảy Ethereum ETF",
+    "solanaUpdate": "Cập nhật Dòng chảy Solana ETF",
+    "errorLoading": "Đã xảy ra lỗi khi tải tin tức"
+  },
+  "cefi": {
+    "title": "Chỉ số Dòng chảy CryptoETF (CEFI)",
+    "description": "Chỉ số phản ánh hướng và cường độ của dòng vốn vào ETF tiền điện tử giao ngay",
+    "composite": "Chỉ số CEFI-Composite",
+    "btc": "Chỉ số CEFI-BTC",
+    "eth": "Chỉ số CEFI-ETH",
+    "sol": "Chỉ số CEFI-SOL",
+    "bpf": {
+      "title": "BPF (Độ rộng Dòng chảy Tích cực)",
+      "description": "Tỷ lệ phần trăm quỹ có dòng vốn tích cực",
+      "funds": "quỹ",
+      "from": "trong số"
+    },
+    "clickForDetails": "Nhấp vào thẻ chỉ số để xem biểu đồ chi tiết",
+    "updatesDaily": "Chỉ số được cập nhật hàng ngày dựa trên dữ liệu dòng chảy ETF",
+    "errorLoading": "Đã xảy ra lỗi khi tải chỉ số CEFI"
+  },
+  "indices": {
+    "invalidType": "Loại chỉ số không hợp lệ",
+    "backToHome": "Quay về trang chủ",
+    "currentValue": "Giá trị Chỉ số Hiện tại",
+    "historicalValues": "Giá trị Lịch sử",
+    "yesterday": "Hôm qua",
+    "lastWeek": "Tuần trước",
+    "lastMonth": "Tháng trước",
+    "yearlyHigh": "Cao và Thấp Hàng năm",
+    "yearlyHighLabel": "Cao Hàng năm",
+    "yearlyLowLabel": "Thấp Hàng năm",
+    "errorLoading": "Đã xảy ra lỗi khi tải dữ liệu",
+    "errorLoadingHistorical": "Đã xảy ra lỗi khi tải dữ liệu lịch sử"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "Tham lam Cực độ",
+    "greed": "Tham lam",
+    "neutral": "Trung lập",
+    "fear": "Sợ hãi",
+    "extremeFear": "Sợ hãi Cực độ"
+  },
+  "app": {
+    "title": "Ứng dụng Di động Crypto ETFs",
+    "description": "Tải xuống ứng dụng của chúng tôi cho iOS và Android để theo dõi quỹ ETF bất cứ lúc nào, bất cứ nơi đâu. Nhận thông báo về các thay đổi quan trọng và phân tích thị trường khi đang di chuyển.",
+    "features": {
+      "realtimeTracking": {
+        "title": "Theo dõi Thời gian Thực",
+        "description": "Nhận dữ liệu cập nhật về dòng chảy quỹ ETF và thay đổi thị trường"
+      },
+      "notifications": {
+        "title": "Thông báo",
+        "description": "Thiết lập thông báo cá nhân hóa về các sự kiện và thay đổi quan trọng"
+      },
+      "analytics": {
+        "title": "Phân tích",
+        "description": "Phân tích danh mục chi tiết và biểu đồ để ra quyết định"
+      }
+    },
+    "download": {
+      "title": "Tải xuống Ứng dụng",
+      "description": "Có sẵn cho thiết bị iOS và Android",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Blog Crypto ETFs",
+    "description": "Bài viết chuyên gia, phân tích và lời khuyên đầu tư cho quỹ ETF. Cập nhật các xu hướng thị trường mới nhất.",
+    "categories": {
+      "all": "Tất cả",
+      "analysis": "Phân tích",
+      "forecasts": "Dự báo",
+      "education": "Giáo dục",
+      "comparison": "So sánh"
+    },
+    "readTime": "phút",
+    "loadMore": "Tải thêm bài viết",
+    "newsletter": {
+      "title": "Đăng ký nhận bản tin",
+      "description": "Nhận bài viết và phân tích mới trực tiếp qua email",
+      "emailPlaceholder": "Email của bạn"
+    }
+  },
+  "faq": {
+    "title": "Câu hỏi Thường gặp về Chỉ số {indexName}",
+    "questions": {
+      "whatIs": "Chỉ số {indexName} là gì và được tính như thế nào?",
+      "howInterpret": "Làm thế nào để giải thích giá trị chỉ số {indexName}?",
+      "howOften": "Chỉ số {indexName} được cập nhật bao lâu một lần?",
+      "difference": "Chỉ số {indexName} khác với Chỉ số Sợ hãi và Tham lam Bitcoin như thế nào?",
+      "howUse": "Làm thế nào để sử dụng chỉ số {indexName} cho quyết định đầu tư?",
+      "whichFunds": "Quỹ ETF nào được xem xét khi tính chỉ số {indexName}?",
+      "composite": "Chỉ số CEFI-Composite có nghĩa là gì?",
+      "forecast": "Chỉ số {indexName} có thể được sử dụng để dự báo giá {assetName} không?"
+    },
+    "answers": {
+      "whatIs": "Chỉ số {indexName} (Chỉ số Dòng chảy CryptoETF) là một chỉ báo phản ánh hướng và cường độ của dòng vốn vào quỹ ETF tiền điện tử giao ngay đầu tư vào {assetName}. Chỉ số được tính dựa trên dữ liệu về dòng vào và dòng ra từ các quỹ ETF lớn như BlackRock, Fidelity, Bitwise và các quỹ khác. Giá trị chỉ số dao động từ 0 đến 100, trong đó giá trị cao hơn cho thấy dòng vốn mạnh (tham lam), và giá trị thấp hơn cho thấy dòng ra (sợ hãi).",
+      "howInterpret": "Giá trị chỉ số {indexName} được giải thích như sau: 0-20 - Sợ hãi Cực độ, 20-40 - Sợ hãi, 40-60 - Trung lập, 60-80 - Tham lam, 80-100 - Tham lam Cực độ. Giá trị cao thường cho thấy sự lạc quan của nhà đầu tư và dòng vốn tích cực vào quỹ ETF, trong khi giá trị thấp có thể báo hiệu sự bi quan và dòng vốn ra.",
+      "howOften": "Chỉ số {indexName} được cập nhật hàng ngày dựa trên dữ liệu dòng chảy ETF hiện tại. Dữ liệu được thu thập từ các nguồn công khai và xử lý theo thời gian thực, cho phép các nhà đầu tư nhận được thông tin mới nhất về tâm lý thị trường và hướng di chuyển vốn trong ETF tiền điện tử.",
+      "difference": "Không giống như Chỉ số Sợ hãi và Tham lam Bitcoin truyền thống, dựa trên biến động, khối lượng giao dịch và tín hiệu xã hội, chỉ số {indexName} chỉ tập trung vào dòng vốn thực tế vào quỹ ETF thể chế. Điều này làm cho nó trở thành một chỉ báo chính xác hơn về tâm lý của các nhà đầu tư lớn và vốn thể chế, điều này ảnh hưởng đáng kể đến giá {assetName}.",
+      "howUse": "Chỉ số {indexName} có thể phục vụ như một công cụ bổ sung cho phân tích thị trường. Giá trị cực đoan (Sợ hãi Cực độ hoặc Tham lam Cực độ) có thể chỉ ra các điểm đảo chiều thị trường tiềm năng. Tuy nhiên, điều quan trọng cần nhớ là chỉ số không phải là đảm bảo cho các chuyển động giá trong tương lai và nên được sử dụng kết hợp với các phương pháp phân tích kỹ thuật và cơ bản khác. Luôn thực hiện nghiên cứu của riêng bạn trước khi đưa ra quyết định đầu tư.",
+      "whichFunds": "Khi tính chỉ số {indexName}, dữ liệu từ các quỹ ETF tiền điện tử giao ngay lớn nhất được xem xét, bao gồm BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) và các quỹ khác. Chỉ số tổng hợp dòng vốn từ tất cả các quỹ này, cung cấp một bức tranh toàn diện về tâm lý thể chế trong thị trường {assetName}.",
+      "composite": "Chỉ số CEFI-Composite là một chỉ báo tổng hợp kết hợp dữ liệu về dòng vốn vào quỹ ETF cho Bitcoin, Ethereum và Solana. Chỉ số này cung cấp một cái nhìn tổng quan về tâm lý nhà đầu tư trong thị trường tiền điện tử nói chung, cho thấy hướng tổng thể của chuyển động vốn thể chế giữa các tài sản tiền điện tử khác nhau.",
+      "forecast": "Chỉ số {indexName} phản ánh tâm lý nhà đầu tư hiện tại và dòng vốn, nhưng không phải là công cụ dự báo giá trực tiếp. Dòng vốn mạnh vào quỹ ETF có thể cho thấy sự quan tâm ngày càng tăng đối với {assetName}, điều này có thể hỗ trợ giá, nhưng nhiều yếu tố khác cũng ảnh hưởng đến động lực giá. Tốt hơn là sử dụng chỉ số như một chỉ báo của tâm lý thị trường hiện tại thay vì như một công cụ dự báo duy nhất."
+    }
+  },
+  "errors": {
+    "generic": "Đã xảy ra lỗi",
+    "loadingData": "Đã xảy ra lỗi khi tải dữ liệu",
+    "loadingHoldings": "Đã xảy ra lỗi khi tải dữ liệu tài sản nắm giữ của quỹ"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - Theo dõi Quỹ ETF và Đầu tư",
+    "description": "Nền tảng chuyên nghiệp để theo dõi quỹ ETF, phân tích đầu tư và quản lý danh mục. Nhận thông tin thị trường cập nhật và đưa ra quyết định đầu tư sáng suốt.",
+    "keywords": "ETF, quỹ, đầu tư, theo dõi, danh mục, phân tích, tài chính"
+  }
+}
+

@@ -46,6 +46,7 @@
     "title": "All ETF Funds",
     "description": "Explore detailed information about each ETF fund, including their holdings, performance and historical data.",
     "ticker": "Ticker",
+    "tickerLabel": "Ticker:",
     "etfFund": "ETF fund focused on cryptocurrency assets",
     "statistics": {
       "title": "Overall Statistics",
@@ -60,10 +61,23 @@
       "btcHoldings": "BTC Holdings",
       "ethHoldings": "ETH Holdings",
       "solHoldings": "SOL Holdings",
-      "sortBy": "Sort by:"
+      "sortBy": "Sort by:",
+      "companyAsc": "Company ↑",
+      "companyDesc": "Company ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
     },
     "detail": {
       "fund": "Fund",
+      "fundNotFound": "Fund not found",
+      "errorLoading": "Error loading fund data",
+      "backToList": "Back to funds list",
+      "loading": "Loading...",
+      "etfFund": "ETF Fund",
       "btcHoldings": "BTC Holdings",
       "ethHoldings": "ETH Holdings",
       "totalAssets": "Total Assets",
@@ -156,6 +170,13 @@
     "errorLoading": "An error occurred while loading data",
     "errorLoadingHistorical": "An error occurred while loading historical data"
   },
+  "language": {
+    "english": "English",
+    "russian": "Russian"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
   "sentiment": {
     "extremeGreed": "Extreme Greed",
     "greed": "Greed",
@@ -239,4 +260,3 @@
     "keywords": "ETF, funds, investments, tracking, portfolio, analysis, finance"
   }
 }
-

@@ -19,25 +19,25 @@ function StatsCards({ stats }) {
 			title: 'Всего приложений',
 			value: stats?.totalApplications || 0,
 			icon: <AppsIcon />,
-			color: '#1976d2',
+			color: 'primary.main',
 		},
 		{
 			title: 'Активные пользователи',
 			value: stats?.totalUsers || 0,
 			icon: <PeopleIcon />,
-			color: '#2e7d32',
+			color: 'success.main',
 		},
 		{
 			title: 'Уведомления сегодня',
 			value: stats?.notificationsToday || 0,
 			icon: <NotificationsIcon />,
-			color: '#ed6c02',
+			color: 'warning.main',
 		},
 		{
 			title: 'Рост пользователей',
 			value: `${stats?.userGrowth || 0}%`,
 			icon: <TrendingUpIcon />,
-			color: '#9c27b0',
+			color: 'secondary.main',
 		},
 	];
 
@@ -51,7 +51,7 @@ function StatsCards({ stats }) {
 								<Box
 									sx={{
 										backgroundColor: stat.color,
-										color: 'white',
+										color: 'background.paper',
 										borderRadius: 1,
 										p: 1,
 										mr: 2,

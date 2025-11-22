@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IconButton, useTheme as useMUITheme } from "@mui/material";
 import { DarkMode, LightMode } from "@mui/icons-material";
-import { useTheme } from "../contexts/ThemeContext";
+import { useThemeStore } from "../stores/themeStore";
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted, setMounted } = useThemeStore();
   const muiTheme = useMUITheme();
-  const [mounted, setMounted] = useState(false);
 
   // Предотвращаем ошибку гидратации, рендерим иконку только после монтирования
   useEffect(() => {
     setMounted(true);
-  }, []);
+  }, [setMounted]);
 
   // Пока компонент не смонтирован, показываем заглушку
   if (!mounted) {

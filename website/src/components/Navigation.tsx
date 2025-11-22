@@ -11,6 +11,7 @@ export default function Navigation() {
   const pathname = usePathname();
   const theme = useTheme();
   const t = useTranslations('nav');
+  const tBrand = useTranslations('brand');
   const locale = useLocale();
 
   const navItems = [
@@ -58,7 +59,7 @@ export default function Navigation() {
                 },
               }}
             >
-              Crypto ETFs
+              {tBrand('name')}
             </Button>
           </Box>
 

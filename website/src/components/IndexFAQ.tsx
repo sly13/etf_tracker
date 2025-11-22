@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from 'next-intl';
 
 interface IndexFAQProps {
   indexType: "btc" | "eth" | "sol" | "composite";
@@ -12,6 +13,7 @@ interface FAQItem {
 }
 
 export default function IndexFAQ({ indexType }: IndexFAQProps) {
+  const t = useTranslations('faq');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const getIndexName = (): string => {
@@ -38,9 +40,9 @@ export default function IndexFAQ({ indexType }: IndexFAQProps) {
       case "sol":
         return "Solana";
       case "composite":
-        return "криптовалютных активов";
+        return "cryptocurrency assets";
       default:
-        return "криптовалют";
+        return "cryptocurrencies";
     }
   };
 
@@ -49,36 +51,36 @@ export default function IndexFAQ({ indexType }: IndexFAQProps) {
 
   const faqItems: FAQItem[] = [
     {
-      question: `Что такое ${indexName} индекс и как он рассчитывается?`,
-      answer: `${indexName} индекс (CryptoETF Flows Index) - это индикатор, который отражает направления и интенсивность потоков капитала в спотовые криптовалютные ETF фонды, инвестирующие в ${assetName}. Индекс рассчитывается на основе данных о притоках и оттоках средств из крупнейших ETF фондов, таких как BlackRock, Fidelity, Bitwise и других. Значение индекса варьируется от 0 до 100, где более высокие значения указывают на сильный приток капитала (жадность), а низкие - на отток (страх).`,
+      question: t('questions.whatIs', { indexName }),
+      answer: t('answers.whatIs', { indexName, assetName }),
     },
     {
-      question: `Как интерпретировать значение ${indexName} индекса?`,
-      answer: `Значение ${indexName} индекса интерпретируется следующим образом: 0-20 - Extreme Fear (экстремальный страх), 20-40 - Fear (страх), 40-60 - Neutral (нейтрально), 60-80 - Greed (жадность), 80-100 - Extreme Greed (экстремальная жадность). Высокие значения обычно указывают на оптимизм инвесторов и активный приток капитала в ETF фонды, в то время как низкие значения могут сигнализировать о пессимизме и оттоке средств.`,
+      question: t('questions.howInterpret', { indexName }),
+      answer: t('answers.howInterpret', { indexName }),
     },
     {
-      question: `Как часто обновляется ${indexName} индекс?`,
-      answer: `${indexName} индекс обновляется ежедневно на основе актуальных данных о потоках ETF фондов. Данные собираются из публичных источников и обрабатываются в режиме реального времени, что позволяет инвесторам получать самую свежую информацию о настроениях рынка и направлениях движения капитала в криптовалютные ETF.`,
+      question: t('questions.howOften', { indexName }),
+      answer: t('answers.howOften', { indexName }),
     },
     {
-      question: `Чем ${indexName} индекс отличается от индекса страха и жадности Bitcoin?`,
-      answer: `В отличие от традиционного индекса страха и жадности Bitcoin, который основан на волатильности, объемах торгов и социальных сигналах, ${indexName} индекс фокусируется исключительно на реальных потоках капитала в институциональные ETF фонды. Это делает его более точным индикатором настроений крупных инвесторов и институционального капитала, который оказывает значительное влияние на цену ${assetName}.`,
+      question: t('questions.difference', { indexName }),
+      answer: t('answers.difference', { indexName, assetName }),
     },
     {
-      question: `Как использовать ${indexName} индекс для принятия инвестиционных решений?`,
-      answer: `${indexName} индекс может служить дополнительным инструментом для анализа рынка. Экстремальные значения (Extreme Fear или Extreme Greed) могут указывать на потенциальные точки разворота рынка. Однако важно помнить, что индекс не является гарантией будущих движений цены и должен использоваться в сочетании с другими методами технического и фундаментального анализа. Всегда проводите собственное исследование перед принятием инвестиционных решений.`,
+      question: t('questions.howUse', { indexName }),
+      answer: t('answers.howUse', { indexName }),
     },
     {
-      question: `Какие ETF фонды учитываются при расчете ${indexName} индекса?`,
-      answer: `При расчете ${indexName} индекса учитываются данные крупнейших спотовых криптовалютных ETF фондов, включая BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) и другие. Индекс агрегирует потоки капитала из всех этих фондов, что позволяет получить комплексную картину институциональных настроений на рынке ${assetName}.`,
+      question: t('questions.whichFunds', { indexName }),
+      answer: t('answers.whichFunds', { indexName, assetName }),
     },
     {
-      question: `Что означает составной индекс CEFI-Composite?`,
-      answer: `CEFI-Composite индекс представляет собой агрегированный показатель, объединяющий данные о потоках капитала в ETF фонды для Bitcoin, Ethereum и Solana. Этот индекс дает общее представление о настроениях инвесторов на криптовалютном рынке в целом, показывая общее направление движения институционального капитала между различными криптовалютными активами.`,
+      question: t('questions.composite'),
+      answer: t('answers.composite'),
     },
     {
-      question: `Можно ли использовать ${indexName} индекс для прогнозирования цены ${assetName}?`,
-      answer: `${indexName} индекс отражает текущие настроения инвесторов и потоки капитала, но не является прямым инструментом прогнозирования цены. Сильный приток капитала в ETF фонды может указывать на растущий интерес к ${assetName}, что потенциально может поддерживать цену, но множество других факторов также влияют на ценовую динамику. Индекс лучше использовать как индикатор текущих настроений рынка, а не как единственный инструмент для прогнозирования.`,
+      question: t('questions.forecast', { indexName, assetName }),
+      answer: t('answers.forecast', { indexName, assetName }),
     },
   ];
 
@@ -89,7 +91,7 @@ export default function IndexFAQ({ indexType }: IndexFAQProps) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mt-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-        Часто задаваемые вопросы о {indexName} индексе
+        {t('title', { indexName })}
       </h2>
       <div className="space-y-4">
         {faqItems.map((item, index) => (

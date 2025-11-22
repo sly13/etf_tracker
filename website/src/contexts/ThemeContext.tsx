@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-
-type Theme = "light" | "dark";
+import { createContext, useContext, ReactNode, useEffect } from "react";
+import { useThemeStore, Theme } from "../stores/themeStore";
 
 interface ThemeContextType {
   theme: Theme;
@@ -17,54 +10,20 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * ThemeProvider теперь использует Zustand store под капотом
+ * Оставлен для обратной совместимости с компонентами, использующими useTheme()
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Всегда начинаем со светлой темы для предотвращения ошибок гидратации
-  // На сервере и клиенте при первой загрузке тема будет одинаковой ("light")
-  // Это гарантирует, что MUI сгенерирует одинаковые CSS классы на сервере и клиенте
-  const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const { theme, toggleTheme, mounted, setMounted } = useThemeStore();
 
-  // После монтирования устанавливаем реальную тему из localStorage
-  // Это предотвращает несоответствие при гидратации, так как обновление происходит после гидратации
+  // Инициализируем mounted при монтировании провайдера
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark" || savedTheme === "light") {
-      setTheme(savedTheme);
+    if (!mounted) {
+      setMounted(true);
     }
-  }, []);
+  }, [mounted, setMounted]);
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    // При монтировании и изменении темы синхронизируем DOM
-    const root = document.documentElement;
-
-    // Принудительно устанавливаем правильный класс
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      // Для светлой темы обязательно удаляем класс
-      root.classList.remove("dark");
-    }
-
-    // Принудительно обновляем стили для надежности
-    // Это гарантирует, что Tailwind CSS применит изменения
-    root.style.colorScheme = theme === "dark" ? "dark" : "light";
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => {
-      const newTheme = prevTheme === "light" ? "dark" : "light";
-      // Сохраняем в localStorage
-      localStorage.setItem("theme", newTheme);
-      // Обновление DOM произойдет автоматически через useEffect
-      return newTheme;
-    });
-  };
-
-  // Всегда возвращаем Provider, даже если еще не смонтирован
-  // Это важно для того, чтобы useTheme работал на всех страницах
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
@@ -72,6 +31,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Хук для использования темы (обратная совместимость)
+ * Теперь использует Zustand store под капотом
+ */
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

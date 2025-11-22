@@ -28,6 +28,7 @@ export default function Home() {
   const theme = useTheme();
   const t = useTranslations('home');
   const tCommon = useTranslations('common');
+  const tBrand = useTranslations('brand');
   
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -273,7 +274,7 @@ export default function Home() {
         <Container maxWidth="xl">
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Crypto ETFs
+              {tBrand('name')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {t('footer.description')}

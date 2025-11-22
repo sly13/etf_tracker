@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "back": "Atrás",
+    "readMore": "Leer más",
+    "subscribe": "Suscribirse",
+    "contactUs": "Contáctanos",
+    "allRightsReserved": "Todos los derechos reservados",
+    "dataUpdatesRealtime": "Los datos se actualizan en tiempo real"
+  },
+  "nav": {
+    "home": "Inicio",
+    "funds": "Fondos",
+    "app": "Aplicación",
+    "blog": "Blog"
+  },
+  "home": {
+    "title": "Seguimiento de Fondos ETF",
+    "subtitle": "en tiempo real",
+    "description": "Plataforma profesional para analizar los flujos de capital en ETF de criptomonedas",
+    "whyChoose": "¿Por qué elegir Crypto ETFs?",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "Análisis en Tiempo Real",
+        "description": "Obtén datos actualizados sobre fondos ETF y su dinámica con menos de un minuto de retraso."
+      },
+      "portfolioManagement": {
+        "title": "Gestión de Cartera",
+        "description": "Crea y rastrea tus carteras de inversión con análisis detallados."
+      },
+      "security": {
+        "title": "Confiabilidad y Seguridad",
+        "description": "Tus datos están protegidos por encriptación moderna y métodos de almacenamiento seguros."
+      }
+    },
+    "cta": {
+      "title": "¿Listo para comenzar a invertir?",
+      "description": "Únete a miles de inversores que ya usan ETF Tracker para gestionar sus carteras."
+    },
+    "footer": {
+      "description": "Plataforma profesional para el seguimiento de fondos ETF y gestión de inversiones."
+    }
+  },
+  "funds": {
+    "title": "Todos los Fondos ETF",
+    "description": "Explora información detallada sobre cada fondo ETF, incluyendo sus tenencias, rendimiento y datos históricos.",
+    "ticker": "Símbolo",
+    "tickerLabel": "Símbolo:",
+    "etfFund": "Fondo ETF enfocado en activos de criptomonedas",
+    "statistics": {
+      "title": "Estadísticas Generales",
+      "totalFunds": "Total de Fondos",
+      "totalBTCAssets": "Total de Activos BTC",
+      "totalETHAssets": "Total de Activos ETH",
+      "totalAssets": "Total de Activos"
+    },
+    "holdings": {
+      "title": "Tenencias de Fondos",
+      "company": "Empresa",
+      "btcHoldings": "Tenencias BTC",
+      "ethHoldings": "Tenencias ETH",
+      "solHoldings": "Tenencias SOL",
+      "sortBy": "Ordenar por:",
+      "companyAsc": "Empresa ↑",
+      "companyDesc": "Empresa ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "Fondo",
+      "fundNotFound": "Fondo no encontrado",
+      "errorLoading": "Error al cargar datos del fondo",
+      "backToList": "Volver a la lista de fondos",
+      "loading": "Cargando...",
+      "etfFund": "Fondo ETF",
+      "btcHoldings": "Tenencias BTC",
+      "ethHoldings": "Tenencias ETH",
+      "totalAssets": "Total de Activos",
+      "totalAssetsInBitcoin": "Total de activos en Bitcoin",
+      "totalAssetsInEthereum": "Total de activos en Ethereum",
+      "totalHoldings": "Total de tenencias",
+      "detailedInfo": "Información Detallada",
+      "mainIndicators": "Indicadores Principales",
+      "ticker": "Símbolo:",
+      "fundType": "Tipo de Fondo:",
+      "category": "Categoría:",
+      "cryptocurrency": "Criptomoneda",
+      "fee": "Comisión:",
+      "historicalData": "Datos Históricos",
+      "launchDate": "Fecha de Lanzamiento:",
+      "daysCount": "Número de Días:",
+      "lastUpdate": "Última Actualización:",
+      "status": "Estado:",
+      "active": "Activo",
+      "performanceChart": "Gráfico de Rendimiento",
+      "chartPlaceholder": "El gráfico se agregará en futuras actualizaciones"
+    }
+  },
+  "summary": {
+    "title": "Datos Resumen de Fondos ETF",
+    "overall": {
+      "label": "Total General",
+      "totalAssets": "Total de Activos:",
+      "totalFlow": "Flujo Total:",
+      "lastUpdate": "Última Actualización:"
+    },
+    "bitcoin": {
+      "label": "ETF de Bitcoin",
+      "totalAssets": "Total de Activos:",
+      "currentFlow": "Flujo Actual:",
+      "daysCount": "Número de Días:",
+      "lastUpdate": "Última Actualización:"
+    },
+    "ethereum": {
+      "label": "ETF de Ethereum",
+      "totalAssets": "Total de Activos:",
+      "currentFlow": "Flujo Actual:",
+      "daysCount": "Número de Días:",
+      "lastUpdate": "Última Actualización:"
+    },
+    "solana": {
+      "label": "ETF de Solana",
+      "totalAssets": "Total de Activos:",
+      "currentFlow": "Flujo Actual:",
+      "daysCount": "Número de Días:",
+      "lastUpdate": "Última Actualización:"
+    },
+    "noData": "Sin datos"
+  },
+  "news": {
+    "title": "Últimas Noticias",
+    "bitcoinUpdate": "Actualización de Flujo de Bitcoin ETF",
+    "ethereumUpdate": "Actualización de Flujo de Ethereum ETF",
+    "solanaUpdate": "Actualización de Flujo de Solana ETF",
+    "errorLoading": "Ocurrió un error al cargar las noticias"
+  },
+  "cefi": {
+    "title": "Índice de Flujos CryptoETF (CEFI)",
+    "description": "El índice refleja la dirección e intensidad de los flujos de capital hacia ETF de criptomonedas al contado",
+    "composite": "Índice CEFI-Composite",
+    "btc": "Índice CEFI-BTC",
+    "eth": "Índice CEFI-ETH",
+    "sol": "Índice CEFI-SOL",
+    "bpf": {
+      "title": "BPF (Amplitud de Flujos Positivos)",
+      "description": "Porcentaje de fondos con flujo de capital positivo",
+      "funds": "fondos",
+      "from": "de"
+    },
+    "clickForDetails": "Haz clic en una tarjeta de índice para ver un gráfico detallado",
+    "updatesDaily": "Los índices se actualizan diariamente basados en datos de flujo de ETF",
+    "errorLoading": "Ocurrió un error al cargar los índices CEFI"
+  },
+  "indices": {
+    "invalidType": "Tipo de índice no válido",
+    "backToHome": "Volver al inicio",
+    "currentValue": "Valor Actual del Índice",
+    "historicalValues": "Valores Históricos",
+    "yesterday": "Ayer",
+    "lastWeek": "Semana Pasada",
+    "lastMonth": "Mes Pasado",
+    "yearlyHigh": "Máximo y Mínimo Anual",
+    "yearlyHighLabel": "Máximo Anual",
+    "yearlyLowLabel": "Mínimo Anual",
+    "errorLoading": "Ocurrió un error al cargar los datos",
+    "errorLoadingHistorical": "Ocurrió un error al cargar los datos históricos"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "Codicia Extrema",
+    "greed": "Codicia",
+    "neutral": "Neutral",
+    "fear": "Miedo",
+    "extremeFear": "Miedo Extremo"
+  },
+  "app": {
+    "title": "Aplicación Móvil Crypto ETFs",
+    "description": "Descarga nuestra aplicación para iOS y Android para rastrear fondos ETF en cualquier momento y lugar. Recibe notificaciones sobre cambios importantes y analiza el mercado sobre la marcha.",
+    "features": {
+      "realtimeTracking": {
+        "title": "Seguimiento en Tiempo Real",
+        "description": "Obtén datos actualizados sobre flujos de fondos ETF y cambios en el mercado"
+      },
+      "notifications": {
+        "title": "Notificaciones",
+        "description": "Configura notificaciones personalizadas sobre eventos y cambios importantes"
+      },
+      "analytics": {
+        "title": "Análisis",
+        "description": "Análisis detallado de cartera y gráficos para la toma de decisiones"
+      }
+    },
+    "download": {
+      "title": "Descargar Aplicación",
+      "description": "Disponible para dispositivos iOS y Android",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Blog de Crypto ETFs",
+    "description": "Artículos de expertos, análisis y consejos de inversión para fondos ETF. Mantente al día con las últimas tendencias del mercado.",
+    "categories": {
+      "all": "Todos",
+      "analysis": "Análisis",
+      "forecasts": "Pronósticos",
+      "education": "Educación",
+      "comparison": "Comparación"
+    },
+    "readTime": "min",
+    "loadMore": "Cargar más artículos",
+    "newsletter": {
+      "title": "Suscríbete al boletín",
+      "description": "Recibe nuevos artículos y análisis directamente en tu correo electrónico",
+      "emailPlaceholder": "Tu correo electrónico"
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes sobre el Índice {indexName}",
+    "questions": {
+      "whatIs": "¿Qué es el índice {indexName} y cómo se calcula?",
+      "howInterpret": "¿Cómo interpretar el valor del índice {indexName}?",
+      "howOften": "¿Con qué frecuencia se actualiza el índice {indexName}?",
+      "difference": "¿En qué se diferencia el índice {indexName} del Índice de Miedo y Codicia de Bitcoin?",
+      "howUse": "¿Cómo usar el índice {indexName} para decisiones de inversión?",
+      "whichFunds": "¿Qué fondos ETF se consideran al calcular el índice {indexName}?",
+      "composite": "¿Qué significa el índice CEFI-Composite?",
+      "forecast": "¿Se puede usar el índice {indexName} para pronosticar el precio de {assetName}?"
+    },
+    "answers": {
+      "whatIs": "El índice {indexName} (Índice de Flujos CryptoETF) es un indicador que refleja la dirección e intensidad de los flujos de capital hacia fondos ETF de criptomonedas al contado que invierten en {assetName}. El índice se calcula basándose en datos de entradas y salidas de fondos ETF principales como BlackRock, Fidelity, Bitwise y otros. El valor del índice varía de 0 a 100, donde valores más altos indican un fuerte flujo de capital (codicia), y valores más bajos indican salida (miedo).",
+      "howInterpret": "El valor del índice {indexName} se interpreta de la siguiente manera: 0-20 - Miedo Extremo, 20-40 - Miedo, 40-60 - Neutral, 60-80 - Codicia, 80-100 - Codicia Extrema. Los valores altos generalmente indican optimismo de los inversores y flujo activo de capital hacia fondos ETF, mientras que los valores bajos pueden indicar pesimismo y salida de capital.",
+      "howOften": "El índice {indexName} se actualiza diariamente basándose en datos actuales de flujo de ETF. Los datos se recopilan de fuentes públicas y se procesan en tiempo real, permitiendo a los inversores obtener la información más reciente sobre el sentimiento del mercado y las direcciones de movimiento de capital en ETF de criptomonedas.",
+      "difference": "A diferencia del tradicional Índice de Miedo y Codicia de Bitcoin, que se basa en volatilidad, volúmenes de negociación y señales sociales, el índice {indexName} se enfoca exclusivamente en flujos reales de capital hacia fondos ETF institucionales. Esto lo convierte en un indicador más preciso del sentimiento de grandes inversores y capital institucional, que afecta significativamente el precio de {assetName}.",
+      "howUse": "El índice {indexName} puede servir como una herramienta adicional para el análisis del mercado. Los valores extremos (Miedo Extremo o Codicia Extrema) pueden indicar puntos potenciales de reversión del mercado. Sin embargo, es importante recordar que el índice no es una garantía de movimientos futuros de precios y debe usarse en combinación con otros métodos de análisis técnico y fundamental. Siempre realiza tu propia investigación antes de tomar decisiones de inversión.",
+      "whichFunds": "Al calcular el índice {indexName}, se consideran datos de los mayores fondos ETF de criptomonedas al contado, incluyendo BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) y otros. El índice agrega flujos de capital de todos estos fondos, proporcionando una imagen integral del sentimiento institucional en el mercado de {assetName}.",
+      "composite": "El índice CEFI-Composite es un indicador agregado que combina datos de flujos de capital hacia fondos ETF para Bitcoin, Ethereum y Solana. Este índice proporciona una visión general del sentimiento de los inversores en el mercado de criptomonedas en general, mostrando la dirección general del movimiento de capital institucional entre diferentes activos de criptomonedas.",
+      "forecast": "El índice {indexName} refleja el sentimiento actual de los inversores y los flujos de capital, pero no es una herramienta directa de pronóstico de precios. Un fuerte flujo de capital hacia fondos ETF puede indicar un interés creciente en {assetName}, lo que potencialmente podría apoyar el precio, pero muchos otros factores también afectan la dinámica de precios. Es mejor usar el índice como un indicador del sentimiento actual del mercado en lugar de como la única herramienta de pronóstico."
+    }
+  },
+  "errors": {
+    "generic": "Ocurrió un error",
+    "loadingData": "Ocurrió un error al cargar los datos",
+    "loadingHoldings": "Ocurrió un error al cargar los datos de tenencias de fondos"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - Seguimiento de Fondos ETF e Inversiones",
+    "description": "Plataforma profesional para el seguimiento de fondos ETF, análisis de inversiones y gestión de cartera. Obtén información actualizada del mercado y toma decisiones de inversión informadas.",
+    "keywords": "ETF, fondos, inversiones, seguimiento, cartera, análisis, finanzas"
+  }
+}
+

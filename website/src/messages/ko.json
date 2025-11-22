@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류",
+    "back": "뒤로",
+    "readMore": "더 읽기",
+    "subscribe": "구독",
+    "contactUs": "문의하기",
+    "allRightsReserved": "모든 권리 보유",
+    "dataUpdatesRealtime": "데이터가 실시간으로 업데이트됩니다"
+  },
+  "nav": {
+    "home": "홈",
+    "funds": "펀드",
+    "app": "앱",
+    "blog": "블로그"
+  },
+  "home": {
+    "title": "ETF 펀드 추적",
+    "subtitle": "실시간으로",
+    "description": "암호화폐 ETF의 자본 흐름을 분석하는 전문 플랫폼",
+    "whyChoose": "Crypto ETFs를 선택하는 이유는?",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "실시간 분석",
+        "description": "1분 미만의 지연으로 ETF 펀드 및 동향에 대한 최신 데이터를 받으세요."
+      },
+      "portfolioManagement": {
+        "title": "포트폴리오 관리",
+        "description": "상세한 분석으로 투자 포트폴리오를 생성하고 추적하세요."
+      },
+      "security": {
+        "title": "신뢰성 및 보안",
+        "description": "데이터는 최신 암호화 및 안전한 저장 방법으로 보호됩니다."
+      }
+    },
+    "cta": {
+      "title": "투자를 시작할 준비가 되셨나요?",
+      "description": "이미 ETF Tracker를 사용하여 포트폴리오를 관리하는 수천 명의 투자자에 합류하세요."
+    },
+    "footer": {
+      "description": "ETF 펀드 추적 및 투자 관리 전문 플랫폼."
+    }
+  },
+  "funds": {
+    "title": "모든 ETF 펀드",
+    "description": "각 ETF 펀드에 대한 자세한 정보를 탐색하세요. 보유 자산, 성과 및 역사적 데이터를 포함합니다.",
+    "ticker": "티커",
+    "tickerLabel": "티커:",
+    "etfFund": "암호화폐 자산에 초점을 맞춘 ETF 펀드",
+    "statistics": {
+      "title": "전체 통계",
+      "totalFunds": "총 펀드 수",
+      "totalBTCAssets": "총 BTC 자산",
+      "totalETHAssets": "총 ETH 자산",
+      "totalAssets": "총 자산"
+    },
+    "holdings": {
+      "title": "펀드 보유 자산",
+      "company": "회사",
+      "btcHoldings": "BTC 보유",
+      "ethHoldings": "ETH 보유",
+      "solHoldings": "SOL 보유",
+      "sortBy": "정렬 기준:",
+      "companyAsc": "회사 ↑",
+      "companyDesc": "회사 ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "펀드",
+      "fundNotFound": "펀드를 찾을 수 없습니다",
+      "errorLoading": "펀드 데이터 로딩 오류",
+      "backToList": "펀드 목록으로 돌아가기",
+      "loading": "로딩 중...",
+      "etfFund": "ETF 펀드",
+      "btcHoldings": "BTC 보유",
+      "ethHoldings": "ETH 보유",
+      "totalAssets": "총 자산",
+      "totalAssetsInBitcoin": "Bitcoin의 총 자산",
+      "totalAssetsInEthereum": "Ethereum의 총 자산",
+      "totalHoldings": "총 보유",
+      "detailedInfo": "상세 정보",
+      "mainIndicators": "주요 지표",
+      "ticker": "티커:",
+      "fundType": "펀드 유형:",
+      "category": "카테고리:",
+      "cryptocurrency": "암호화폐",
+      "fee": "수수료:",
+      "historicalData": "역사적 데이터",
+      "launchDate": "시작일:",
+      "daysCount": "일수:",
+      "lastUpdate": "최종 업데이트:",
+      "status": "상태:",
+      "active": "활성",
+      "performanceChart": "성과 차트",
+      "chartPlaceholder": "차트는 향후 업데이트에서 추가됩니다"
+    }
+  },
+  "summary": {
+    "title": "ETF 펀드 요약 데이터",
+    "overall": {
+      "label": "전체 합계",
+      "totalAssets": "총 자산:",
+      "totalFlow": "총 흐름:",
+      "lastUpdate": "최종 업데이트:"
+    },
+    "bitcoin": {
+      "label": "Bitcoin ETF",
+      "totalAssets": "총 자산:",
+      "currentFlow": "현재 흐름:",
+      "daysCount": "일수:",
+      "lastUpdate": "최종 업데이트:"
+    },
+    "ethereum": {
+      "label": "Ethereum ETF",
+      "totalAssets": "총 자산:",
+      "currentFlow": "현재 흐름:",
+      "daysCount": "일수:",
+      "lastUpdate": "최종 업데이트:"
+    },
+    "solana": {
+      "label": "Solana ETF",
+      "totalAssets": "총 자산:",
+      "currentFlow": "현재 흐름:",
+      "daysCount": "일수:",
+      "lastUpdate": "최종 업데이트:"
+    },
+    "noData": "데이터 없음"
+  },
+  "news": {
+    "title": "최신 뉴스",
+    "bitcoinUpdate": "Bitcoin ETF 흐름 업데이트",
+    "ethereumUpdate": "Ethereum ETF 흐름 업데이트",
+    "solanaUpdate": "Solana ETF 흐름 업데이트",
+    "errorLoading": "뉴스를 로딩하는 중 오류가 발생했습니다"
+  },
+  "cefi": {
+    "title": "CryptoETF 흐름 지수 (CEFI)",
+    "description": "이 지수는 현물 암호화폐 ETF로의 자본 흐름 방향과 강도를 반영합니다",
+    "composite": "CEFI-Composite 지수",
+    "btc": "CEFI-BTC 지수",
+    "eth": "CEFI-ETH 지수",
+    "sol": "CEFI-SOL 지수",
+    "bpf": {
+      "title": "BPF (긍정적 흐름의 폭)",
+      "description": "긍정적 자본 유입이 있는 펀드의 비율",
+      "funds": "펀드",
+      "from": "중"
+    },
+    "clickForDetails": "인덱스 카드를 클릭하여 상세 차트 보기",
+    "updatesDaily": "지수는 ETF 흐름 데이터를 기반으로 매일 업데이트됩니다",
+    "errorLoading": "CEFI 지수를 로딩하는 중 오류가 발생했습니다"
+  },
+  "indices": {
+    "invalidType": "잘못된 지수 유형",
+    "backToHome": "홈으로 돌아가기",
+    "currentValue": "현재 지수 값",
+    "historicalValues": "역사적 값",
+    "yesterday": "어제",
+    "lastWeek": "지난 주",
+    "lastMonth": "지난 달",
+    "yearlyHigh": "연간 최고 및 최저",
+    "yearlyHighLabel": "연간 최고",
+    "yearlyLowLabel": "연간 최저",
+    "errorLoading": "데이터를 로딩하는 중 오류가 발생했습니다",
+    "errorLoadingHistorical": "역사적 데이터를 로딩하는 중 오류가 발생했습니다"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "극도의 탐욕",
+    "greed": "탐욕",
+    "neutral": "중립",
+    "fear": "공포",
+    "extremeFear": "극도의 공포"
+  },
+  "app": {
+    "title": "Crypto ETFs 모바일 앱",
+    "description": "iOS 및 Android용 앱을 다운로드하여 언제 어디서나 ETF 펀드를 추적하세요. 중요한 변경 사항에 대한 알림을 받고 이동 중에도 시장을 분석하세요.",
+    "features": {
+      "realtimeTracking": {
+        "title": "실시간 추적",
+        "description": "ETF 펀드 흐름 및 시장 변화에 대한 최신 데이터 받기"
+      },
+      "notifications": {
+        "title": "알림",
+        "description": "중요한 이벤트 및 변경 사항에 대한 개인화된 알림 설정"
+      },
+      "analytics": {
+        "title": "분석",
+        "description": "의사 결정을 위한 상세한 포트폴리오 분석 및 차트"
+      }
+    },
+    "download": {
+      "title": "앱 다운로드",
+      "description": "iOS 및 Android 기기에서 사용 가능",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Crypto ETFs 블로그",
+    "description": "ETF 펀드에 대한 전문가 기사, 분석 및 투자 조언. 최신 시장 동향을 최신 상태로 유지하세요.",
+    "categories": {
+      "all": "전체",
+      "analysis": "분석",
+      "forecasts": "예측",
+      "education": "교육",
+      "comparison": "비교"
+    },
+    "readTime": "분",
+    "loadMore": "더 많은 기사 로드",
+    "newsletter": {
+      "title": "뉴스레터 구독",
+      "description": "새 기사 및 분석을 이메일로 직접 받기",
+      "emailPlaceholder": "이메일 주소"
+    }
+  },
+  "faq": {
+    "title": "{indexName} 지수에 대한 자주 묻는 질문",
+    "questions": {
+      "whatIs": "{indexName} 지수는 무엇이며 어떻게 계산됩니까?",
+      "howInterpret": "{indexName} 지수 값을 어떻게 해석합니까?",
+      "howOften": "{indexName} 지수는 얼마나 자주 업데이트됩니까?",
+      "difference": "{indexName} 지수는 Bitcoin 공포 및 탐욕 지수와 어떻게 다릅니까?",
+      "howUse": "투자 결정을 위해 {indexName} 지수를 어떻게 사용합니까?",
+      "whichFunds": "{indexName} 지수를 계산할 때 어떤 ETF 펀드가 고려됩니까?",
+      "composite": "CEFI-Composite 지수는 무엇을 의미합니까?",
+      "forecast": "{indexName} 지수를 사용하여 {assetName} 가격을 예측할 수 있습니까?"
+    },
+    "answers": {
+      "whatIs": "{indexName} 지수(CryptoETF 흐름 지수)는 {assetName}에 투자하는 현물 암호화폐 ETF 펀드로의 자본 흐름 방향과 강도를 반영하는 지표입니다. 이 지수는 BlackRock, Fidelity, Bitwise 등의 주요 ETF 펀드로부터의 유입 및 유출 데이터를 기반으로 계산됩니다. 지수 값은 0에서 100 사이이며, 값이 높을수록 강한 자본 유입(탐욕)을 나타내고, 값이 낮을수록 유출(공포)을 나타냅니다.",
+      "howInterpret": "{indexName} 지수 값은 다음과 같이 해석됩니다: 0-20 - 극도의 공포, 20-40 - 공포, 40-60 - 중립, 60-80 - 탐욕, 80-100 - 극도의 탐욕. 높은 값은 일반적으로 투자자의 낙관론과 ETF 펀드로의 활발한 자본 유입을 나타내는 반면, 낮은 값은 비관론과 자본 유출을 나타낼 수 있습니다.",
+      "howOften": "{indexName} 지수는 현재 ETF 흐름 데이터를 기반으로 매일 업데이트됩니다. 데이터는 공개 소스에서 수집되어 실시간으로 처리되므로 투자자는 암호화폐 ETF의 시장 심리 및 자본 이동 방향에 대한 최신 정보를 얻을 수 있습니다.",
+      "difference": "변동성, 거래량 및 사회적 신호를 기반으로 하는 전통적인 Bitcoin 공포 및 탐욕 지수와 달리, {indexName} 지수는 기관 ETF 펀드로의 실제 자본 흐름에만 집중합니다. 이는 {assetName} 가격에 상당한 영향을 미치는 대규모 투자자의 심리와 기관 자본의 더 정확한 지표로 만듭니다.",
+      "howUse": "{indexName} 지수는 시장 분석을 위한 추가 도구로 사용할 수 있습니다. 극단적인 값(극도의 공포 또는 극도의 탐욕)은 잠재적인 시장 반전 지점을 나타낼 수 있습니다. 그러나 지수는 미래 가격 움직임의 보장이 아니며 다른 기술적 및 기본적 분석 방법과 함께 사용해야 한다는 것을 기억하는 것이 중요합니다. 투자 결정을 내리기 전에 항상 자신의 연구를 수행하세요.",
+      "whichFunds": "{indexName} 지수를 계산할 때, 가장 큰 현물 암호화폐 ETF 펀드의 데이터가 고려됩니다. 여기에는 BlackRock (IBIT), Fidelity (FBTC), Bitwise (BITB), ARK 21Shares (ARKB), VanEck (HODL), Invesco (BTCO), Grayscale (GBTC) 등이 포함됩니다. 지수는 이러한 모든 펀드로부터의 자본 흐름을 집계하여 {assetName} 시장에서 기관 심리의 포괄적인 그림을 제공합니다.",
+      "composite": "CEFI-Composite 지수는 Bitcoin, Ethereum 및 Solana의 ETF 펀드로의 자본 흐름 데이터를 결합한 집계 지표입니다. 이 지수는 전체 암호화폐 시장에서 투자자 심리의 일반적인 개요를 제공하며, 다양한 암호화폐 자산 간의 기관 자본 이동의 전반적인 방향을 보여줍니다.",
+      "forecast": "{indexName} 지수는 현재 투자자 심리와 자본 흐름을 반영하지만 직접적인 가격 예측 도구는 아닙니다. ETF 펀드로의 강한 자본 유입은 {assetName}에 대한 관심 증가를 나타낼 수 있으며 잠재적으로 가격을 지지할 수 있지만, 가격 역학에 영향을 미치는 다른 많은 요인도 있습니다. 지수는 유일한 예측 도구로 사용하기보다는 현재 시장 심리의 지표로 사용하는 것이 더 좋습니다."
+    }
+  },
+  "errors": {
+    "generic": "오류가 발생했습니다",
+    "loadingData": "데이터를 로딩하는 중 오류가 발생했습니다",
+    "loadingHoldings": "펀드 보유 데이터를 로딩하는 중 오류가 발생했습니다"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - ETF 펀드 추적 및 투자",
+    "description": "ETF 펀드 추적, 투자 분석 및 포트폴리오 관리 전문 플랫폼. 최신 시장 정보를 받고 정보에 기반한 투자 결정을 내리세요.",
+    "keywords": "ETF, 펀드, 투자, 추적, 포트폴리오, 분석, 금융"
+  }
+}
+

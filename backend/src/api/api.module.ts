@@ -9,6 +9,7 @@ import { FundsModule } from './funds/funds.module';
 import { MLModule } from './ml/ml.module';
 import { CandlesModule } from './candles/candles.module';
 import { DataSyncModule } from './sync/data-sync.module';
+import { LanguagesModule } from './languages/languages.module';
 import { TestNotificationController } from './test-notification.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { TestNotificationController } from './test-notification.controller';
     MLModule,
     CandlesModule,
     DataSyncModule,
+    LanguagesModule,
   ],
   controllers: [TestNotificationController],
   exports: [
@@ -36,6 +38,7 @@ import { TestNotificationController } from './test-notification.controller';
     MLModule,
     CandlesModule,
     DataSyncModule,
+    LanguagesModule,
   ],
 })
 export class ApiModule {}

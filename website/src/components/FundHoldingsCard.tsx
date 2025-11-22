@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Select from "react-select";
+import { useTranslations } from 'next-intl';
 import apiClient from "../services/api";
 import { FundHoldingsData, ApiError } from "../types/api";
 import { API_CONFIG } from "../config/api";
@@ -38,6 +39,9 @@ const FUND_LOGOS: Record<string, string> = {
 };
 
 export default function FundHoldingsCard() {
+  const t = useTranslations('funds.holdings');
+  const tCommon = useTranslations('common');
+  const tErrors = useTranslations('errors');
   const [data, setData] = useState<FundHoldingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +69,7 @@ export default function FundHoldingsCard() {
           errorMessage =
             apiError?.response?.data?.message ||
             apiError?.message ||
-            "Произошла ошибка при загрузке данных о владениях фондов";
+            tErrors('loadingHoldings');
         }
         
         setError(errorMessage);
@@ -204,12 +208,12 @@ export default function FundHoldingsCard() {
 
   const getSortLabel = (sortBy: string, sortOrder: string) => {
     const labels: Record<string, Record<string, string>> = {
-      btc: { desc: "BTC ↓", asc: "BTC ↑" },
-      eth: { desc: "ETH ↓", asc: "ETH ↑" },
-      sol: { desc: "SOL ↓", asc: "SOL ↑" },
-      company: { desc: "Компания ↓", asc: "Компания ↑" },
+      btc: { desc: t('btcDesc'), asc: t('btcAsc') },
+      eth: { desc: t('ethDesc'), asc: t('ethAsc') },
+      sol: { desc: t('solDesc'), asc: t('solAsc') },
+      company: { desc: t('companyDesc'), asc: t('companyAsc') },
     };
-    return labels[sortBy]?.[sortOrder] || "BTC ↓";
+    return labels[sortBy]?.[sortOrder] || t('btcDesc');
   };
 
   const getFundUrl = (fundKey: string) => {
@@ -219,9 +223,9 @@ export default function FundHoldingsCard() {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Владения фондов</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h2>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-slate-500 dark:text-slate-400">Сортировка:</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t('sortBy')}</span>
           <div className="w-48">
             <Select
               value={{
@@ -236,14 +240,14 @@ export default function FundHoldingsCard() {
                 }
               }}
               options={[
-                { value: "btc-desc", label: "BTC ↓" },
-                { value: "btc-asc", label: "BTC ↑" },
-                { value: "eth-desc", label: "ETH ↓" },
-                { value: "eth-asc", label: "ETH ↑" },
-                { value: "sol-desc", label: "SOL ↓" },
-                { value: "sol-asc", label: "SOL ↑" },
-                { value: "company-asc", label: "Компания ↑" },
-                { value: "company-desc", label: "Компания ↓" },
+                { value: "btc-desc", label: t('btcDesc') },
+                { value: "btc-asc", label: t('btcAsc') },
+                { value: "eth-desc", label: t('ethDesc') },
+                { value: "eth-asc", label: t('ethAsc') },
+                { value: "sol-desc", label: t('solDesc') },
+                { value: "sol-asc", label: t('solAsc') },
+                { value: "company-asc", label: t('companyAsc') },
+                { value: "company-desc", label: t('companyDesc') },
               ]}
               styles={{
                 control: provided => ({
@@ -281,28 +285,28 @@ export default function FundHoldingsCard() {
                 className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("company")}
               >
-                Компания{" "}
+                {t('company')}{" "}
                 {sortBy === "company" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("btc")}
               >
-                BTC владения{" "}
+                {t('btcHoldings')}{" "}
                 {sortBy === "btc" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("eth")}
               >
-                ETH владения{" "}
+                {t('ethHoldings')}{" "}
                 {sortBy === "eth" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
               <th
                 className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 onClick={() => handleSort("sol")}
               >
-                SOL владения{" "}
+                {t('solHoldings')}{" "}
                 {sortBy === "sol" && (sortOrder === "asc" ? "↑" : "↓")}
               </th>
             </tr>
@@ -369,7 +373,7 @@ export default function FundHoldingsCard() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Данные обновляются в реальном времени
+          {tCommon('dataUpdatesRealtime')}
         </p>
       </div>
     </div>

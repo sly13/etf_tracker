@@ -1,0 +1,263 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "back": "戻る",
+    "readMore": "続きを読む",
+    "subscribe": "購読する",
+    "contactUs": "お問い合わせ",
+    "allRightsReserved": "全著作権所有",
+    "dataUpdatesRealtime": "データはリアルタイムで更新されます"
+  },
+  "nav": {
+    "home": "ホーム",
+    "funds": "ファンド",
+    "app": "アプリ",
+    "blog": "ブログ"
+  },
+  "home": {
+    "title": "ETFファンド追跡",
+    "subtitle": "リアルタイムで",
+    "description": "暗号通貨ETFの資本フローを分析するプロフェッショナルプラットフォーム",
+    "whyChoose": "なぜCrypto ETFsを選ぶのか？",
+    "features": {
+      "realtimeAnalysis": {
+        "title": "リアルタイム分析",
+        "description": "1分未満の遅延でETFファンドとその動向に関する最新データを取得します。"
+      },
+      "portfolioManagement": {
+        "title": "ポートフォリオ管理",
+        "description": "詳細な分析で投資ポートフォリオを作成および追跡します。"
+      },
+      "security": {
+        "title": "信頼性とセキュリティ",
+        "description": "データは最新の暗号化と安全な保存方法で保護されています。"
+      }
+    },
+    "cta": {
+      "title": "投資を始める準備はできていますか？",
+      "description": "すでにETF Trackerを使用してポートフォリオを管理している何千人もの投資家に参加してください。"
+    },
+    "footer": {
+      "description": "ETFファンド追跡と投資管理のプロフェッショナルプラットフォーム。"
+    }
+  },
+  "funds": {
+    "title": "すべてのETFファンド",
+    "description": "各ETFファンドの詳細情報を探索し、保有資産、パフォーマンス、履歴データを含みます。",
+    "ticker": "ティッカー",
+    "tickerLabel": "ティッカー:",
+    "etfFund": "暗号通貨資産に焦点を当てたETFファンド",
+    "statistics": {
+      "title": "全体統計",
+      "totalFunds": "総ファンド数",
+      "totalBTCAssets": "総BTC資産",
+      "totalETHAssets": "総ETH資産",
+      "totalAssets": "総資産"
+    },
+    "holdings": {
+      "title": "ファンド保有資産",
+      "company": "会社",
+      "btcHoldings": "BTC保有",
+      "ethHoldings": "ETH保有",
+      "solHoldings": "SOL保有",
+      "sortBy": "並び替え:",
+      "companyAsc": "会社 ↑",
+      "companyDesc": "会社 ↓",
+      "btcAsc": "BTC ↑",
+      "btcDesc": "BTC ↓",
+      "ethAsc": "ETH ↑",
+      "ethDesc": "ETH ↓",
+      "solAsc": "SOL ↑",
+      "solDesc": "SOL ↓"
+    },
+    "detail": {
+      "fund": "ファンド",
+      "fundNotFound": "ファンドが見つかりません",
+      "errorLoading": "ファンドデータの読み込みエラー",
+      "backToList": "ファンドリストに戻る",
+      "loading": "読み込み中...",
+      "etfFund": "ETFファンド",
+      "btcHoldings": "BTC保有",
+      "ethHoldings": "ETH保有",
+      "totalAssets": "総資産",
+      "totalAssetsInBitcoin": "Bitcoinの総資産",
+      "totalAssetsInEthereum": "Ethereumの総資産",
+      "totalHoldings": "総保有",
+      "detailedInfo": "詳細情報",
+      "mainIndicators": "主要指標",
+      "ticker": "ティッカー:",
+      "fundType": "ファンドタイプ:",
+      "category": "カテゴリー:",
+      "cryptocurrency": "暗号通貨",
+      "fee": "手数料:",
+      "historicalData": "履歴データ",
+      "launchDate": "開始日:",
+      "daysCount": "日数:",
+      "lastUpdate": "最終更新:",
+      "status": "ステータス:",
+      "active": "アクティブ",
+      "performanceChart": "パフォーマンスチャート",
+      "chartPlaceholder": "チャートは今後の更新で追加されます"
+    }
+  },
+  "summary": {
+    "title": "ETFファンドサマリーデータ",
+    "overall": {
+      "label": "全体合計",
+      "totalAssets": "総資産:",
+      "totalFlow": "総フロー:",
+      "lastUpdate": "最終更新:"
+    },
+    "bitcoin": {
+      "label": "Bitcoin ETF",
+      "totalAssets": "総資産:",
+      "currentFlow": "現在のフロー:",
+      "daysCount": "日数:",
+      "lastUpdate": "最終更新:"
+    },
+    "ethereum": {
+      "label": "Ethereum ETF",
+      "totalAssets": "総資産:",
+      "currentFlow": "現在のフロー:",
+      "daysCount": "日数:",
+      "lastUpdate": "最終更新:"
+    },
+    "solana": {
+      "label": "Solana ETF",
+      "totalAssets": "総資産:",
+      "currentFlow": "現在のフロー:",
+      "daysCount": "日数:",
+      "lastUpdate": "最終更新:"
+    },
+    "noData": "データなし"
+  },
+  "news": {
+    "title": "最新ニュース",
+    "bitcoinUpdate": "Bitcoin ETFフロー更新",
+    "ethereumUpdate": "Ethereum ETFフロー更新",
+    "solanaUpdate": "Solana ETFフロー更新",
+    "errorLoading": "ニュースの読み込み中にエラーが発生しました"
+  },
+  "cefi": {
+    "title": "CryptoETFフローインデックス（CEFI）",
+    "description": "このインデックスは、現物暗号通貨ETFへの資本フローの方向性と強度を反映しています",
+    "composite": "CEFI-Compositeインデックス",
+    "btc": "CEFI-BTCインデックス",
+    "eth": "CEFI-ETHインデックス",
+    "sol": "CEFI-SOLインデックス",
+    "bpf": {
+      "title": "BPF（ポジティブフローの幅）",
+      "description": "正の資本流入があるファンドの割合",
+      "funds": "ファンド",
+      "from": "の"
+    },
+    "clickForDetails": "インデックスカードをクリックして詳細チャートを表示",
+    "updatesDaily": "インデックスはETFフローデータに基づいて毎日更新されます",
+    "errorLoading": "CEFIインデックスの読み込み中にエラーが発生しました"
+  },
+  "indices": {
+    "invalidType": "無効なインデックスタイプ",
+    "backToHome": "ホームに戻る",
+    "currentValue": "現在のインデックス値",
+    "historicalValues": "履歴値",
+    "yesterday": "昨日",
+    "lastWeek": "先週",
+    "lastMonth": "先月",
+    "yearlyHigh": "年間最高値と最低値",
+    "yearlyHighLabel": "年間最高値",
+    "yearlyLowLabel": "年間最低値",
+    "errorLoading": "データの読み込み中にエラーが発生しました",
+    "errorLoadingHistorical": "履歴データの読み込み中にエラーが発生しました"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "brand": {
+    "name": "Crypto ETFs"
+  },
+  "sentiment": {
+    "extremeGreed": "極度の強欲",
+    "greed": "強欲",
+    "neutral": "中立",
+    "fear": "恐怖",
+    "extremeFear": "極度の恐怖"
+  },
+  "app": {
+    "title": "Crypto ETFsモバイルアプリ",
+    "description": "iOSとAndroid用のアプリをダウンロードして、いつでもどこでもETFファンドを追跡します。重要な変更について通知を受け取り、移動中に市場を分析します。",
+    "features": {
+      "realtimeTracking": {
+        "title": "リアルタイム追跡",
+        "description": "ETFファンドフローと市場の変化に関する最新データを取得"
+      },
+      "notifications": {
+        "title": "通知",
+        "description": "重要なイベントや変更についてパーソナライズされた通知を設定"
+      },
+      "analytics": {
+        "title": "分析",
+        "description": "意思決定のための詳細なポートフォリオ分析とチャート"
+      }
+    },
+    "download": {
+      "title": "アプリをダウンロード",
+      "description": "iOSおよびAndroidデバイスで利用可能",
+      "appStore": "App Store",
+      "googlePlay": "Google Play"
+    }
+  },
+  "blog": {
+    "title": "Crypto ETFsブログ",
+    "description": "ETFファンドの専門記事、分析、投資アドバイス。最新の市場トレンドを常に把握してください。",
+    "categories": {
+      "all": "すべて",
+      "analysis": "分析",
+      "forecasts": "予測",
+      "education": "教育",
+      "comparison": "比較"
+    },
+    "readTime": "分",
+    "loadMore": "さらに記事を読み込む",
+    "newsletter": {
+      "title": "ニュースレターを購読",
+      "description": "新しい記事と分析をメールで直接受け取る",
+      "emailPlaceholder": "メールアドレス"
+    }
+  },
+  "faq": {
+    "title": "{indexName}インデックスに関するよくある質問",
+    "questions": {
+      "whatIs": "{indexName}インデックスとは何か、どのように計算されますか？",
+      "howInterpret": "{indexName}インデックス値をどのように解釈しますか？",
+      "howOften": "{indexName}インデックスはどのくらいの頻度で更新されますか？",
+      "difference": "{indexName}インデックスはBitcoin恐怖・強欲インデックスとどのように異なりますか？",
+      "howUse": "投資決定のために{indexName}インデックスをどのように使用しますか？",
+      "whichFunds": "{indexName}インデックスを計算する際にどのETFファンドが考慮されますか？",
+      "composite": "CEFI-Compositeインデックスとは何を意味しますか？",
+      "forecast": "{indexName}インデックスを使用して{assetName}の価格を予測できますか？"
+    },
+    "answers": {
+      "whatIs": "{indexName}インデックス（CryptoETFフローインデックス）は、{assetName}に投資する現物暗号通貨ETFファンドへの資本フローの方向性と強度を反映する指標です。このインデックスは、BlackRock、Fidelity、Bitwiseなどの主要ETFファンドからの流入と流出のデータに基づいて計算されます。インデックス値は0から100の範囲で、値が高いほど強い資本流入（強欲）を示し、値が低いほど流出（恐怖）を示します。",
+      "howInterpret": "{indexName}インデックス値は次のように解釈されます：0-20 - 極度の恐怖、20-40 - 恐怖、40-60 - 中立、60-80 - 強欲、80-100 - 極度の強欲。高い値は通常、投資家の楽観主義とETFファンドへの積極的な資本流入を示し、低い値は悲観主義と資本流出を示す可能性があります。",
+      "howOften": "{indexName}インデックスは、現在のETFフローデータに基づいて毎日更新されます。データは公開ソースから収集され、リアルタイムで処理されるため、投資家は暗号通貨ETFの市場センチメントと資本移動の方向に関する最新情報を取得できます。",
+      "difference": "ボラティリティ、取引量、社会的シグナルに基づく従来のBitcoin恐怖・強欲インデックスとは異なり、{indexName}インデックスは機関ETFファンドへの実際の資本フローにのみ焦点を当てています。これにより、{assetName}の価格に大きく影響する大規模投資家のセンチメントと機関資本のより正確な指標となります。",
+      "howUse": "{indexName}インデックスは、市場分析の追加ツールとして機能します。極端な値（極度の恐怖または極度の強欲）は、潜在的な市場反転ポイントを示す可能性があります。ただし、インデックスは将来の価格変動の保証ではなく、他の技術的および基本的な分析方法と組み合わせて使用する必要があることを覚えておくことが重要です。投資決定を行う前に、常に独自の調査を行ってください。",
+      "whichFunds": "{indexName}インデックスを計算する際、最大の現物暗号通貨ETFファンドのデータが考慮されます。これには、BlackRock（IBIT）、Fidelity（FBTC）、Bitwise（BITB）、ARK 21Shares（ARKB）、VanEck（HODL）、Invesco（BTCO）、Grayscale（GBTC）などが含まれます。インデックスは、これらすべてのファンドからの資本フローを集約し、{assetName}市場における機関センチメントの包括的な図を提供します。",
+      "composite": "CEFI-Compositeインデックスは、Bitcoin、Ethereum、SolanaのETFファンドへの資本フローのデータを組み合わせた集約指標です。このインデックスは、暗号通貨市場全体における投資家センチメントの概要を提供し、異なる暗号通貨資産間の機関資本移動の全体的な方向性を示します。",
+      "forecast": "{indexName}インデックスは現在の投資家センチメントと資本フローを反映しますが、直接的な価格予測ツールではありません。ETFファンドへの強い資本流入は、{assetName}への関心の高まりを示す可能性があり、価格を潜在的にサポートする可能性がありますが、価格動態に影響を与える他の多くの要因もあります。インデックスは、唯一の予測ツールとしてではなく、現在の市場センチメントの指標として使用する方が適切です。"
+    }
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "loadingData": "データの読み込み中にエラーが発生しました",
+    "loadingHoldings": "ファンド保有データの読み込み中にエラーが発生しました"
+  },
+  "metadata": {
+    "title": "Crypto ETFs - ETFファンド追跡と投資",
+    "description": "ETFファンド追跡、投資分析、ポートフォリオ管理のプロフェッショナルプラットフォーム。最新の市場情報を取得し、情報に基づいた投資決定を行います。",
+    "keywords": "ETF、ファンド、投資、追跡、ポートフォリオ、分析、金融"
+  }
+}
+

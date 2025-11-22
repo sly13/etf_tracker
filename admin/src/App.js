@@ -1,6 +1,5 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -10,11 +9,29 @@ import Users from './pages/Users';
 import ETFNewRecords from './pages/ETFNewRecords';
 import NotificationDeliveries from './pages/NotificationDeliveries';
 import Funds from './pages/Funds';
+import Languages from './pages/Languages';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function ProtectedRoute({ children }) {
-	const { isAuthenticated } = useAuth();
-	return isAuthenticated ? children : <Navigate to="/login" />;
+	const { isAuthenticated, loading } = useAuth();
+
+	// Пока идет проверка аутентификации, показываем загрузчик
+	if (loading) {
+		return (
+			<Box
+				sx={{
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					minHeight: '100vh',
+				}}
+			>
+				<CircularProgress />
+			</Box>
+		);
+	}
+
+	return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
 function AppRoutes() {
@@ -87,6 +104,16 @@ function AppRoutes() {
 					<ProtectedRoute>
 						<Layout>
 							<Funds />
+						</Layout>
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/languages"
+				element={
+					<ProtectedRoute>
+						<Layout>
+							<Languages />
 						</Layout>
 					</ProtectedRoute>
 				}

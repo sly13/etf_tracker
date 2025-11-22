@@ -3,6 +3,7 @@
 export const runtime = 'edge';
 
 import { useEffect, useState } from "react";
+import { useTranslations } from 'next-intl';
 import Navigation from "../../../../components/Navigation";
 import MoneyRain from "../../../../components/MoneyRain";
 import FundLogo from "../../../../components/FundLogo";
@@ -58,6 +59,9 @@ interface FundPageProps {
 }
 
 export default function FundPage({ params }: FundPageProps) {
+  const t = useTranslations('funds.detail');
+  const tCommon = useTranslations('common');
+  const tBrand = useTranslations('brand');
   const [fund, setFund] = useState<FundDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,22 +72,23 @@ export default function FundPage({ params }: FundPageProps) {
     const loadData = async () => {
       const resolvedParams = await params;
       const key = resolvedParams.fundKey;
+      const locale = resolvedParams.locale;
       setFundKey(key);
 
       try {
-        const fundData = await fundService.getFundDetails(key);
+        const fundData = await fundService.getFundDetails(key, locale);
         
         // Проверяем, что данные получены
         if (!fundData || !fundData.name) {
           console.error(`Fund data is invalid for key: ${key}`, fundData);
-          setError("Фонд не найден");
+          setError(t('fundNotFound'));
           return;
         }
         
         setFund(fundData);
       } catch (error) {
         console.error(`Error fetching fund details for ${key}:`, error);
-        setError("Ошибка при загрузке данных фонда");
+        setError(t('errorLoading'));
       } finally {
         setLoading(false);
       }
@@ -97,7 +102,7 @@ export default function FundPage({ params }: FundPageProps) {
       <div className="min-h-screen" style={{ background: 'var(--background)' }}>
         <Navigation />
         <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">Загрузка...</div>
+          <div className="text-center">{t('loading')}</div>
         </main>
       </div>
     );
@@ -109,12 +114,12 @@ export default function FundPage({ params }: FundPageProps) {
         <Navigation />
         <main className="max-w-container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 text-center">
-            <p className="text-red-600 dark:text-red-400 mb-4">{error || "Фонд не найден"}</p>
+            <p className="text-red-600 dark:text-red-400 mb-4">{error || t('fundNotFound')}</p>
             <button
               onClick={() => router.replace("/funds")}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Вернуться к списку фондов
+              {t('backToList')}
             </button>
           </div>
         </main>
@@ -155,7 +160,7 @@ export default function FundPage({ params }: FundPageProps) {
             <div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">{fund.name}</h1>
               <p className="text-lg text-gray-600 dark:text-slate-400 mt-2">
-                {fund.fundType || "ETF"} Фонд
+                {fund.fundType || "ETF"} {t('etfFund')}
               </p>
             </div>
           </div>
@@ -171,65 +176,65 @@ export default function FundPage({ params }: FundPageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
-              BTC Владения
+              {t('btcHoldings')}
             </h3>
             <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
               {formatNumber(fund.btcHoldings)}
             </div>
-            <div className="text-sm text-gray-500 dark:text-slate-400">Общие активы в Bitcoin</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">{t('totalAssetsInBitcoin')}</div>
           </div>
 
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
-              ETH Владения
+              {t('ethHoldings')}
             </h3>
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               {formatNumber(fund.ethHoldings)}
             </div>
-            <div className="text-sm text-gray-500 dark:text-slate-400">Общие активы в Ethereum</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">{t('totalAssetsInEthereum')}</div>
           </div>
 
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
-              Общие Активы
+              {t('totalAssets')}
             </h3>
             <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
               {formatNumber(fund.totalAssets)}
             </div>
-            <div className="text-sm text-gray-500 dark:text-slate-400">Суммарные владения</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">{t('totalHoldings')}</div>
           </div>
         </div>
 
         {/* Fund Details */}
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-            Детальная информация
+            {t('detailedInfo')}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Основные показатели
+                {t('mainIndicators')}
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Тикер:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('ticker')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {fund.ticker || fundKey.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Тип фонда:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('fundType')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {fund.fundType || "ETF"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Категория:</span>
-                  <span className="font-semibold dark:text-slate-200">Криптовалютный</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('category')}</span>
+                  <span className="font-semibold dark:text-slate-200">{t('cryptocurrency')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Комиссия:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('fee')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {fund.feePercentage ? `${fund.feePercentage}%` : "0.25%"}
                   </span>
@@ -239,11 +244,11 @@ export default function FundPage({ params }: FundPageProps) {
 
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Исторические данные
+                {t('historicalData')}
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Дата запуска:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('launchDate')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {fund.launchDate
                       ? new Date(fund.launchDate).toLocaleDateString("ru-RU")
@@ -251,7 +256,7 @@ export default function FundPage({ params }: FundPageProps) {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Количество дней:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('daysCount')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {fund.launchDate
                       ? Math.floor(
@@ -262,13 +267,13 @@ export default function FundPage({ params }: FundPageProps) {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Последнее обновление:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('lastUpdate')}</span>
                   <span className="font-semibold dark:text-slate-200">
                     {new Date(fund.updatedAt).toLocaleDateString("ru-RU")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-slate-400">Статус:</span>
+                  <span className="text-gray-600 dark:text-slate-400">{t('status')}</span>
                   <span
                     className={`font-semibold ${
                       fund.status === "active"
@@ -277,8 +282,8 @@ export default function FundPage({ params }: FundPageProps) {
                     }`}
                   >
                     {fund.status === "active"
-                      ? "Активный"
-                      : fund.status || "Активный"}
+                      ? t('active')
+                      : fund.status || t('active')}
                   </span>
                 </div>
               </div>
@@ -289,11 +294,11 @@ export default function FundPage({ params }: FundPageProps) {
         {/* Performance Chart Placeholder */}
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 mt-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-            График производительности
+            {t('performanceChart')}
           </h2>
           <div className="h-64 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
             <p className="text-gray-500 dark:text-slate-400">
-              График будет добавлен в будущих обновлениях
+              {t('chartPlaceholder')}
             </p>
           </div>
         </div>
@@ -303,13 +308,12 @@ export default function FundPage({ params }: FundPageProps) {
       <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 mt-20 relative z-10">
         <div className="max-w-container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Crypto ETFs</h3>
+            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">{tBrand('name')}</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Профессиональная платформа для отслеживания ETF фондов и
-              управления инвестициями.
+              Профессиональная платформа для отслеживания ETF фондов и управления инвестициями.
             </p>
             <div className="border-t border-slate-200 dark:border-slate-800 mt-8 pt-8 text-center text-slate-500 dark:text-slate-400">
-              <p>&copy; 2024 Crypto ETFs. Все права защищены.</p>
+              <p>&copy; 2024 {tBrand('name')}. {tCommon('allRightsReserved')}.</p>
             </div>
           </div>
         </div>

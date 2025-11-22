@@ -82,13 +82,59 @@ node -e "
   })();
 " 2>/dev/null || true
 
-# Шаг 2: Применяем все миграции
+# Шаг 2: Применяем все миграции (включая создание таблицы languages, если её нет)
 echo "🔄 Применение миграций через Prisma migrate deploy..."
-npx prisma migrate deploy
+if npx prisma migrate deploy; then
+  echo "✅ Миграции применены успешно"
+else
+  echo "⚠️ Ошибка при применении миграций через migrate deploy"
+  echo "🔍 Проверяем наличие таблицы languages..."
+  LANGUAGES_TABLE_EXISTS=$(node -e "
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    (async () => {
+      try {
+        await prisma.\$queryRawUnsafe('SELECT 1 FROM languages LIMIT 1');
+        console.log('exists');
+      } catch (e) {
+        console.log('not_exists');
+      } finally {
+        await prisma.\$disconnect();
+      }
+    })();
+  " 2>/dev/null)
+  
+  if [ "$LANGUAGES_TABLE_EXISTS" != "exists" ]; then
+    echo "📝 Таблица languages не существует, применяем миграцию напрямую..."
+    if [ -f "prisma/migrations/20251122152437_add_languages_table/migration.sql" ]; then
+      if npx prisma db execute --file prisma/migrations/20251122152437_add_languages_table/migration.sql --schema prisma/schema.prisma 2>/dev/null; then
+        echo "✅ Миграция languages применена напрямую"
+      else
+        echo "⚠️ Не удалось применить миграцию languages напрямую"
+      fi
+    else
+      echo "⚠️ Файл миграции languages не найден"
+    fi
+  else
+    echo "✅ Таблица languages уже существует"
+  fi
+fi
 
 # Шаг 3: Перегенерируем Prisma Client
 echo "🔄 Перегенерация Prisma Client..."
 npx prisma generate
+
+# Шаг 4: Заполняем таблицу языков
+echo "🌐 Заполнение таблицы языков..."
+if [ -f "prisma/seed-languages.ts" ]; then
+  if npx tsx prisma/seed-languages.ts 2>/dev/null; then
+    echo "✅ Языки успешно заполнены"
+  else
+    echo "⚠️ Не удалось заполнить языки (возможно, уже заполнены)"
+  fi
+else
+  echo "⚠️ Файл prisma/seed-languages.ts не найден, пропускаем заполнение языков"
+fi
 
 # Создаем базовое приложение если его нет
 echo "📱 Создание базового приложения..."
